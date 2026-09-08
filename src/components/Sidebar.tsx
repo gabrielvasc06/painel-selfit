@@ -1,22 +1,22 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import {
-  LayoutDashboard,
-  Search,
-  PlusCircle,
-  MapPin,
-  LogOut,
-  Menu,
-  X,
-  Tv,
   Building2,
+  Camera,
   Cpu,
-  ShieldCheck,
-  Wrench,
   Layers,
-  Upload,
+  LayoutDashboard,
+  LogOut,
+  MapPin,
+  Menu,
+  PlusCircle,
+  Search,
+  ShieldCheck,
+  Tv,
+  Wrench,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { ModuloTipo } from '@/lib/supabase';
+import type { ModuloTipo } from '@/lib/inventoryTypes';
 
 export type PageId =
   | 'dashboard'
@@ -28,8 +28,7 @@ export type PageId =
   | 'regiao'
   | 'garantias'
   | 'manutencoes'
-  | 'planta'
-  | 'import_csv';
+  | 'planta';
 
 interface SidebarProps {
   current: PageId;
@@ -39,8 +38,37 @@ interface SidebarProps {
   modulo: ModuloTipo;
 }
 
-function getNavSections(modulo: ModuloTipo): { label: string; items: { id: PageId; label: string; icon: typeof LayoutDashboard }[] }[] {
+type NavItem = { id: PageId; label: string; icon: typeof LayoutDashboard };
+
+function getNavSections(modulo: ModuloTipo): { label: string; items: NavItem[] }[] {
   const isTvs = modulo === 'tvs';
+  const isCameras = modulo === 'cameras';
+
+  const consultaItems: NavItem[] = [
+    { id: 'consultar', label: 'Consultar Unidades', icon: Search },
+    { id: 'regiao', label: 'Por Regiao', icon: MapPin },
+  ];
+
+  if (!isTvs) {
+    consultaItems.splice(1, 0, {
+      id: 'equipamentos',
+      label: isCameras ? 'Consultar Cameras' : 'Consultar Equipamentos',
+      icon: isCameras ? Camera : Cpu,
+    });
+  }
+
+  const cadastroItems: NavItem[] = isTvs
+    ? [
+        { id: 'cadastrar', label: 'Cadastrar TV', icon: Tv },
+        { id: 'cadastrar_unidade', label: 'Cadastrar Unidade', icon: Building2 },
+      ]
+    : [
+        {
+          id: 'cadastrar_equipamento',
+          label: isCameras ? 'Cadastrar Camera' : 'Cadastrar Equipamento',
+          icon: isCameras ? Camera : PlusCircle,
+        },
+      ];
 
   return [
     {
@@ -49,31 +77,33 @@ function getNavSections(modulo: ModuloTipo): { label: string; items: { id: PageI
     },
     {
       label: 'Consultas',
-      items: [
-        { id: 'consultar', label: 'Consultar Unidades', icon: Search },
-        { id: 'equipamentos', label: isTvs ? 'TVs' : 'Equipamentos de TI', icon: isTvs ? Tv : Cpu },
-        { id: 'regiao', label: 'Por Regiao', icon: MapPin },
-      ],
+      items: consultaItems,
     },
     {
       label: 'Cadastros',
-      items: [
-        isTvs
-          ? { id: 'cadastrar', label: 'Cadastrar TV', icon: Tv }
-          : { id: 'cadastrar_equipamento', label: 'Cadastrar Equipamento', icon: PlusCircle },
-        { id: 'cadastrar_unidade', label: 'Cadastrar Unidade', icon: Building2 },
-        { id: 'import_csv', label: 'Importar CSV', icon: Upload },
-      ],
+      items: cadastroItems,
     },
     {
       label: 'Gestao',
       items: [
         { id: 'garantias', label: 'Garantias', icon: ShieldCheck },
         { id: 'manutencoes', label: 'Manutencoes', icon: Wrench },
-        { id: 'planta', label: 'Planta Interativa', icon: Layers },
+        { id: 'planta', label: 'Monitoramento', icon: Layers },
       ],
     },
   ];
+}
+
+function moduleName(modulo: ModuloTipo) {
+  if (modulo === 'tvs') return 'Painel TVs';
+  if (modulo === 'cameras') return 'Painel Cameras';
+  return 'Painel Equipamentos';
+}
+
+function ModuleIcon({ modulo }: { modulo: ModuloTipo }) {
+  if (modulo === 'tvs') return <Tv className="h-6 w-6 text-white" />;
+  if (modulo === 'cameras') return <Camera className="h-6 w-6 text-white" />;
+  return <Cpu className="h-6 w-6 text-white" />;
 }
 
 export function Sidebar({ current, onNavigate, onLogout, userName = 'admin', modulo }: SidebarProps) {
@@ -86,7 +116,11 @@ export function Sidebar({ current, onNavigate, onLogout, userName = 'admin', mod
 
   return (
     <>
-      <button onClick={() => setMobileOpen(true)} className="fixed left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-lg bg-black text-white shadow-lg lg:hidden" aria-label="Abrir menu">
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="fixed left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-lg bg-black text-white shadow-lg lg:hidden"
+        aria-label="Abrir menu"
+      >
         <Menu className="h-5 w-5" />
       </button>
 
@@ -98,19 +132,21 @@ export function Sidebar({ current, onNavigate, onLogout, userName = 'admin', mod
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-selfit-500 to-selfit-700 shadow-lg shadow-selfit-500/30">
-                {modulo === 'tvs' ? <Tv className="h-6 w-6 text-white" /> : <Cpu className="h-6 w-6 text-white" />}
+                <ModuleIcon modulo={modulo} />
               </div>
               <div>
                 <h1 className="font-display text-xl font-extrabold leading-tight text-selfit-500">SELFIT</h1>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">{modulo === 'tvs' ? 'Painel TVs' : 'Painel TI'}</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">{moduleName(modulo)}</p>
               </div>
             </div>
-            <button onClick={() => setMobileOpen(false)} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white lg:hidden" aria-label="Fechar menu"><X className="h-5 w-5" /></button>
+            <button onClick={() => setMobileOpen(false)} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-white lg:hidden" aria-label="Fechar menu">
+              <X className="h-5 w-5" />
+            </button>
           </div>
           <p className="mt-3 text-xs text-slate-500">Gestao de Inventario v2.0</p>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-4 scrollbar-thin">
+        <nav className="scrollbar-thin flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-4">
           {navSections.map((section) => (
             <div key={section.label} className="mb-1">
               <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-widest text-slate-600">{section.label}</p>
@@ -118,8 +154,11 @@ export function Sidebar({ current, onNavigate, onLogout, userName = 'admin', mod
                 const Icon = item.icon;
                 const active = current === item.id;
                 return (
-                  <button key={item.id} onClick={() => onNavigate(item.id)}
-                    className={cn('group relative flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all', active ? 'bg-selfit-500 text-white shadow-lg shadow-selfit-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white')}>
+                  <button
+                    key={item.id}
+                    onClick={() => onNavigate(item.id)}
+                    className={cn('group relative flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all', active ? 'bg-selfit-500 text-white shadow-lg shadow-selfit-500/20' : 'text-slate-300 hover:bg-white/5 hover:text-white')}
+                  >
                     <Icon className={cn('h-4.5 w-4.5 shrink-0 transition-transform group-hover:scale-110', active ? 'text-white' : 'text-slate-400 group-hover:text-selfit-400')} />
                     <span className="truncate">{item.label}</span>
                     {active && <span className="absolute right-3 h-1.5 w-1.5 rounded-full bg-white" />}

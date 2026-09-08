@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
-import type { ModuloTipo } from '@/lib/supabase';
+﻿/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, ReactNode } from 'react';
+import type { ModuloTipo } from '@/lib/inventoryTypes';
 
 interface ModuloContextType {
   modulo: ModuloTipo;
