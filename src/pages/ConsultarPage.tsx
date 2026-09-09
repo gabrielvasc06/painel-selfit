@@ -1,9 +1,9 @@
-﻿import { ArrowRight, Building, Camera, Cpu, MapPin, Search, Tv, X } from 'lucide-react';
+import { ArrowRight, Building, Camera, Cpu, MapPin, Search, Tv, X } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
-import { useInventory } from '@/contexts/InventoryContext';
-import { filterUnidades } from '@/lib/inventoryLogic';
-import { moduleLabels } from '@/lib/inventoryTypes';
-import { useModulo } from '@/App';
+import { useInventory } from '@/providers/InventoryProvider';
+import { filterUnidades } from '@/services/inventory/inventoryLogic';
+import { moduleLabels } from '@/services/inventory/inventoryTypes';
+import { useModulo } from '@/providers/ModuloProvider';
 import { useMemo, useState } from 'react';
 
 interface UnidadeWithCounts {

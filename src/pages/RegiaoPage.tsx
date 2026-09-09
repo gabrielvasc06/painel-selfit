@@ -1,8 +1,8 @@
-﻿import { ArrowRight, Building, Camera, Cpu, MapPin, Tv } from 'lucide-react';
+import { ArrowRight, Building, Camera, Cpu, MapPin, Tv } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { useInventory } from '@/contexts/InventoryContext';
-import { moduleLabels } from '@/lib/inventoryTypes';
-import { useModulo } from '@/App';
+import { useInventory } from '@/providers/InventoryProvider';
+import { moduleLabels } from '@/services/inventory/inventoryTypes';
+import { useModulo } from '@/providers/ModuloProvider';
 
 export function RegiaoPage({ onOpenRegiao }: { onOpenRegiao: (id: string) => void }) {
   const { modulo } = useModulo();

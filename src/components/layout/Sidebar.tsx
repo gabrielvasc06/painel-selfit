@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Building2,
   Camera,
@@ -15,8 +15,8 @@ import {
   Wrench,
   X,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { ModuloTipo } from '@/lib/inventoryTypes';
+import { cn } from '@/utils/cn';
+import type { ModuloTipo } from '@/services/inventory/inventoryTypes';
 
 export type PageId =
   | 'dashboard'

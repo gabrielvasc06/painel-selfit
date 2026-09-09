@@ -1,6 +1,6 @@
-﻿/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, ReactNode } from 'react';
-import type { ModuloTipo } from '@/lib/inventoryTypes';
+import type { ModuloTipo } from '@/services/inventory/inventoryTypes';
 
 interface ModuloContextType {
   modulo: ModuloTipo;

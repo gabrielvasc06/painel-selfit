@@ -1,9 +1,9 @@
-﻿import { ArrowLeft, Building, Camera, Cpu, MapPin, Tv } from 'lucide-react';
+import { ArrowLeft, Building, Camera, Cpu, MapPin, Tv } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { DonutChart } from '@/screens/DashboardPage';
-import { useInventory } from '@/contexts/InventoryContext';
-import { moduleLabels } from '@/lib/inventoryTypes';
-import { useModulo } from '@/App';
+import { DonutChart } from '@/pages/DashboardPage';
+import { useInventory } from '@/providers/InventoryProvider';
+import { moduleLabels } from '@/services/inventory/inventoryTypes';
+import { useModulo } from '@/providers/ModuloProvider';
 
 export function RegiaoDetailPage({ regiaoId, onBack }: { regiaoId: string; onBack: () => void }) {
   const { modulo } = useModulo();

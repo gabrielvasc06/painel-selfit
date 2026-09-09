@@ -1,4 +1,4 @@
-import type { Camera, Equipamento, ModuloTipo, Regiao, Unidade } from '@/lib/inventoryTypes';
+import type { Camera, Equipamento, ModuloTipo, Regiao, Unidade } from '@/services/inventory/inventoryTypes';
 
 const estadoNomeParaUf: Record<string, string> = {
   acre: 'AC',

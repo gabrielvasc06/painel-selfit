@@ -2,8 +2,8 @@ import { useRef, useState } from 'react';
 import { Building2, CheckCircle2, FileSpreadsheet, FileText, Loader2, MapPin, UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { useInventory } from '@/contexts/InventoryContext';
-import { parseUnidadesCsv, type UnidadeCsvPreview } from '@/lib/inventoryLogic';
+import { useInventory } from '@/providers/InventoryProvider';
+import { parseUnidadesCsv, type UnidadeCsvPreview } from '@/services/inventory/inventoryLogic';
 
 const inputClass = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-900 placeholder:text-slate-400 transition-all focus:border-selfit-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-selfit-500/20';
 

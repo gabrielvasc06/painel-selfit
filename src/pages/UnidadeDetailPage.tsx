@@ -1,11 +1,11 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Archive, ArrowLeft, BadgeCheck, Building, Camera, CheckCircle2, Cpu, FileText, MapPin, Pencil, Save, Trash2, Tv, Wrench, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { DonutChart } from '@/screens/DashboardPage';
-import { useInventory } from '@/contexts/InventoryContext';
-import { categoriaLabels, moduleLabels, statusEquipLabels, type Equipamento } from '@/lib/inventoryTypes';
-import { useModulo } from '@/App';
+import { DonutChart } from '@/pages/DashboardPage';
+import { useInventory } from '@/providers/InventoryProvider';
+import { categoriaLabels, moduleLabels, statusEquipLabels, type Equipamento } from '@/services/inventory/inventoryTypes';
+import { useModulo } from '@/providers/ModuloProvider';
 
 const statusConfig = {
   ativo: { label: 'Ativo', icon: CheckCircle2, class: 'bg-emerald-100 text-emerald-700 border-emerald-200' },

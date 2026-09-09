@@ -1,9 +1,9 @@
-﻿import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Building2, Camera, Cpu, Layers, MapPin, Tv, Upload, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { useInventory } from '@/contexts/InventoryContext';
-import { categoriaLabels, moduleLabels } from '@/lib/inventoryTypes';
-import { useModulo } from '@/App';
+import { useInventory } from '@/providers/InventoryProvider';
+import { categoriaLabels, moduleLabels } from '@/services/inventory/inventoryTypes';
+import { useModulo } from '@/providers/ModuloProvider';
 
 type PlantaLocal = {
   unidadeId: string;

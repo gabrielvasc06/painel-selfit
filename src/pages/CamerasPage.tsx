@@ -1,10 +1,10 @@
-﻿import { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AlertTriangle, Camera, CheckCircle2, Edit2, Search, Trash2, Video, X, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { useInventory } from '@/contexts/InventoryContext';
-import { cameraMatchesSearch } from '@/lib/inventoryLogic';
-import { statusCameraLabels, tipoCameraLabels, type Camera as CameraType } from '@/lib/inventoryTypes';
+import { useInventory } from '@/providers/InventoryProvider';
+import { cameraMatchesSearch } from '@/services/inventory/inventoryLogic';
+import { statusCameraLabels, tipoCameraLabels, type Camera as CameraType } from '@/services/inventory/inventoryTypes';
 
 export function CamerasPage() {
   const { regioes, getUnidade, getCamerasComUnidade, updateCamera, deleteCamera } = useInventory();

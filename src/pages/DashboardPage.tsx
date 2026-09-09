@@ -1,8 +1,8 @@
-﻿import { Activity, Archive, ArrowRight, Building2, Camera, Cpu, Tv, Wrench } from 'lucide-react';
+import { Activity, Archive, ArrowRight, Building2, Camera, Cpu, Tv, Wrench } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { useInventory } from '@/contexts/InventoryContext';
-import { moduleLabels, type Historico } from '@/lib/inventoryTypes';
-import { useModulo } from '@/App';
+import { useInventory } from '@/providers/InventoryProvider';
+import { moduleLabels, type Historico } from '@/services/inventory/inventoryTypes';
+import { useModulo } from '@/providers/ModuloProvider';
 
 export function DashboardPage({ onVerHistorico }: { onVerHistorico: () => void }) {
   const { modulo } = useModulo();
