@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { AlertCircle, Eye, EyeOff, Loader2, Lock, ShieldCheck, User } from 'lucide-react';
+import selfitLogoUrl from '@/assets/logos/selfit-logo.png';
 
 interface LoginScreenProps {
   onLogin: (username: string) => void;
 }
-
-const selfitLogoUrl = '/logo_self-it-academias_JA1LqU.png';
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [username, setUsername] = useState('');

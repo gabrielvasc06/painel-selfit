@@ -1,7 +1,7 @@
 import { ArrowLeft, Building, Calendar, Clock, History, MapPin, Tv, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
-import { useInventory } from '@/contexts/InventoryContext';
-import { useModulo } from '@/App';
+import { useInventory } from '@/providers/InventoryProvider';
+import { useModulo } from '@/providers/ModuloProvider';
 
 export function HistoricoPage({ onBack }: { onBack: () => void }) {
   const { modulo } = useModulo();

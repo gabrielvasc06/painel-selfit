@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Building, Calendar, CheckCircle2, FileText, Hash, MapPin, Monitor, PlusCircle, Tv } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { useInventory } from '@/contexts/InventoryContext';
+import { useInventory } from '@/providers/InventoryProvider';
 
 const statusOptions = [
   { v: 'ativo', l: 'Ativa', c: 'border-emerald-300 bg-emerald-50 text-emerald-700' },

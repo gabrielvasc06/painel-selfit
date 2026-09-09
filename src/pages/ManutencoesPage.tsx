@@ -1,10 +1,10 @@
-﻿import { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Calendar, DollarSign, History, MapPin, Plus, Trash2, User, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { useInventory } from '@/contexts/InventoryContext';
-import { categoriaLabels, moduleLabels, type Equipamento, type Manutencao } from '@/lib/inventoryTypes';
-import { useModulo } from '@/App';
+import { useInventory } from '@/providers/InventoryProvider';
+import { categoriaLabels, moduleLabels, type Equipamento, type Manutencao } from '@/services/inventory/inventoryTypes';
+import { useModulo } from '@/providers/ModuloProvider';
 
 const tipoLabels: Record<string, string> = {
   troca: 'Troca',

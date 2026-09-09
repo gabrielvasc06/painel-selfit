@@ -1,9 +1,9 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Building2, Calendar, CheckCircle2, Cpu, Hash, MapPin, Monitor, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { useInventory } from '@/contexts/InventoryContext';
-import { categoriaLabels, statusEquipLabels, tiCategorias, type EquipamentoCategoria, type EquipamentoStatus } from '@/lib/inventoryTypes';
+import { useInventory } from '@/providers/InventoryProvider';
+import { categoriaLabels, statusEquipLabels, tiCategorias, type EquipamentoCategoria, type EquipamentoStatus } from '@/services/inventory/inventoryTypes';
 
 const inputClass = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-900 placeholder:text-slate-400 transition-all focus:border-selfit-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-selfit-500/20 disabled:cursor-not-allowed disabled:opacity-50';
 

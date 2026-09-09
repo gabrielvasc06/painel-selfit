@@ -1,13 +1,12 @@
-﻿import { ArrowRight, Camera, LogOut, Server, ShieldCheck, Tv, User } from 'lucide-react';
-import type { ModuloTipo } from '@/lib/inventoryTypes';
+import { ArrowRight, Camera, LogOut, Server, ShieldCheck, Tv, User } from 'lucide-react';
+import selfitLogoUrl from '@/assets/logos/selfit-logo.png';
+import type { ModuloTipo } from '@/services/inventory/inventoryTypes';
 
 interface ModuleSelectScreenProps {
   userName: string;
   onSelectModulo: (modulo: ModuloTipo) => void;
   onLogout: () => void;
 }
-
-const selfitLogoUrl = '/logo_self-it-academias_JA1LqU.png';
 
 const modules = [
   {

@@ -1,4 +1,4 @@
-﻿/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { useLocalStorageState } from '@/hooks/useLocalStorageState';
 import {
@@ -12,7 +12,7 @@ import {
   type ModuloTipo,
   type Regiao,
   type Unidade,
-} from '@/lib/inventoryTypes';
+} from '@/services/inventory/inventoryTypes';
 
 type UnidadeInput = {
   nome: string;

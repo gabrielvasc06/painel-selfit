@@ -1,10 +1,10 @@
-﻿import { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Building2, Calendar, Cpu, Hash, MapPin, Pencil, Save, Search, Tag, Trash2, Tv, Wrench, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
-import { useInventory } from '@/contexts/InventoryContext';
-import { categoriaLabels, moduleLabels, statusEquipLabels, tiCategorias, type Equipamento } from '@/lib/inventoryTypes';
-import { useModulo } from '@/App';
+import { useInventory } from '@/providers/InventoryProvider';
+import { categoriaLabels, moduleLabels, statusEquipLabels, tiCategorias, type Equipamento } from '@/services/inventory/inventoryTypes';
+import { useModulo } from '@/providers/ModuloProvider';
 
 interface EquipamentoWithUnidade extends Equipamento {
   unidades?: ReturnType<ReturnType<typeof useInventory>['getUnidade']>;
