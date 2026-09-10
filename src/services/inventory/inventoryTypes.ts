@@ -129,6 +129,7 @@ export type Camera = {
   modelo?: string | null;
   status: CameraStatus;
   created_at?: string;
+  updated_at?: string;
   unidades?: Unidade | null;
 };
 
@@ -157,6 +158,7 @@ export interface Manutencao {
   custo: number | null;
   modulo: ModuloTipo;
   created_at: string;
+  updated_at?: string;
   equipamentos?: Equipamento;
 }
 

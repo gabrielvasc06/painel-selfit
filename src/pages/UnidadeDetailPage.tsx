@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { DonutChart } from '@/pages/DashboardPage';
 import { useInventory } from '@/providers/InventoryProvider';
-import { categoriaLabels, moduleLabels, statusEquipLabels, type Equipamento } from '@/services/inventory/inventoryTypes';
+import { categoriaLabels, moduleLabels, statusCameraLabels, statusEquipLabels, tipoCameraLabels, type Camera as CameraType, type Equipamento } from '@/services/inventory/inventoryTypes';
 import { useModulo } from '@/providers/ModuloProvider';
 
 const statusConfig = {
@@ -18,10 +18,12 @@ const inputClass = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-3 p
 
 export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; onBack: () => void }) {
   const { modulo } = useModulo();
-  const { getUnidade, getEquipamentosByModulo, cameras, updateEquipamento, deleteEquipamento } = useInventory();
+  const { getUnidade, getEquipamentosByModulo, cameras, updateEquipamento, deleteEquipamento, updateCamera, deleteCamera } = useInventory();
   const unidade = getUnidade(unidadeId);
   const [editing, setEditing] = useState<Equipamento | null>(null);
   const [editForm, setEditForm] = useState({ nome: '', eletromidia_id: '', marca: '', modelo: '', status: 'ativo', observacoes: '' });
+  const [editingCamera, setEditingCamera] = useState<CameraType | null>(null);
+  const [cameraForm, setCameraForm] = useState({ nome: '', tipo: 'ip' as CameraType['tipo'], setor: '', ip_address: '', canal_dvr: '', marca: '', modelo: '', status: 'ativa' as CameraType['status'] });
   const [toast, setToast] = useState('');
 
   if (!unidade) {
@@ -59,6 +61,41 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
   const removeItem = (item: Equipamento) => {
     deleteEquipamento(item.id);
     setToast(`${labels.item} removido.`);
+  };
+
+  const openCameraEdit = (camera: CameraType) => {
+    setEditingCamera(camera);
+    setCameraForm({
+      nome: camera.nome,
+      tipo: camera.tipo,
+      setor: camera.setor ?? '',
+      ip_address: camera.ip_address ?? '',
+      canal_dvr: camera.canal_dvr ? String(camera.canal_dvr) : '',
+      marca: camera.marca ?? '',
+      modelo: camera.modelo ?? '',
+      status: camera.status,
+    });
+  };
+
+  const saveCameraEdit = () => {
+    if (!editingCamera || !cameraForm.nome.trim()) return;
+    updateCamera(editingCamera.id, {
+      nome: cameraForm.nome.trim(),
+      tipo: cameraForm.tipo,
+      setor: cameraForm.setor.trim() || null,
+      ip_address: cameraForm.ip_address.trim() || null,
+      canal_dvr: cameraForm.canal_dvr ? Number(cameraForm.canal_dvr) : null,
+      marca: cameraForm.marca.trim() || null,
+      modelo: cameraForm.modelo.trim() || null,
+      status: cameraForm.status,
+    });
+    setToast('Camera atualizada.');
+    setEditingCamera(null);
+  };
+
+  const removeCamera = (camera: CameraType) => {
+    deleteCamera(camera.id);
+    setToast('Camera removida.');
   };
 
   return (
@@ -132,18 +169,25 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
                     <th className="px-5 py-3 font-semibold text-slate-600">IP</th>
                     <th className="px-5 py-3 font-semibold text-slate-600">Canal DVR</th>
                     <th className="px-5 py-3 font-semibold text-slate-600">Status</th>
+                    <th className="px-5 py-3" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {unidadeCameras.length === 0 ? (
-                    <tr><td colSpan={5} className="px-5 py-8 text-center text-slate-400">Nenhuma camera cadastrada nesta unidade.</td></tr>
+                    <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400">Nenhuma camera cadastrada nesta unidade.</td></tr>
                   ) : unidadeCameras.map((camera) => (
                     <tr key={camera.id} className="hover:bg-slate-50">
                       <td className="px-5 py-3 font-semibold text-slate-900">{camera.nome}</td>
                       <td className="px-5 py-3 text-slate-600">{camera.setor ?? '-'}</td>
                       <td className="px-5 py-3 text-slate-600">{camera.ip_address ?? '-'}</td>
                       <td className="px-5 py-3 text-slate-600">{camera.canal_dvr ?? '-'}</td>
-                      <td className="px-5 py-3 text-slate-600">{camera.status}</td>
+                      <td className="px-5 py-3 text-slate-600">{statusCameraLabels[camera.status]}</td>
+                      <td className="px-5 py-3">
+                        <div className="flex gap-2">
+                          <button onClick={() => openCameraEdit(camera)} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-selfit-50 hover:text-selfit-600" title="Atualizar"><Pencil className="h-4 w-4" /></button>
+                          <button onClick={() => removeCamera(camera)} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500" title="Remover"><Trash2 className="h-4 w-4" /></button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -201,6 +245,35 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
           </Card>
         )}
       </div>
+
+      {editingCamera && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in" onClick={() => setEditingCamera(null)}>
+          <Card className="w-full max-w-lg p-6 animate-scale-in" onClick={(event) => event.stopPropagation()}>
+            <div className="mb-5 flex items-center justify-between">
+              <CardTitle className="text-lg">Atualizar Camera</CardTitle>
+              <button onClick={() => setEditingCamera(null)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <input value={cameraForm.nome} onChange={(event) => setCameraForm((current) => ({ ...current, nome: event.target.value }))} className={inputClass} placeholder="Nome da camera" />
+              <select value={cameraForm.tipo} onChange={(event) => setCameraForm((current) => ({ ...current, tipo: event.target.value as CameraType['tipo'] }))} className={inputClass}>
+                {Object.entries(tipoCameraLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              </select>
+              <input value={cameraForm.setor} onChange={(event) => setCameraForm((current) => ({ ...current, setor: event.target.value }))} className={inputClass} placeholder="Setor" />
+              <select value={cameraForm.status} onChange={(event) => setCameraForm((current) => ({ ...current, status: event.target.value as CameraType['status'] }))} className={inputClass}>
+                {Object.entries(statusCameraLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              </select>
+              <input value={cameraForm.ip_address} onChange={(event) => setCameraForm((current) => ({ ...current, ip_address: event.target.value }))} className={`${inputClass} font-mono`} placeholder="IP opcional" />
+              <input type="number" min="1" value={cameraForm.canal_dvr} onChange={(event) => setCameraForm((current) => ({ ...current, canal_dvr: event.target.value }))} className={inputClass} placeholder="Canal DVR opcional" />
+              <input value={cameraForm.marca} onChange={(event) => setCameraForm((current) => ({ ...current, marca: event.target.value }))} className={inputClass} placeholder="Marca" />
+              <input value={cameraForm.modelo} onChange={(event) => setCameraForm((current) => ({ ...current, modelo: event.target.value }))} className={inputClass} placeholder="Modelo" />
+            </div>
+            <div className="mt-5 flex gap-2">
+              <Button type="button" onClick={saveCameraEdit}><Save className="h-4 w-4" /> Salvar</Button>
+              <Button type="button" variant="outline" onClick={() => setEditingCamera(null)}>Cancelar</Button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in" onClick={() => setEditing(null)}>

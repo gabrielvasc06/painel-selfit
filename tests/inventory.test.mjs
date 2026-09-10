@@ -27,6 +27,17 @@ function sanitizeCameraNetworkFields(input) {
   };
 }
 
+function updateEntity(items, id, patch, updatedAt) {
+  return items.map((item) => (item.id === id ? { ...item, ...patch, updated_at: updatedAt } : item));
+}
+
+function deleteCameraCascade(cameras, manutencoes, cameraId) {
+  return {
+    cameras: cameras.filter((camera) => camera.id !== cameraId),
+    manutencoes: manutencoes.filter((manutencao) => manutencao.equipamento_id !== cameraId),
+  };
+}
+
 function normalizeSearchValue(value) {
   return value
     .trim()
@@ -187,6 +198,23 @@ test('consulta cameras por IP parcial, canal DVR e dados descritivos', () => {
   assert.equal(cameraMatchesSearch(camera, 'dvr 04'), true);
   assert.equal(cameraMatchesSearch(camera, 'boa viagem', 'Boa Viagem'), true);
   assert.equal(cameraMatchesSearch({ ...camera, ip_address: null, canal_dvr: null }, '192'), false);
+});
+
+test('atualiza registros mantendo contrato de updated_at para futuro backend', () => {
+  const updated = updateEntity([{ id: 'man-1', descricao: 'Antes' }], 'man-1', { descricao: 'Depois' }, '2026-09-10T10:00:00.000Z');
+
+  assert.deepEqual(updated, [{ id: 'man-1', descricao: 'Depois', updated_at: '2026-09-10T10:00:00.000Z' }]);
+});
+
+test('remove manutencoes vinculadas quando camera e excluida', () => {
+  const result = deleteCameraCascade(
+    [{ id: 'cam-1' }, { id: 'cam-2' }],
+    [{ id: 'man-1', equipamento_id: 'cam-1' }, { id: 'man-2', equipamento_id: 'eq-1' }],
+    'cam-1',
+  );
+
+  assert.deepEqual(result.cameras, [{ id: 'cam-2' }]);
+  assert.deepEqual(result.manutencoes, [{ id: 'man-2', equipamento_id: 'eq-1' }]);
 });
 
 test('parseia planilha CSV de unidades e normaliza CEP/estado', () => {

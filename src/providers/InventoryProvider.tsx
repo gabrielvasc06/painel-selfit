@@ -64,6 +64,7 @@ interface InventoryContextType {
   updateCamera: (id: string, patch: Partial<Camera>) => void;
   deleteCamera: (id: string) => void;
   addManutencao: (input: ManutencaoInput) => Manutencao;
+  updateManutencao: (id: string, patch: Partial<Manutencao>) => void;
   deleteManutencao: (id: string) => void;
   addHistorico: (input: HistoricoInput) => void;
   nextTvNumber: (unidadeId: string) => string;
@@ -220,11 +221,12 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     };
 
     const updateCamera = (id: string, patch: Partial<Camera>) => {
-      setCameras((prev) => prev.map((camera) => (camera.id === id ? { ...camera, ...patch } : camera)));
+      setCameras((prev) => prev.map((camera) => (camera.id === id ? { ...camera, ...patch, updated_at: now() } : camera)));
     };
 
     const deleteCamera = (id: string) => {
       setCameras((prev) => prev.filter((camera) => camera.id !== id));
+      setManutencoes((prev) => prev.filter((item) => item.equipamento_id !== id));
     };
 
     const addManutencao = (input: ManutencaoInput) => {
@@ -236,6 +238,12 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
       setManutencoes((prev) => [manutencao, ...prev]);
       return manutencao;
+    };
+
+    const updateManutencao = (id: string, patch: Partial<Manutencao>) => {
+      setManutencoes((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, ...patch, updated_at: now() } : item)),
+      );
     };
 
     const deleteManutencao = (id: string) => {
@@ -267,6 +275,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       updateCamera,
       deleteCamera,
       addManutencao,
+      updateManutencao,
       deleteManutencao,
       addHistorico,
       nextTvNumber,

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Calendar, DollarSign, History, MapPin, Plus, Trash2, User, Wrench } from 'lucide-react';
+import { Calendar, DollarSign, History, MapPin, Pencil, Plus, Save, Trash2, User, Wrench, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useInventory } from '@/providers/InventoryProvider';
@@ -24,12 +24,31 @@ const tipoColors: Record<string, string> = {
 
 const inputClass = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-900 placeholder:text-slate-400 transition-all focus:border-selfit-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-selfit-500/20';
 
+type MaintenanceForm = {
+  equipamento_id: string;
+  tipo: Manutencao['tipo'];
+  descricao: string;
+  responsavel: string;
+  data_manutencao: string;
+  custo: string;
+};
+
+const emptyMaintenanceForm: MaintenanceForm = {
+  equipamento_id: '',
+  tipo: 'reparo',
+  descricao: '',
+  responsavel: '',
+  data_manutencao: '',
+  custo: '',
+};
+
 export function ManutencoesPage() {
   const { modulo } = useModulo();
-  const { regioes, getUnidade, getEquipamentosByModulo, cameras, manutencoes, addManutencao, deleteManutencao } = useInventory();
+  const { regioes, getUnidade, getEquipamentosByModulo, cameras, manutencoes, addManutencao, updateManutencao, deleteManutencao } = useInventory();
   const [showForm, setShowForm] = useState(false);
   const [regiaoFilter, setRegiaoFilter] = useState('all');
-  const [form, setForm] = useState({ equipamento_id: '', tipo: 'reparo', descricao: '', responsavel: '', data_manutencao: '', custo: '' });
+  const [editingManutencao, setEditingManutencao] = useState<Manutencao | null>(null);
+  const [form, setForm] = useState<MaintenanceForm>(emptyMaintenanceForm);
 
   const equipamentos = useMemo(() => {
     if (modulo === 'cameras') {
@@ -69,17 +88,50 @@ export function ManutencoesPage() {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!form.equipamento_id) return;
-    addManutencao({
+    const payload = {
       equipamento_id: form.equipamento_id,
-      tipo: form.tipo as Manutencao['tipo'],
+      tipo: form.tipo,
       descricao: form.descricao || null,
       responsavel: form.responsavel || null,
       data_manutencao: form.data_manutencao || new Date().toISOString().split('T')[0],
       custo: form.custo ? parseFloat(form.custo) : null,
       modulo,
-    });
-    setForm({ equipamento_id: '', tipo: 'reparo', descricao: '', responsavel: '', data_manutencao: '', custo: '' });
+    };
+
+    if (editingManutencao) {
+      updateManutencao(editingManutencao.id, payload);
+    } else {
+      addManutencao(payload);
+    }
+
+    setForm(emptyMaintenanceForm);
+    setEditingManutencao(null);
     setShowForm(false);
+  };
+
+  const startCreate = () => {
+    setEditingManutencao(null);
+    setForm(emptyMaintenanceForm);
+    setShowForm(true);
+  };
+
+  const startEdit = (manutencao: Manutencao) => {
+    setEditingManutencao(manutencao);
+    setForm({
+      equipamento_id: manutencao.equipamento_id,
+      tipo: manutencao.tipo,
+      descricao: manutencao.descricao ?? '',
+      responsavel: manutencao.responsavel ?? '',
+      data_manutencao: manutencao.data_manutencao,
+      custo: manutencao.custo != null ? String(manutencao.custo) : '',
+    });
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingManutencao(null);
+    setForm(emptyMaintenanceForm);
   };
 
   const labels = moduleLabels[modulo];
@@ -97,13 +149,15 @@ export function ManutencoesPage() {
             <option value="all">Todas regioes</option>
             {regioes.map((regiao) => <option key={regiao.id} value={regiao.sigla}>{regiao.sigla}</option>)}
           </select>
-          <Button size="sm" onClick={() => setShowForm(!showForm)}><Plus className="h-4 w-4" /> Registrar</Button>
+          <Button size="sm" onClick={showForm ? closeForm : startCreate}>
+            {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />} {showForm ? 'Fechar' : 'Registrar'}
+          </Button>
         </div>
       </div>
 
       {showForm && (
         <Card className="animate-fade-in-up border-black p-6">
-          <CardHeader className="px-0 pt-0"><CardTitle className="text-lg">Nova Manutencao</CardTitle></CardHeader>
+          <CardHeader className="px-0 pt-0"><CardTitle className="text-lg">{editingManutencao ? 'Atualizar Manutencao' : 'Nova Manutencao'}</CardTitle></CardHeader>
           <CardContent className="px-0 pt-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -118,7 +172,7 @@ export function ManutencoesPage() {
                   </select>
                 </div>
                 <Field label="Tipo" icon={Wrench}>
-                  <select value={form.tipo} onChange={(event) => setForm((current) => ({ ...current, tipo: event.target.value }))} className={inputClass}>
+                  <select value={form.tipo} onChange={(event) => setForm((current) => ({ ...current, tipo: event.target.value as Manutencao['tipo'] }))} className={inputClass}>
                     {Object.entries(tipoLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                   </select>
                 </Field>
@@ -137,8 +191,11 @@ export function ManutencoesPage() {
                 <textarea value={form.descricao} onChange={(event) => setForm((current) => ({ ...current, descricao: event.target.value }))} rows={3} placeholder="Descreva a manutencao realizada..." className={`${inputClass} resize-none`} />
               </div>
               <div className="flex gap-3">
-                <Button type="submit" size="lg"><Wrench className="h-5 w-5" /> Registrar</Button>
-                <Button type="button" variant="outline" size="lg" onClick={() => setShowForm(false)}>Cancelar</Button>
+                <Button type="submit" size="lg">
+                  {editingManutencao ? <Save className="h-5 w-5" /> : <Wrench className="h-5 w-5" />}
+                  {editingManutencao ? 'Salvar Alteracoes' : 'Registrar'}
+                </Button>
+                <Button type="button" variant="outline" size="lg" onClick={closeForm}>Cancelar</Button>
               </div>
             </form>
           </CardContent>
@@ -171,7 +228,10 @@ export function ManutencoesPage() {
                         {manutencao.custo != null && <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> R$ {manutencao.custo.toFixed(2)}</span>}
                       </div>
                     </div>
-                    <button onClick={() => deleteManutencao(manutencao.id)} className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
+                    <div className="flex shrink-0 gap-1">
+                      <button onClick={() => startEdit(manutencao)} className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-selfit-50 hover:text-selfit-600" title="Atualizar manutencao"><Pencil className="h-4 w-4" /></button>
+                      <button onClick={() => deleteManutencao(manutencao.id)} className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500" title="Remover manutencao"><Trash2 className="h-4 w-4" /></button>
+                    </div>
                   </div>
                 );
               })}
