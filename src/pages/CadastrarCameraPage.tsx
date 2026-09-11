@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building2, Camera, CheckCircle2, Hash, MapPin, Network, Tag, Video } from 'lucide-react';
+import { Building2, Camera, CheckCircle2, MapPin, Tag, Video } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useInventory } from '@/providers/InventoryProvider';
@@ -16,8 +16,6 @@ export function CadastrarCameraPage() {
     nome: '',
     tipo: 'ip' as CameraType['tipo'],
     setor: '',
-    ip_address: '',
-    canal_dvr: '',
     marca: '',
     modelo: '',
     status: 'ativa' as CameraType['status'],
@@ -32,7 +30,7 @@ export function CadastrarCameraPage() {
   };
 
   const reset = () => {
-    setForm({ regiao_id: '', unidade_id: '', nome: '', tipo: 'ip', setor: '', ip_address: '', canal_dvr: '', marca: '', modelo: '', status: 'ativa' });
+    setForm({ regiao_id: '', unidade_id: '', nome: '', tipo: 'ip', setor: '', marca: '', modelo: '', status: 'ativa' });
   };
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -44,8 +42,6 @@ export function CadastrarCameraPage() {
       nome: form.nome,
       tipo: form.tipo,
       setor: form.setor,
-      ip_address: form.ip_address.trim() || null,
-      canal_dvr: form.canal_dvr ? Number(form.canal_dvr) : null,
       marca: form.marca,
       modelo: form.modelo,
       status: form.status,
@@ -62,7 +58,7 @@ export function CadastrarCameraPage() {
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-white"><Camera className="h-5 w-5" /></div>
         <div>
           <h1 className="font-display text-2xl font-bold text-slate-900">Cadastrar Camera</h1>
-          <p className="text-sm text-slate-500">Registre cameras, IPs, canais e status do CFTV</p>
+          <p className="text-sm text-slate-500">Registre cameras, setores e status do CFTV</p>
         </div>
       </div>
 
@@ -100,12 +96,6 @@ export function CadastrarCameraPage() {
               </Field>
               <Field label="Setor" icon={MapPin}>
                 <input value={form.setor} onChange={(event) => update('setor', event.target.value)} placeholder="Ex: Recepcao" className={inputClass} />
-              </Field>
-              <Field label="Endereco IP (opcional)" icon={Network}>
-                <input value={form.ip_address} onChange={(event) => update('ip_address', event.target.value)} placeholder="Opcional: 192.168.1.100" className={`${inputClass} font-mono`} />
-              </Field>
-              <Field label="Canal DVR (opcional)" icon={Hash}>
-                <input type="number" min="1" value={form.canal_dvr} onChange={(event) => update('canal_dvr', event.target.value)} placeholder="Opcional: 4" className={inputClass} />
               </Field>
               <Field label="Status" icon={Camera}>
                 <select value={form.status} onChange={(event) => update('status', event.target.value)} className={inputClass}>

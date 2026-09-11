@@ -26,7 +26,7 @@ const modules = [
   {
     id: 'cameras' as const,
     title: 'Gestao de Cameras',
-    description: 'Cadastro, consulta e monitoramento de cameras por unidade e status.',
+    description: 'Cadastro e consulta de cameras por unidade e status.',
     icon: Camera,
     color: 'emerald',
   },
@@ -95,7 +95,7 @@ export function ModuleSelectScreen({ userName, onSelectModulo, onLogout }: Modul
             Selecione o Modulo de Trabalho
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-slate-400 sm:text-base">
-            Escolha o ambiente de gestao para acessar filtros, cadastros, consultas e monitoramento.
+            Escolha o ambiente de gestao para acessar filtros, cadastros e consultas do inventario.
           </p>
         </div>
 

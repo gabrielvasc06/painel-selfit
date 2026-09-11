@@ -74,7 +74,7 @@ export function ConsultarPage({ onOpenUnidade }: { onOpenUnidade: (id: string) =
               type="text"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar por nome da unidade, cidade, rua ou estado..."
+              placeholder="Buscar pelo nome da unidade..."
               className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:border-selfit-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-selfit-500/20"
             />
           </div>

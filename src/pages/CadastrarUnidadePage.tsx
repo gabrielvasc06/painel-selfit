@@ -8,7 +8,7 @@ import { parseUnidadesCsv, type UnidadeCsvPreview } from '@/services/inventory/i
 const inputClass = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-900 placeholder:text-slate-400 transition-all focus:border-selfit-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-selfit-500/20';
 
 export function CadastrarUnidadePage() {
-  const { regioes, unidades, addUnidade, addUnidades, addHistorico } = useInventory();
+  const { regioes, addUnidade, addUnidades, addHistorico } = useInventory();
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({ nome: '', regiao_id: '', cidade: '', cnpj: '', logradouro: '', numero: '', bairro: '', cep: '' });
   const [submitted, setSubmitted] = useState(false);
@@ -118,11 +118,6 @@ export function CadastrarUnidadePage() {
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  const groupedRegions = regioes.reduce<Record<string, typeof regioes>>((acc, regiao) => {
-    acc[regiao.macroregiao] = [...(acc[regiao.macroregiao] ?? []), regiao];
-    return acc;
-  }, {});
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 rounded-2xl border-2 border-black bg-white px-6 py-5 shadow-sm animate-fade-in">
@@ -231,32 +226,6 @@ export function CadastrarUnidadePage() {
         </Card>
       </div>
 
-      <div className="space-y-4">
-        <h2 className="font-display text-xl font-bold text-slate-900">Estados por Regiao</h2>
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          {Object.entries(groupedRegions).map(([macroregiao, states]) => (
-            <Card key={macroregiao} className="overflow-hidden">
-              <CardHeader className="border-b border-slate-100"><CardTitle className="text-base">{macroregiao}</CardTitle></CardHeader>
-              <CardContent className="p-0">
-                <table className="w-full text-left text-sm">
-                  <tbody className="divide-y divide-slate-100">
-                    {states.map((state) => {
-                      const count = unidades.filter((unidade) => unidade.regiao_id === state.id).length;
-                      return (
-                        <tr key={state.id}>
-                          <td className="px-5 py-3 font-display text-lg font-bold text-slate-900">{state.sigla}</td>
-                          <td className="px-5 py-3 text-slate-600">{state.nome}</td>
-                          <td className="px-5 py-3 text-right text-sm font-semibold text-slate-700">{count} {count === 1 ? 'unidade' : 'unidades'}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

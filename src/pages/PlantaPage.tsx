@@ -2,8 +2,8 @@ import { useMemo, useRef, useState } from 'react';
 import { Building2, Camera, Cpu, Layers, MapPin, Tv, Upload, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useInventory } from '@/providers/InventoryProvider';
-import { categoriaLabels, moduleLabels } from '@/services/inventory/inventoryTypes';
 import { useModulo } from '@/providers/ModuloProvider';
+import { categoriaLabels, moduleLabels } from '@/services/inventory/inventoryTypes';
 
 type PlantaLocal = {
   unidadeId: string;
@@ -28,6 +28,7 @@ export function PlantaPage() {
 
   const monitorItems = useMemo(() => {
     if (!selectedUnidadeId) return [];
+
     if (modulo === 'cameras') {
       return cameras
         .filter((camera) => camera.unidade_id === selectedUnidadeId)

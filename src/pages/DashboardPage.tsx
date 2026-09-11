@@ -1,10 +1,10 @@
-import { Activity, Archive, ArrowRight, Building2, Camera, Cpu, Tv, Wrench } from 'lucide-react';
+import { Archive, Building2, Camera, Cpu, Tv, Wrench } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useInventory } from '@/providers/InventoryProvider';
-import { moduleLabels, type Historico } from '@/services/inventory/inventoryTypes';
+import { moduleLabels } from '@/services/inventory/inventoryTypes';
 import { useModulo } from '@/providers/ModuloProvider';
 
-export function DashboardPage({ onVerHistorico }: { onVerHistorico: () => void }) {
+export function DashboardPage() {
   const { modulo } = useModulo();
   const { historicos, unidades, getEquipamentosByModulo, cameras } = useInventory();
 
@@ -20,7 +20,6 @@ export function DashboardPage({ onVerHistorico }: { onVerHistorico: () => void }
   const outros = modulo === 'cameras'
     ? cameras.filter((camera) => camera.status === 'inativa').length
     : items.filter((item) => item.status === 'outros' || item.status === 'inativo').length;
-  const recent = historicos.filter((item) => item.modulo === modulo).slice(0, 8);
   const MainIcon = modulo === 'tvs' ? Tv : modulo === 'cameras' ? Camera : Cpu;
 
   const overviewMetrics = [
@@ -94,27 +93,6 @@ export function DashboardPage({ onVerHistorico }: { onVerHistorico: () => void }
           })}
         </div>
       </div>
-
-      <Card className="animate-fade-in-up p-6" style={{ animationDelay: '200ms' }}>
-        <CardHeader className="flex flex-row items-center justify-between px-0 pt-0">
-          <CardTitle className="text-lg">Atividades Recentes</CardTitle>
-          <button onClick={onVerHistorico} className="flex items-center gap-1 text-sm font-semibold text-selfit-600 hover:text-selfit-700">
-            Ver historico <ArrowRight className="h-4 w-4" />
-          </button>
-        </CardHeader>
-        <CardContent className="px-0">
-          {recent.length === 0 ? (
-            <div className="flex flex-col items-center py-10 text-center">
-              <Activity className="mb-3 h-10 w-10 text-slate-300" />
-              <p className="text-sm text-slate-400">Nenhuma atividade registrada neste modulo.</p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {recent.map((item) => <HistoryRow key={item.id} item={item} />)}
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
@@ -137,25 +115,6 @@ export function DonutChart({ ativas, manutencao, outros, total, label = 'Itens' 
         <span className="font-display text-4xl font-extrabold text-slate-900">{total}</span>
         <span className="text-xs text-slate-500">{label}</span>
       </div>
-    </div>
-  );
-}
-
-function HistoryRow({ item }: { item: Historico }) {
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-slate-50">
-      <div className="flex items-center gap-3">
-        <Activity className="h-4 w-4 shrink-0 text-selfit-500" />
-        <div className="min-w-0">
-          <p className="truncate text-sm text-slate-700">{item.detalhe ?? item.acao}</p>
-          <p className="text-xs text-slate-400">
-            por {item.usuario}{item.unidade_nome ? ` - ${item.unidade_nome}` : ''}{item.regiao_sigla ? ` - ${item.regiao_sigla}` : ''}
-          </p>
-        </div>
-      </div>
-      <time className="shrink-0 text-xs text-slate-400">
-        {new Date(item.data_alteracao).toLocaleDateString('pt-BR')} {new Date(item.data_alteracao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-      </time>
     </div>
   );
 }

@@ -18,7 +18,6 @@ import { HistoricoPage } from '@/pages/HistoricoPage';
 import { LoginScreen } from '@/pages/LoginScreen';
 import { ManutencoesPage } from '@/pages/ManutencoesPage';
 import { ModuleSelectScreen } from '@/pages/ModuleSelectScreen';
-import { PlantaPage } from '@/pages/PlantaPage';
 import { RegiaoDetailPage } from '@/pages/RegiaoDetailPage';
 import { RegiaoPage } from '@/pages/RegiaoPage';
 import { UnidadeDetailPage } from '@/pages/UnidadeDetailPage';
@@ -50,6 +49,7 @@ function AppShell() {
   const [userName, setUserName] = useState(() => localStorage.getItem('selfit.userName') ?? '');
   const [currentModule, setCurrentModule] = useState<ModuloTipo | null>(readStoredModule);
   const [page, setPage] = useState<PageId>(readStoredPage);
+  const [previousPage, setPreviousPage] = useState<PageId>('dashboard');
   const [drill, setDrill] = useState<{ type: string; id: string } | null>(readStoredDrill);
 
   useEffect(() => {
@@ -117,8 +117,14 @@ function AppShell() {
   const subtitle = drill?.type ? 'Dados separados pelo modulo selecionado' : meta.subtitle;
 
   const navigate = (target: PageId) => {
+    setPreviousPage(page);
     setDrill(null);
     setPage(target);
+  };
+
+  const navigateBack = () => {
+    setDrill(null);
+    setPage(previousPage === page ? 'dashboard' : previousPage);
   };
 
   return (
@@ -159,15 +165,14 @@ function AppShell() {
               {drill?.type === 'unidade' && <UnidadeDetailPage unidadeId={drill.id} onBack={() => setDrill(null)} />}
               {drill?.type === 'regiao-detail' && <RegiaoDetailPage regiaoId={drill.id} onBack={() => setDrill(null)} />}
 
-              {!drill && page === 'dashboard' && <DashboardPage onVerHistorico={() => setDrill({ type: 'historico', id: '' })} />}
+              {!drill && page === 'dashboard' && <DashboardPage />}
               {!drill && page === 'consultar' && <ConsultarPage onOpenUnidade={(id) => setDrill({ type: 'unidade', id })} />}
               {!drill && page === 'cadastrar' && <CadastrarPage />}
               {!drill && page === 'cadastrar_unidade' && <CadastrarUnidadePage />}
               {!drill && page === 'cadastrar_equipamento' && (currentModule === 'cameras' ? <CadastrarCameraPage /> : <CadastrarEquipamentoPage />)}
               {!drill && page === 'equipamentos' && (currentModule === 'cameras' ? <CamerasPage /> : <EquipamentosPage />)}
-              {!drill && page === 'garantias' && <GarantiasPage />}
-              {!drill && page === 'manutencoes' && <ManutencoesPage />}
-              {!drill && page === 'planta' && <PlantaPage />}
+              {!drill && page === 'garantias' && <GarantiasPage onBack={navigateBack} />}
+              {!drill && page === 'manutencoes' && <ManutencoesPage onBack={navigateBack} />}
               {!drill && page === 'regiao' && <RegiaoPage onOpenRegiao={(id) => setDrill({ type: 'regiao-detail', id })} />}
             </div>
           </main>

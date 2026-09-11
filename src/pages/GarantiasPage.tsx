@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AlertTriangle, Calendar, Clock, ShieldCheck, XCircle } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Calendar, Clock, Search, ShieldCheck, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useInventory } from '@/providers/InventoryProvider';
 import { categoriaLabels, moduleLabels, type Equipamento } from '@/services/inventory/inventoryTypes';
@@ -35,11 +35,26 @@ function calcWarranty(dataGarantia: string | null | undefined): WarrantyInfo | n
   return { years: Math.max(0, years), months: Math.max(0, months), days: Math.max(0, days), totalDays, expired: false };
 }
 
-export function GarantiasPage() {
+function normalizeSearchTerm(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return '-';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+export function GarantiasPage({ onBack }: { onBack: () => void }) {
   const { modulo } = useModulo();
   const { regioes, getUnidade, getEquipamentosByModulo } = useInventory();
   const [filter, setFilter] = useState<'all' | 'active' | 'expiring' | 'expired'>('all');
   const [regiaoFilter, setRegiaoFilter] = useState('all');
+  const [query, setQuery] = useState('');
 
   const equipamentos = useMemo(() => (
     modulo === 'cameras' ? [] : getEquipamentosByModulo(modulo)
@@ -47,28 +62,48 @@ export function GarantiasPage() {
 
   const enriched = useMemo(() => equipamentos.map((item) => ({ ...item, warranty: calcWarranty(item.data_garantia) })), [equipamentos]);
 
-  const filtered = useMemo(() => {
+  const searched = useMemo(() => {
+    const term = normalizeSearchTerm(query);
+    const hasActiveSearch = Boolean(term) || regiaoFilter !== 'all';
+    if (!hasActiveSearch) return [];
+
     let result = enriched.filter((item) => item.warranty);
+
     if (regiaoFilter !== 'all') {
       result = result.filter((item) => {
         const unidade = item.unidade_id ? getUnidade(item.unidade_id) : undefined;
         return unidade?.regioes?.sigla === regiaoFilter || unidade?.uf === regiaoFilter;
       });
     }
+
+    if (term) {
+      result = result.filter((item) => {
+        const unidade = item.unidade_id ? getUnidade(item.unidade_id) : undefined;
+        return unidade?.nome ? normalizeSearchTerm(unidade.nome).includes(term) : false;
+      });
+    }
+
+    return result;
+  }, [enriched, getUnidade, query, regiaoFilter]);
+
+  const filtered = useMemo(() => {
+    const result = searched;
+
     if (filter === 'active') return result.filter((item) => item.warranty && !item.warranty.expired && item.warranty.totalDays > 90);
     if (filter === 'expiring') return result.filter((item) => item.warranty && !item.warranty.expired && item.warranty.totalDays <= 90);
     if (filter === 'expired') return result.filter((item) => item.warranty?.expired);
     return result;
-  }, [enriched, filter, getUnidade, regiaoFilter]);
+  }, [filter, searched]);
 
   const stats = useMemo(() => ({
-    total: enriched.filter((item) => item.warranty).length,
-    active: enriched.filter((item) => item.warranty && !item.warranty.expired && item.warranty.totalDays > 90).length,
-    expiring: enriched.filter((item) => item.warranty && !item.warranty.expired && item.warranty.totalDays <= 90).length,
-    expired: enriched.filter((item) => item.warranty?.expired).length,
-  }), [enriched]);
+    total: searched.length,
+    active: searched.filter((item) => item.warranty && !item.warranty.expired && item.warranty.totalDays > 90).length,
+    expiring: searched.filter((item) => item.warranty && !item.warranty.expired && item.warranty.totalDays <= 90).length,
+    expired: searched.filter((item) => item.warranty?.expired).length,
+  }), [searched]);
 
   const labels = moduleLabels[modulo];
+  const hasActiveSearch = query.trim().length > 0 || regiaoFilter !== 'all';
   const filterButtons = [
     { id: 'all' as const, label: 'Todas', count: stats.total, color: 'text-slate-700' },
     { id: 'active' as const, label: 'Vigentes', count: stats.active, color: 'text-emerald-600' },
@@ -78,16 +113,32 @@ export function GarantiasPage() {
 
   return (
     <div className="space-y-6">
+      <button onClick={onBack} className="flex items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-selfit-600">
+        <ArrowLeft className="h-4 w-4" /> Voltar
+      </button>
+
       <div className="flex items-center gap-3 rounded-2xl border-2 border-black bg-white px-6 py-5 shadow-sm animate-fade-in">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-white"><ShieldCheck className="h-5 w-5" /></div>
         <div>
           <h1 className="font-display text-2xl font-bold text-slate-900">Garantias e Alertas</h1>
           <p className="text-sm text-slate-500">Acompanhe garantias de {labels.itemPlural.toLowerCase()}</p>
         </div>
-        <select value={regiaoFilter} onChange={(event) => setRegiaoFilter(event.target.value)} className="ml-auto rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 focus:border-selfit-500 focus:outline-none">
-          <option value="all">Todas regioes</option>
-          {regioes.map((regiao) => <option key={regiao.id} value={regiao.sigla}>{regiao.sigla}</option>)}
-        </select>
+        <div className="ml-auto flex w-full max-w-xl flex-col gap-2 sm:flex-row">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar pelo nome da unidade..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-4 text-sm text-slate-700 focus:border-selfit-500 focus:outline-none focus:ring-2 focus:ring-selfit-500/20"
+            />
+          </div>
+          <select value={regiaoFilter} onChange={(event) => setRegiaoFilter(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 focus:border-selfit-500 focus:outline-none">
+            <option value="all">Todos estados</option>
+            {regioes.map((regiao) => <option key={regiao.id} value={regiao.sigla}>{regiao.sigla}</option>)}
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -100,9 +151,11 @@ export function GarantiasPage() {
       </div>
 
       <Card className="animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-        <CardHeader className="border-b border-slate-100"><CardTitle className="text-lg">{labels.itemPlural} com Garantia ({filtered.length})</CardTitle></CardHeader>
+        <CardHeader className="border-b border-slate-100"><CardTitle className="text-lg">Resultados de Garantia ({filtered.length})</CardTitle></CardHeader>
         <CardContent className="p-0">
-          {filtered.length === 0 ? (
+          {!hasActiveSearch ? (
+            <p className="py-12 text-center text-sm text-slate-400">Busque pelo nome da unidade ou filtre por estado para ver garantias.</p>
+          ) : filtered.length === 0 ? (
             <p className="py-12 text-center text-sm text-slate-400">Nenhum item com data de garantia cadastrada.</p>
           ) : (
             <div className="overflow-x-auto scrollbar-thin">
@@ -116,6 +169,7 @@ export function GarantiasPage() {
                     <th className="px-5 py-3 font-semibold text-slate-600">Vencimento</th>
                     <th className="px-5 py-3 font-semibold text-slate-600">Tempo Restante</th>
                     <th className="px-5 py-3 font-semibold text-slate-600">Status</th>
+                    <th className="px-5 py-3 font-semibold text-slate-600">Atualizado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -161,6 +215,7 @@ function WarrantyRow({ item, unidade }: { item: Equipamento & { warranty: Warran
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700"><Calendar className="h-3 w-3" /> Vigente</span>
         )}
       </td>
+      <td className="px-5 py-3 text-slate-600">{formatDateTime(item.updated_at ?? item.created_at)}</td>
     </tr>
   );
 }

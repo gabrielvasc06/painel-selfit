@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Calendar, DollarSign, History, MapPin, Pencil, Plus, Save, Trash2, User, Wrench, X } from 'lucide-react';
+import { ArrowLeft, Calendar, DollarSign, History, MapPin, Pencil, Plus, Save, Search, Trash2, Wrench, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useInventory } from '@/providers/InventoryProvider';
@@ -9,46 +9,72 @@ import { useModulo } from '@/providers/ModuloProvider';
 const tipoLabels: Record<string, string> = {
   troca: 'Troca',
   reparo: 'Reparo',
-  chamado_tecnico: 'Chamado Tecnico',
-  preventiva: 'Preventiva',
   outros: 'Outros',
 };
 
 const tipoColors: Record<string, string> = {
   troca: 'bg-sky-100 text-sky-700 border-sky-200',
   reparo: 'bg-amber-100 text-amber-700 border-amber-200',
-  chamado_tecnico: 'bg-selfit-100 text-selfit-700 border-selfit-200',
-  preventiva: 'bg-emerald-100 text-emerald-700 border-emerald-200',
   outros: 'bg-slate-100 text-slate-600 border-slate-200',
 };
 
 const inputClass = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-900 placeholder:text-slate-400 transition-all focus:border-selfit-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-selfit-500/20';
 
 type MaintenanceForm = {
+  regiao_id: string;
+  unidade_id: string;
   equipamento_id: string;
   tipo: Manutencao['tipo'];
   descricao: string;
-  responsavel: string;
   data_manutencao: string;
   custo: string;
 };
 
 const emptyMaintenanceForm: MaintenanceForm = {
+  regiao_id: '',
+  unidade_id: '',
   equipamento_id: '',
   tipo: 'reparo',
   descricao: '',
-  responsavel: '',
   data_manutencao: '',
   custo: '',
 };
 
-export function ManutencoesPage() {
+function normalizeSearchTerm(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return '-';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+export function ManutencoesPage({ onBack }: { onBack: () => void }) {
   const { modulo } = useModulo();
-  const { regioes, getUnidade, getEquipamentosByModulo, cameras, manutencoes, addManutencao, updateManutencao, deleteManutencao } = useInventory();
+  const {
+    regioes,
+    getUnidade,
+    getUnidadesComRegiao,
+    getEquipamentosByModulo,
+    cameras,
+    manutencoes,
+    addManutencao,
+    updateManutencao,
+    deleteManutencao,
+    updateEquipamento,
+    updateCamera,
+  } = useInventory();
   const [showForm, setShowForm] = useState(false);
   const [regiaoFilter, setRegiaoFilter] = useState('all');
+  const [search, setSearch] = useState('');
   const [editingManutencao, setEditingManutencao] = useState<Manutencao | null>(null);
   const [form, setForm] = useState<MaintenanceForm>(emptyMaintenanceForm);
+  const unidades = getUnidadesComRegiao();
 
   const equipamentos = useMemo(() => {
     if (modulo === 'cameras') {
@@ -66,33 +92,41 @@ export function ManutencoesPage() {
     return getEquipamentosByModulo(modulo);
   }, [cameras, getEquipamentosByModulo, modulo]);
 
-  const filteredEquipamentos = useMemo(() => (
-    regiaoFilter === 'all'
-      ? equipamentos
-      : equipamentos.filter((item) => {
-          const unidade = item.unidade_id ? getUnidade(item.unidade_id) : undefined;
-          return unidade?.regioes?.sigla === regiaoFilter || unidade?.uf === regiaoFilter;
-        })
-  ), [equipamentos, getUnidade, regiaoFilter]);
+  const unidadesDoFormulario = useMemo(() => (
+    form.regiao_id ? unidades.filter((unidade) => unidade.regiao_id === form.regiao_id) : []
+  ), [form.regiao_id, unidades]);
 
-  const scopedManutencoes = useMemo(() => (
-    manutencoes
+  const filteredEquipamentos = useMemo(() => (
+    form.unidade_id ? equipamentos.filter((item) => item.unidade_id === form.unidade_id) : []
+  ), [equipamentos, form.unidade_id]);
+
+  const scopedManutencoes = useMemo(() => {
+    const term = normalizeSearchTerm(search);
+    const hasActiveSearch = Boolean(term) || regiaoFilter !== 'all';
+    if (!hasActiveSearch) return [];
+
+    return manutencoes
       .filter((item) => item.modulo === modulo)
       .filter((item) => regiaoFilter === 'all' || (() => {
         const equipamento = equipamentos.find((eq) => eq.id === item.equipamento_id);
         const unidade = equipamento?.unidade_id ? getUnidade(equipamento.unidade_id) : undefined;
         return unidade?.regioes?.sigla === regiaoFilter || unidade?.uf === regiaoFilter;
       })())
-  ), [equipamentos, getUnidade, manutencoes, modulo, regiaoFilter]);
+      .filter((item) => {
+        if (!term) return true;
+        const equipamento = equipamentos.find((eq) => eq.id === item.equipamento_id);
+        const unidade = equipamento?.unidade_id ? getUnidade(equipamento.unidade_id) : undefined;
+        return unidade?.nome ? normalizeSearchTerm(unidade.nome).includes(term) : false;
+      });
+  }, [equipamentos, getUnidade, manutencoes, modulo, regiaoFilter, search]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!form.equipamento_id) return;
+    if (!form.regiao_id || !form.unidade_id || !form.equipamento_id) return;
     const payload = {
       equipamento_id: form.equipamento_id,
       tipo: form.tipo,
       descricao: form.descricao || null,
-      responsavel: form.responsavel || null,
       data_manutencao: form.data_manutencao || new Date().toISOString().split('T')[0],
       custo: form.custo ? parseFloat(form.custo) : null,
       modulo,
@@ -104,9 +138,24 @@ export function ManutencoesPage() {
       addManutencao(payload);
     }
 
+    if (modulo === 'cameras') {
+      updateCamera(form.equipamento_id, { status: 'manutencao' });
+    } else {
+      updateEquipamento(form.equipamento_id, { status: 'manutencao' });
+    }
+
     setForm(emptyMaintenanceForm);
     setEditingManutencao(null);
     setShowForm(false);
+  };
+
+  const updateForm = (key: keyof MaintenanceForm, value: string) => {
+    setForm((current) => ({
+      ...current,
+      [key]: value,
+      ...(key === 'regiao_id' ? { unidade_id: '', equipamento_id: '' } : {}),
+      ...(key === 'unidade_id' ? { equipamento_id: '' } : {}),
+    }));
   };
 
   const startCreate = () => {
@@ -116,12 +165,15 @@ export function ManutencoesPage() {
   };
 
   const startEdit = (manutencao: Manutencao) => {
+    const equipamento = equipamentos.find((item) => item.id === manutencao.equipamento_id);
+    const unidade = equipamento?.unidade_id ? getUnidade(equipamento.unidade_id) : undefined;
     setEditingManutencao(manutencao);
     setForm({
+      regiao_id: unidade?.regiao_id ?? '',
+      unidade_id: unidade?.id ?? '',
       equipamento_id: manutencao.equipamento_id,
       tipo: manutencao.tipo,
       descricao: manutencao.descricao ?? '',
-      responsavel: manutencao.responsavel ?? '',
       data_manutencao: manutencao.data_manutencao,
       custo: manutencao.custo != null ? String(manutencao.custo) : '',
     });
@@ -135,18 +187,33 @@ export function ManutencoesPage() {
   };
 
   const labels = moduleLabels[modulo];
+  const hasActiveSearch = search.trim().length > 0 || regiaoFilter !== 'all';
 
   return (
     <div className="space-y-6">
+      <button onClick={onBack} className="flex items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-selfit-600">
+        <ArrowLeft className="h-4 w-4" /> Voltar
+      </button>
+
       <div className="flex flex-col gap-4 rounded-2xl border-2 border-black bg-white px-6 py-5 shadow-sm animate-fade-in lg:flex-row lg:items-center">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-white"><Wrench className="h-5 w-5" /></div>
         <div>
           <h1 className="font-display text-2xl font-bold text-slate-900">Historico de Manutencoes</h1>
           <p className="text-sm text-slate-500">Registros exclusivos de {labels.itemPlural.toLowerCase()}</p>
         </div>
-        <div className="ml-auto flex gap-3">
+        <div className="ml-auto flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar pelo nome da unidade..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-4 text-sm text-slate-700 focus:border-selfit-500 focus:outline-none focus:ring-2 focus:ring-selfit-500/20"
+            />
+          </div>
           <select value={regiaoFilter} onChange={(event) => setRegiaoFilter(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 focus:border-selfit-500 focus:outline-none">
-            <option value="all">Todas regioes</option>
+            <option value="all">Todos estados</option>
             {regioes.map((regiao) => <option key={regiao.id} value={regiao.sigla}>{regiao.sigla}</option>)}
           </select>
           <Button size="sm" onClick={showForm ? closeForm : startCreate}>
@@ -161,34 +228,39 @@ export function ManutencoesPage() {
           <CardContent className="px-0 pt-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-sm font-semibold text-slate-700"><Wrench className="h-4 w-4 text-slate-400" /> {labels.item}</label>
-                  <select required value={form.equipamento_id} onChange={(event) => setForm((current) => ({ ...current, equipamento_id: event.target.value }))} className={inputClass}>
-                    <option value="">Selecione...</option>
-                    {filteredEquipamentos.map((item) => {
-                      const unidade = item.unidade_id ? getUnidade(item.unidade_id) : undefined;
-                      return <option key={item.id} value={item.id}>{item.nome} - {modulo === 'cameras' ? 'Camera' : categoriaLabels[item.categoria]} ({unidade?.nome ?? '-'})</option>;
-                    })}
+                <Field label="Estado" icon={MapPin}>
+                  <select required value={form.regiao_id} onChange={(event) => updateForm('regiao_id', event.target.value)} className={inputClass}>
+                    <option value="">Selecione o estado...</option>
+                    {regioes.map((regiao) => <option key={regiao.id} value={regiao.id}>{regiao.sigla} - {regiao.nome}</option>)}
                   </select>
-                </div>
+                </Field>
+                <Field label="Unidade" icon={MapPin}>
+                  <select required value={form.unidade_id} onChange={(event) => updateForm('unidade_id', event.target.value)} className={inputClass} disabled={!form.regiao_id}>
+                    <option value="">{form.regiao_id ? 'Selecione a unidade...' : 'Escolha um estado'}</option>
+                    {unidadesDoFormulario.map((unidade) => <option key={unidade.id} value={unidade.id}>{unidade.nome}</option>)}
+                  </select>
+                </Field>
+                <Field label={labels.item} icon={Wrench}>
+                  <select required value={form.equipamento_id} onChange={(event) => updateForm('equipamento_id', event.target.value)} className={inputClass} disabled={!form.unidade_id}>
+                    <option value="">{form.unidade_id ? `Selecione ${labels.item.toLowerCase()}...` : 'Escolha uma unidade'}</option>
+                    {filteredEquipamentos.map((item) => <option key={item.id} value={item.id}>{item.nome} - {modulo === 'cameras' ? 'Camera' : categoriaLabels[item.categoria]}</option>)}
+                  </select>
+                </Field>
                 <Field label="Tipo" icon={Wrench}>
-                  <select value={form.tipo} onChange={(event) => setForm((current) => ({ ...current, tipo: event.target.value as Manutencao['tipo'] }))} className={inputClass}>
+                  <select value={form.tipo} onChange={(event) => updateForm('tipo', event.target.value as Manutencao['tipo'])} className={inputClass}>
                     {Object.entries(tipoLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                   </select>
                 </Field>
-                <Field label="Responsavel" icon={User}>
-                  <input value={form.responsavel} onChange={(event) => setForm((current) => ({ ...current, responsavel: event.target.value }))} placeholder="Ex: Joao Silva" className={inputClass} />
-                </Field>
                 <Field label="Data" icon={Calendar}>
-                  <input type="date" value={form.data_manutencao} onChange={(event) => setForm((current) => ({ ...current, data_manutencao: event.target.value }))} className={inputClass} />
+                  <input type="date" value={form.data_manutencao} onChange={(event) => updateForm('data_manutencao', event.target.value)} className={inputClass} />
                 </Field>
                 <Field label="Custo (R$)" icon={DollarSign}>
-                  <input type="number" step="0.01" min="0" value={form.custo} onChange={(event) => setForm((current) => ({ ...current, custo: event.target.value }))} placeholder="0.00" className={inputClass} />
+                  <input type="number" step="0.01" min="0" value={form.custo} onChange={(event) => updateForm('custo', event.target.value)} placeholder="0.00" className={inputClass} />
                 </Field>
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-700">Descricao</label>
-                <textarea value={form.descricao} onChange={(event) => setForm((current) => ({ ...current, descricao: event.target.value }))} rows={3} placeholder="Descreva a manutencao realizada..." className={`${inputClass} resize-none`} />
+                <textarea value={form.descricao} onChange={(event) => updateForm('descricao', event.target.value)} rows={3} placeholder="Descreva a manutencao realizada..." className={`${inputClass} resize-none`} />
               </div>
               <div className="flex gap-3">
                 <Button type="submit" size="lg">
@@ -202,43 +274,47 @@ export function ManutencoesPage() {
         </Card>
       )}
 
-      <Card className="animate-fade-in-up" style={{ animationDelay: '80ms' }}>
-        <CardHeader className="border-b border-slate-100"><CardTitle className="flex items-center gap-2 text-lg"><History className="h-5 w-5 text-selfit-500" /> Registros ({scopedManutencoes.length})</CardTitle></CardHeader>
-        <CardContent className="pt-6">
-          {scopedManutencoes.length === 0 ? (
-            <div className="py-12 text-center"><Wrench className="mx-auto mb-3 h-10 w-10 text-slate-300" /><p className="text-sm text-slate-400">Nenhuma manutencao registrada neste modulo.</p></div>
-          ) : (
-            <div className="space-y-3">
-              {scopedManutencoes.map((manutencao) => {
-                const item = equipamentos.find((eq) => eq.id === manutencao.equipamento_id);
-                const unidade = item?.unidade_id ? getUnidade(item.unidade_id) : undefined;
-                return (
-                  <div key={manutencao.id} className="flex items-start gap-4 rounded-xl border border-slate-100 p-4 transition-colors hover:bg-slate-50">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600"><Wrench className="h-5 w-5" /></div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-semibold text-slate-900">{item?.nome ?? 'Item removido'}</p>
-                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${tipoColors[manutencao.tipo] ?? tipoColors.outros}`}>{tipoLabels[manutencao.tipo] ?? manutencao.tipo}</span>
+      {!showForm && (
+        <Card className="animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+          <CardHeader className="border-b border-slate-100"><CardTitle className="flex items-center gap-2 text-lg"><History className="h-5 w-5 text-selfit-500" /> Registros ({scopedManutencoes.length})</CardTitle></CardHeader>
+          <CardContent className="pt-6">
+            {!hasActiveSearch ? (
+              <div className="py-12 text-center"><Search className="mx-auto mb-3 h-10 w-10 text-slate-300" /><p className="text-sm text-slate-400">Busque pelo nome da unidade ou filtre por estado para ver manutencoes.</p></div>
+            ) : scopedManutencoes.length === 0 ? (
+              <div className="py-12 text-center"><Wrench className="mx-auto mb-3 h-10 w-10 text-slate-300" /><p className="text-sm text-slate-400">Nenhuma manutencao registrada para esta busca.</p></div>
+            ) : (
+              <div className="space-y-3">
+                {scopedManutencoes.map((manutencao) => {
+                  const item = equipamentos.find((eq) => eq.id === manutencao.equipamento_id);
+                  const unidade = item?.unidade_id ? getUnidade(item.unidade_id) : undefined;
+                  return (
+                    <div key={manutencao.id} className="flex items-start gap-4 rounded-xl border border-slate-100 p-4 transition-colors hover:bg-slate-50">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600"><Wrench className="h-5 w-5" /></div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-semibold text-slate-900">{item?.nome ?? 'Item removido'}</p>
+                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${tipoColors[manutencao.tipo] ?? tipoColors.outros}`}>{tipoLabels[manutencao.tipo] ?? manutencao.tipo}</span>
+                        </div>
+                        {item && <p className="text-xs text-slate-500">{modulo === 'cameras' ? 'Camera' : categoriaLabels[item.categoria]} - {unidade?.nome ?? '-'} <MapPin className="ml-1 inline h-3 w-3" /> {unidade?.regioes?.sigla ?? unidade?.uf ?? '-'}</p>}
+                        {manutencao.descricao && <p className="mt-1 text-sm text-slate-600">{manutencao.descricao}</p>}
+                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                          <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(manutencao.data_manutencao).toLocaleDateString('pt-BR')}</span>
+                          {manutencao.custo != null && <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> R$ {manutencao.custo.toFixed(2)}</span>}
+                          <span>Atualizado: {formatDateTime(manutencao.updated_at ?? manutencao.created_at)}</span>
+                        </div>
                       </div>
-                      {item && <p className="text-xs text-slate-500">{modulo === 'cameras' ? 'Camera' : categoriaLabels[item.categoria]} - {unidade?.nome ?? '-'} <MapPin className="ml-1 inline h-3 w-3" /> {unidade?.regioes?.sigla ?? unidade?.uf ?? '-'}</p>}
-                      {manutencao.descricao && <p className="mt-1 text-sm text-slate-600">{manutencao.descricao}</p>}
-                      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                        <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(manutencao.data_manutencao).toLocaleDateString('pt-BR')}</span>
-                        {manutencao.responsavel && <span className="flex items-center gap-1"><User className="h-3 w-3" /> {manutencao.responsavel}</span>}
-                        {manutencao.custo != null && <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> R$ {manutencao.custo.toFixed(2)}</span>}
+                      <div className="flex shrink-0 gap-1">
+                        <button onClick={() => startEdit(manutencao)} className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-selfit-50 hover:text-selfit-600" title="Atualizar manutencao"><Pencil className="h-4 w-4" /></button>
+                        <button onClick={() => deleteManutencao(manutencao.id)} className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500" title="Remover manutencao"><Trash2 className="h-4 w-4" /></button>
                       </div>
                     </div>
-                    <div className="flex shrink-0 gap-1">
-                      <button onClick={() => startEdit(manutencao)} className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-selfit-50 hover:text-selfit-600" title="Atualizar manutencao"><Pencil className="h-4 w-4" /></button>
-                      <button onClick={() => deleteManutencao(manutencao.id)} className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500" title="Remover manutencao"><Trash2 className="h-4 w-4" /></button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

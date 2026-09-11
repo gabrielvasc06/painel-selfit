@@ -26,19 +26,27 @@ export interface Unidade {
   regioes?: Regiao;
 }
 
+export type UnidadeInput = {
+  nome: string;
+  regiao_id: string;
+  cidade?: string;
+  cnpj?: string;
+  logradouro?: string;
+  numero?: string;
+  bairro?: string;
+  cep?: string;
+};
+
 export type EquipamentoStatus = 'ativo' | 'manutencao' | 'inativo' | 'outros';
 
 export type EquipamentoCategoria =
   | 'TV'
-  | 'computador'
   | 'totem'
   | 'catraca'
   | 'leitor_facial'
   | 'access_point'
   | 'impressora'
-  | 'tv_box'
   | 'switch'
-  | 'patch_panel'
   | 'firewall'
   | 'roteador'
   | 'nobreak';
@@ -46,15 +54,12 @@ export type EquipamentoCategoria =
 export const TV_CATEGORY = 'TV';
 
 export const tiCategorias: EquipamentoCategoria[] = [
-  'computador',
   'totem',
   'catraca',
   'leitor_facial',
   'access_point',
   'impressora',
-  'tv_box',
   'switch',
-  'patch_panel',
   'firewall',
   'roteador',
   'nobreak',
@@ -115,16 +120,27 @@ export type Equipamento = {
   updated_at?: string;
 };
 
+export type EquipamentoInput = {
+  unidade_id: string;
+  categoria: EquipamentoCategoria;
+  nome: string;
+  asset_tag?: string;
+  eletromidia_id?: string;
+  marca?: string;
+  modelo?: string;
+  data_garantia?: string;
+  status: EquipamentoStatus;
+  observacoes?: string;
+};
+
 export type CameraStatus = 'ativa' | 'manutencao' | 'inativa';
 
 export type Camera = {
   id: string;
   nome: string;
   unidade_id: string;
-  tipo: 'ip' | 'analogica' | 'dvr_nvr' | 'ptz';
+  tipo: 'ip' | 'analogica' | 'dvr_nvr';
   setor?: string | null;
-  ip_address?: string | null;
-  canal_dvr?: number | null;
   marca?: string | null;
   modelo?: string | null;
   status: CameraStatus;
@@ -133,11 +149,12 @@ export type Camera = {
   unidades?: Unidade | null;
 };
 
+export type CameraInput = Omit<Camera, 'id' | 'created_at' | 'updated_at' | 'unidades'>;
+
 export const tipoCameraLabels: Record<string, string> = {
   ip: 'Camera IP',
   analogica: 'Analogica',
   dvr_nvr: 'DVR / NVR',
-  ptz: 'Camera PTZ',
 };
 
 export const statusCameraLabels: Record<string, string> = {
@@ -151,9 +168,8 @@ export type TV = Equipamento;
 export interface Manutencao {
   id: string;
   equipamento_id: string;
-  tipo: 'troca' | 'reparo' | 'chamado_tecnico' | 'preventiva' | 'outros';
+  tipo: 'troca' | 'reparo' | 'outros';
   descricao: string | null;
-  responsavel: string | null;
   data_manutencao: string;
   custo: number | null;
   modulo: ModuloTipo;
@@ -161,6 +177,8 @@ export interface Manutencao {
   updated_at?: string;
   equipamentos?: Equipamento;
 }
+
+export type ManutencaoInput = Omit<Manutencao, 'id' | 'created_at' | 'updated_at' | 'equipamentos'>;
 
 export interface Historico {
   id: string;
@@ -174,17 +192,24 @@ export interface Historico {
   data_alteracao: string;
 }
 
+export type HistoricoInput = Omit<Historico, 'id' | 'data_alteracao'>;
+
+export interface InventorySnapshot {
+  unidades: Unidade[];
+  equipamentos: Equipamento[];
+  cameras: Camera[];
+  manutencoes: Manutencao[];
+  historicos: Historico[];
+}
+
 export const categoriaLabels: Record<string, string> = {
   TV: 'Smart TV / Display',
-  computador: 'Notebook',
   totem: 'Totem',
   catraca: 'Catraca',
   leitor_facial: 'Leitor Facial',
   access_point: 'Access Point',
   impressora: 'Impressora',
-  tv_box: 'TV Box / Media Player',
   switch: 'Switch',
-  patch_panel: 'Patch Panel',
   firewall: 'Firewall',
   roteador: 'Roteador',
   nobreak: 'Nobreak',

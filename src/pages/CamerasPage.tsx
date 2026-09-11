@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AlertTriangle, Camera, CheckCircle2, Edit2, Search, Trash2, Video, X, XCircle } from 'lucide-react';
+import { AlertTriangle, Calendar, Camera, CheckCircle2, Edit2, Search, Trash2, Video, X, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { useInventory } from '@/providers/InventoryProvider';
@@ -15,8 +15,6 @@ export function CamerasPage() {
   const [formData, setFormData] = useState({
     nome: '',
     setor: '',
-    ip_address: '',
-    canal_dvr: '',
     marca: '',
     modelo: '',
     status: 'ativa',
@@ -42,8 +40,6 @@ export function CamerasPage() {
     setFormData({
       nome: camera.nome,
       setor: camera.setor ?? '',
-      ip_address: camera.ip_address ?? '',
-      canal_dvr: camera.canal_dvr ? String(camera.canal_dvr) : '',
       marca: camera.marca ?? '',
       modelo: camera.modelo ?? '',
       status: camera.status,
@@ -56,8 +52,6 @@ export function CamerasPage() {
     updateCamera(editingCamera.id, {
       nome: formData.nome,
       setor: formData.setor || null,
-      ip_address: formData.ip_address.trim() || null,
-      canal_dvr: formData.canal_dvr ? Number(formData.canal_dvr) : null,
       marca: formData.marca || null,
       modelo: formData.modelo || null,
       status: formData.status as CameraType['status'],
@@ -74,7 +68,7 @@ export function CamerasPage() {
           </div>
           <div>
             <h1 className="font-display text-2xl font-bold text-slate-900">Cameras</h1>
-            <p className="text-sm text-slate-500">Consulta e monitoramento do CFTV</p>
+            <p className="text-sm text-slate-500">Consulta e acompanhamento do CFTV</p>
           </div>
         </div>
       </div>
@@ -92,7 +86,7 @@ export function CamerasPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar por nome, setor, unidade, IP parcial ou canal..."
+              placeholder="Buscar por nome, setor ou unidade..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-selfit-500/20"
@@ -118,16 +112,17 @@ export function CamerasPage() {
               <tr>
                 <th className="px-6 py-3">Camera / Identificacao</th>
                 <th className="px-6 py-3">Unidade / Setor</th>
-                <th className="px-6 py-3">Tipo / Conexao</th>
+                <th className="px-6 py-3">Tipo</th>
                 <th className="px-6 py-3">Marca / Modelo</th>
                 <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3">Atualizado</th>
                 <th className="px-6 py-3 text-right" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredCameras.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400">Nenhuma camera encontrada.</td>
+                  <td colSpan={7} className="py-8 text-center text-slate-400">Nenhuma camera encontrada.</td>
                 </tr>
               ) : (
                 filteredCameras.map((camera) => {
@@ -148,8 +143,6 @@ export function CamerasPage() {
                         <span className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
                           {tipoCameraLabels[camera.tipo] ?? camera.tipo}
                         </span>
-                        {camera.ip_address && <p className="mt-0.5 font-mono text-xs text-slate-400">IP: {camera.ip_address}</p>}
-                        {camera.canal_dvr && <p className="text-xs text-slate-400">Canal: {camera.canal_dvr}</p>}
                       </td>
                       <td className="px-6 py-4">
                         <div>{camera.marca ?? '-'}</div>
@@ -166,6 +159,9 @@ export function CamerasPage() {
                           }`} />
                           {statusCameraLabels[camera.status]}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 text-xs text-slate-500">
+                        <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" /> {formatDateTime(camera.updated_at ?? camera.created_at)}</span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
@@ -198,8 +194,6 @@ export function CamerasPage() {
               <input required value={formData.nome} onChange={(event) => setFormData({ ...formData, nome: event.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Nome da camera" />
               <div className="grid grid-cols-2 gap-3">
                 <input value={formData.setor} onChange={(event) => setFormData({ ...formData, setor: event.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Setor" />
-                <input value={formData.ip_address} onChange={(event) => setFormData({ ...formData, ip_address: event.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-mono" placeholder="IP opcional" />
-                <input type="number" min="1" value={formData.canal_dvr} onChange={(event) => setFormData({ ...formData, canal_dvr: event.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" placeholder="Canal DVR opcional" />
                 <select value={formData.status} onChange={(event) => setFormData({ ...formData, status: event.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm">
                   <option value="ativa">Ativa</option>
                   <option value="manutencao">Em Manutencao</option>
@@ -232,4 +226,10 @@ function MetricCard({ label, value, icon: Icon, className = '', valueClass = 'te
       <p className={`mt-2 text-2xl font-bold ${valueClass}`}>{value}</p>
     </Card>
   );
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return '-';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 }

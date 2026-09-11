@@ -4,45 +4,20 @@ import { useLocalStorageState } from '@/hooks/useLocalStorageState';
 import {
   estadosBrasil,
   type Camera,
+  type CameraInput,
   type Equipamento,
-  type EquipamentoCategoria,
-  type EquipamentoStatus,
+  type EquipamentoInput,
   type Historico,
+  type HistoricoInput,
   type Manutencao,
+  type ManutencaoInput,
   type ModuloTipo,
   type Regiao,
   type Unidade,
+  type UnidadeInput,
 } from '@/services/inventory/inventoryTypes';
-
-type UnidadeInput = {
-  nome: string;
-  regiao_id: string;
-  cidade?: string;
-  cnpj?: string;
-  logradouro?: string;
-  numero?: string;
-  bairro?: string;
-  cep?: string;
-};
-
-type EquipamentoInput = {
-  unidade_id: string;
-  categoria: EquipamentoCategoria;
-  nome: string;
-  asset_tag?: string;
-  eletromidia_id?: string;
-  marca?: string;
-  modelo?: string;
-  data_garantia?: string;
-  status: EquipamentoStatus;
-  observacoes?: string;
-};
-
-type CameraInput = Omit<Camera, 'id' | 'created_at' | 'unidades'>;
-
-type ManutencaoInput = Omit<Manutencao, 'id' | 'created_at' | 'equipamentos'>;
-
-type HistoricoInput = Omit<Historico, 'id' | 'data_alteracao'>;
+import { inventoryStorageKeys } from '@/services/inventory/inventoryGateway';
+import { filterEquipamentosByModulo, nextTvNumberForInventory } from '@/services/inventory/inventoryLogic';
 
 interface InventoryContextType {
   regioes: Regiao[];
@@ -67,18 +42,10 @@ interface InventoryContextType {
   updateManutencao: (id: string, patch: Partial<Manutencao>) => void;
   deleteManutencao: (id: string) => void;
   addHistorico: (input: HistoricoInput) => void;
-  nextTvNumber: (unidadeId: string) => string;
+  nextTvNumber: () => string;
 }
 
 const InventoryContext = createContext<InventoryContextType | null>(null);
-
-const storageKeys = {
-  unidades: 'selfit.inventory.unidades',
-  equipamentos: 'selfit.inventory.equipamentos',
-  cameras: 'selfit.inventory.cameras',
-  manutencoes: 'selfit.inventory.manutencoes',
-  historicos: 'selfit.inventory.historicos',
-};
 
 function createId(prefix: string) {
   return `${prefix}-${crypto.randomUUID()}`;
@@ -89,11 +56,13 @@ function now() {
 }
 
 export function InventoryProvider({ children }: { children: ReactNode }) {
-  const [unidades, setUnidades] = useLocalStorageState<Unidade[]>(storageKeys.unidades, []);
-  const [equipamentos, setEquipamentos] = useLocalStorageState<Equipamento[]>(storageKeys.equipamentos, []);
-  const [cameras, setCameras] = useLocalStorageState<Camera[]>(storageKeys.cameras, []);
-  const [manutencoes, setManutencoes] = useLocalStorageState<Manutencao[]>(storageKeys.manutencoes, []);
-  const [historicos, setHistoricos] = useLocalStorageState<Historico[]>(storageKeys.historicos, []);
+  // Backend handoff: keep the UI talking to this provider and swap these local states
+  // for an InventoryGateway implementation when the API is ready.
+  const [unidades, setUnidades] = useLocalStorageState<Unidade[]>(inventoryStorageKeys.unidades, []);
+  const [equipamentos, setEquipamentos] = useLocalStorageState<Equipamento[]>(inventoryStorageKeys.equipamentos, []);
+  const [cameras, setCameras] = useLocalStorageState<Camera[]>(inventoryStorageKeys.cameras, []);
+  const [manutencoes, setManutencoes] = useLocalStorageState<Manutencao[]>(inventoryStorageKeys.manutencoes, []);
+  const [historicos, setHistoricos] = useLocalStorageState<Historico[]>(inventoryStorageKeys.historicos, []);
 
   const value = useMemo<InventoryContextType>(() => {
     const regioes = estadosBrasil;
@@ -105,11 +74,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
     const getUnidade = (id: string) => getUnidadesComRegiao().find((unidade) => unidade.id === id);
 
-    const getEquipamentosByModulo = (modulo: ModuloTipo) => {
-      if (modulo === 'tvs') return equipamentos.filter((item) => item.categoria === 'TV');
-      if (modulo === 'equipamentos') return equipamentos.filter((item) => item.categoria !== 'TV');
-      return [];
-    };
+    const getEquipamentosByModulo = (modulo: ModuloTipo) => filterEquipamentosByModulo(equipamentos, modulo);
 
     const getCamerasComUnidade = () =>
       cameras.map((camera) => ({ ...camera, unidades: getUnidade(camera.unidade_id) ?? null }));
@@ -152,19 +117,21 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     const addUnidades = (inputs: UnidadeInput[]) => inputs.map((input) => addUnidade(input));
 
     const addEquipamento = (input: EquipamentoInput, modulo: ModuloTipo) => {
+      const createdAt = now();
       const equipamento: Equipamento = {
         id: createId('eq'),
         unidade_id: input.unidade_id,
         categoria: input.categoria,
         nome: input.nome.trim(),
-        asset_tag: input.categoria === 'tv_box' ? input.asset_tag?.trim() || null : null,
+        asset_tag: input.asset_tag?.trim() || null,
         eletromidia_id: input.categoria === 'TV' ? input.eletromidia_id?.trim() || null : null,
         marca: input.marca?.trim() || null,
         modelo: input.modelo?.trim() || null,
         data_garantia: input.data_garantia || null,
         status: input.status,
         observacoes: input.observacoes?.trim() || null,
-        created_at: now(),
+        created_at: createdAt,
+        updated_at: createdAt,
       };
 
       setEquipamentos((prev) => [...prev, equipamento].sort((a, b) => a.nome.localeCompare(b.nome)));
@@ -194,15 +161,15 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     };
 
     const addCamera = (input: CameraInput) => {
+      const createdAt = now();
       const camera: Camera = {
         ...input,
         id: createId('cam'),
-        canal_dvr: input.canal_dvr ?? null,
         setor: input.setor?.trim() || null,
-        ip_address: input.ip_address?.trim() || null,
         marca: input.marca?.trim() || null,
         modelo: input.modelo?.trim() || null,
-        created_at: now(),
+        created_at: createdAt,
+        updated_at: createdAt,
       };
 
       setCameras((prev) => [camera, ...prev]);
@@ -230,10 +197,12 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     };
 
     const addManutencao = (input: ManutencaoInput) => {
+      const createdAt = now();
       const manutencao: Manutencao = {
         ...input,
         id: createId('man'),
-        created_at: now(),
+        created_at: createdAt,
+        updated_at: createdAt,
       };
 
       setManutencoes((prev) => [manutencao, ...prev]);
@@ -250,10 +219,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       setManutencoes((prev) => prev.filter((item) => item.id !== id));
     };
 
-    const nextTvNumber = (unidadeId: string) => {
-      const total = equipamentos.filter((item) => item.unidade_id === unidadeId && item.categoria === 'TV').length;
-      return String(total + 1).padStart(2, '0');
-    };
+    const nextTvNumber = () => nextTvNumberForInventory(equipamentos);
 
     return {
       regioes,

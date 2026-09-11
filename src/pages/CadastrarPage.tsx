@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
-import { Building, Calendar, CheckCircle2, FileText, Hash, MapPin, Monitor, PlusCircle, Tv } from 'lucide-react';
+import { useState } from 'react';
+import { Building, Calendar, CheckCircle2, FileText, Hash, MapPin, Monitor, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useInventory } from '@/providers/InventoryProvider';
+import { buildTvName } from '@/services/inventory/inventoryLogic';
 
 const statusOptions = [
   { v: 'ativo', l: 'Ativa', c: 'border-emerald-300 bg-emerald-50 text-emerald-700' },
@@ -28,10 +29,10 @@ export function CadastrarPage() {
   const unidades = getUnidadesComRegiao();
   const [form, setForm] = useState(initialForm);
   const [submitted, setSubmitted] = useState(false);
-  const [nextNumber, setNextNumber] = useState('01');
 
   const filteredUnidades = form.regiao_id ? unidades.filter((unidade) => unidade.regiao_id === form.regiao_id) : [];
   const showObs = form.status === 'manutencao' || form.status === 'outros';
+  const nextNumber = nextTvNumber();
 
   const update = (key: keyof typeof form, value: string) => {
     setForm((current) => ({
@@ -43,23 +44,21 @@ export function CadastrarPage() {
     setSubmitted(false);
   };
 
-  useEffect(() => {
-    setNextNumber(form.unidade_id ? nextTvNumber(form.unidade_id) : '01');
-  }, [form.unidade_id, nextTvNumber]);
-
   const reset = () => {
     setForm(initialForm);
-    setNextNumber('01');
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!form.unidade_id) return;
 
+    const unidade = unidades.find((item) => item.id === form.unidade_id);
+    const tvName = buildTvName(unidade?.nome ?? '', nextNumber);
+
     addEquipamento({
       unidade_id: form.unidade_id,
       categoria: 'TV',
-      nome: nextNumber,
+      nome: tvName,
       eletromidia_id: form.eletromidia_id,
       marca: form.marca,
       modelo: form.modelo,
@@ -95,9 +94,6 @@ export function CadastrarPage() {
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <Field label="Identificacao automatica" icon={Tv}>
-                <input value={nextNumber} readOnly className={`${inputClass} cursor-not-allowed font-bold text-slate-700`} />
-              </Field>
               <Field label="Estado" icon={MapPin}>
                 <select required value={form.regiao_id} onChange={(event) => update('regiao_id', event.target.value)} className={inputClass}>
                   <option value="">Selecione o estado...</option>
@@ -105,10 +101,13 @@ export function CadastrarPage() {
                 </select>
               </Field>
               <Field label="Unidade" icon={Building}>
-                <select required value={form.unidade_id} onChange={(event) => update('unidade_id', event.target.value)} className={inputClass} disabled={!form.regiao_id}>
-                  <option value="">{form.regiao_id ? 'Selecione a unidade...' : 'Escolha um estado primeiro'}</option>
-                  {filteredUnidades.map((unidade) => <option key={unidade.id} value={unidade.id}>{unidade.nome}{unidade.cidade ? ` - ${unidade.cidade}` : ''}</option>)}
-                </select>
+                <div className="flex gap-2">
+                  <select required value={form.unidade_id} onChange={(event) => update('unidade_id', event.target.value)} className={inputClass} disabled={!form.regiao_id}>
+                    <option value="">{form.regiao_id ? 'Selecione a unidade...' : 'Escolha um estado primeiro'}</option>
+                    {filteredUnidades.map((unidade) => <option key={unidade.id} value={unidade.id}>{unidade.nome}{unidade.cidade ? ` - ${unidade.cidade}` : ''}</option>)}
+                  </select>
+                  <input value={nextNumber} readOnly title="Numero da TV" className={`${inputClass} !w-20 shrink-0 cursor-not-allowed px-3 text-center font-bold text-slate-700`} />
+                </div>
               </Field>
               <Field label="ID Eletromidia" icon={Hash}>
                 <input value={form.eletromidia_id} onChange={(event) => update('eletromidia_id', event.target.value)} placeholder="Ex: ELM-000123" className={inputClass} />
@@ -158,7 +157,7 @@ export function CadastrarPage() {
   );
 }
 
-function Field({ label, icon: Icon, children }: { label: string; icon: typeof Tv; children: React.ReactNode }) {
+function Field({ label, icon: Icon, children }: { label: string; icon: typeof PlusCircle; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
       <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
