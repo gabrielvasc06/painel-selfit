@@ -25,14 +25,13 @@ export function CadastrarEquipamentoPage() {
   const [submitted, setSubmitted] = useState(false);
 
   const filteredUnidades = form.regiao_id ? unidades.filter((unidade) => unidade.regiao_id === form.regiao_id) : [];
-  const showAssetTag = form.categoria === 'tv_box';
+  const showAssetTag = false;
 
   const update = (key: keyof typeof form, value: string) => {
     setForm((current) => ({
       ...current,
       [key]: value,
       ...(key === 'regiao_id' ? { unidade_id: '' } : {}),
-      ...(key === 'categoria' && value !== 'tv_box' ? { asset_tag: '' } : {}),
     }));
     setSubmitted(false);
   };

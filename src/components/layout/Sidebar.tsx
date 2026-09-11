@@ -27,8 +27,7 @@ export type PageId =
   | 'equipamentos'
   | 'regiao'
   | 'garantias'
-  | 'manutencoes'
-  | 'planta';
+  | 'manutencoes';
 
 interface SidebarProps {
   current: PageId;
@@ -48,14 +47,6 @@ function getNavSections(modulo: ModuloTipo): { label: string; items: NavItem[] }
     { id: 'consultar', label: 'Consultar Unidades', icon: Search },
     { id: 'regiao', label: 'Por Regiao', icon: MapPin },
   ];
-
-  if (!isTvs) {
-    consultaItems.splice(1, 0, {
-      id: 'equipamentos',
-      label: isCameras ? 'Consultar Cameras' : 'Consultar Equipamentos',
-      icon: isCameras ? Camera : Cpu,
-    });
-  }
 
   const cadastroItems: NavItem[] = isTvs
     ? [
@@ -88,7 +79,6 @@ function getNavSections(modulo: ModuloTipo): { label: string; items: NavItem[] }
       items: [
         { id: 'garantias', label: 'Garantias', icon: ShieldCheck },
         { id: 'manutencoes', label: 'Manutencoes', icon: Wrench },
-        { id: 'planta', label: 'Monitoramento', icon: Layers },
       ],
     },
   ];

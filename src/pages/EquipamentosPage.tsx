@@ -64,7 +64,7 @@ export function EquipamentosPage() {
   const saveEdit = () => {
     if (!selected) return;
     updateEquipamento(selected.id, {
-      nome: editForm.nome,
+      nome: selected.categoria === 'TV' ? selected.nome : editForm.nome,
       eletromidia_id: selected.categoria === 'TV' ? editForm.eletromidia_id || null : null,
       marca: editForm.marca || null,
       modelo: editForm.modelo || null,
@@ -149,8 +149,9 @@ export function EquipamentosPage() {
                   {item.marca && <span className="flex items-center gap-1"><Tag className="h-3 w-3" /> {item.marca}</span>}
                   {item.modelo && <span>{item.modelo}</span>}
                   {item.categoria === 'TV' && item.eletromidia_id && <span className="flex items-center gap-1"><Hash className="h-3 w-3" /> Eletromidia: {item.eletromidia_id}</span>}
-                  {item.categoria === 'tv_box' && item.asset_tag && <span className="flex items-center gap-1"><Hash className="h-3 w-3" /> {item.asset_tag}</span>}
+                  {item.asset_tag && <span className="flex items-center gap-1"><Hash className="h-3 w-3" /> {item.asset_tag}</span>}
                   {item.data_garantia && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(item.data_garantia).toLocaleDateString('pt-BR')}</span>}
+                  <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Atualizado: {formatDateTime(item.updated_at ?? item.created_at)}</span>
                 </div>
                 <div className="mt-4 flex gap-2">
                   <Button type="button" variant="outline" size="sm" onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /> Atualizar</Button>
@@ -178,7 +179,14 @@ export function EquipamentosPage() {
 
             {editing ? (
               <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <input value={editForm.nome} onChange={(event) => setEditForm((current) => ({ ...current, nome: event.target.value }))} className={inputClass} placeholder="Nome" />
+                {selected.categoria === 'TV' ? (
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-500">Nome da TV</label>
+                    <input value={editForm.nome} readOnly className={`${inputClass} cursor-not-allowed font-semibold text-slate-700`} />
+                  </div>
+                ) : (
+                  <input value={editForm.nome} onChange={(event) => setEditForm((current) => ({ ...current, nome: event.target.value }))} className={inputClass} placeholder="Nome" />
+                )}
                 <select value={editForm.status} onChange={(event) => setEditForm((current) => ({ ...current, status: event.target.value }))} className={inputClass}>
                   {Object.entries(statusEquipLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                 </select>
@@ -197,14 +205,15 @@ export function EquipamentosPage() {
             ) : (
               <>
                 <div className="mt-5 grid grid-cols-2 gap-4 text-sm">
-                  <DetailRow label="Unidade" value={selected.unidades?.nome ?? '-'} icon={Building2} />
+                  <DetailRow label="Nome da unidade" value={selected.unidades?.nome ?? '-'} icon={Building2} />
                   <DetailRow label="Estado" value={selected.unidades?.regioes?.sigla ?? selected.unidades?.uf ?? '-'} icon={MapPin} />
                   {selected.categoria === 'TV' && <DetailRow label="ID Eletromidia" value={selected.eletromidia_id ?? '-'} icon={Hash} />}
-                  {selected.categoria === 'tv_box' && <DetailRow label="Asset Tag" value={selected.asset_tag ?? '-'} icon={Hash} />}
+                  {selected.asset_tag && <DetailRow label="Asset Tag" value={selected.asset_tag ?? '-'} icon={Hash} />}
                   <DetailRow label="Marca" value={selected.marca ?? '-'} icon={Tag} />
                   <DetailRow label="Modelo" value={selected.modelo ?? '-'} icon={Tag} />
                   <DetailRow label="Garantia" value={selected.data_garantia ? new Date(selected.data_garantia).toLocaleDateString('pt-BR') : '-'} icon={Calendar} />
                   <DetailRow label="Status" value={statusEquipLabels[selected.status]} icon={Wrench} />
+                  <DetailRow label="Atualizado" value={formatDateTime(selected.updated_at ?? selected.created_at)} icon={Calendar} />
                 </div>
                 {selected.observacoes && <div className="mt-4 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{selected.observacoes}</div>}
                 <div className="mt-5 flex gap-2">
@@ -230,4 +239,10 @@ function DetailRow({ label, value, icon: Icon }: { label: string; value: string;
       </div>
     </div>
   );
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return '-';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Archive, ArrowLeft, BadgeCheck, Building, Camera, CheckCircle2, Cpu, FileText, MapPin, Pencil, Save, Trash2, Tv, Wrench, X } from 'lucide-react';
+import { Archive, ArrowLeft, BadgeCheck, Building, Calendar, Camera, CheckCircle2, Cpu, FileText, MapPin, Pencil, Save, Trash2, Tv, Wrench, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { DonutChart } from '@/pages/DashboardPage';
@@ -14,6 +14,12 @@ const statusConfig = {
   outros: { label: 'Outros', icon: Archive, class: 'bg-amber-100 text-amber-700 border-amber-200' },
 };
 
+const cameraStatusConfig = {
+  ativa: { icon: CheckCircle2, class: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  manutencao: { icon: Wrench, class: 'bg-selfit-100 text-selfit-700 border-selfit-200' },
+  inativa: { icon: Archive, class: 'bg-slate-100 text-slate-600 border-slate-200' },
+};
+
 const inputClass = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-selfit-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-selfit-500/20';
 
 export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; onBack: () => void }) {
@@ -21,9 +27,9 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
   const { getUnidade, getEquipamentosByModulo, cameras, updateEquipamento, deleteEquipamento, updateCamera, deleteCamera } = useInventory();
   const unidade = getUnidade(unidadeId);
   const [editing, setEditing] = useState<Equipamento | null>(null);
-  const [editForm, setEditForm] = useState({ nome: '', eletromidia_id: '', marca: '', modelo: '', status: 'ativo', observacoes: '' });
+  const [editForm, setEditForm] = useState({ nome: '', eletromidia_id: '', marca: '', modelo: '', data_garantia: '', status: 'ativo', observacoes: '' });
   const [editingCamera, setEditingCamera] = useState<CameraType | null>(null);
-  const [cameraForm, setCameraForm] = useState({ nome: '', tipo: 'ip' as CameraType['tipo'], setor: '', ip_address: '', canal_dvr: '', marca: '', modelo: '', status: 'ativa' as CameraType['status'] });
+  const [cameraForm, setCameraForm] = useState({ nome: '', tipo: 'ip' as CameraType['tipo'], setor: '', marca: '', modelo: '', status: 'ativa' as CameraType['status'] });
   const [toast, setToast] = useState('');
 
   if (!unidade) {
@@ -41,16 +47,17 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
 
   const openEdit = (item: Equipamento) => {
     setEditing(item);
-    setEditForm({ nome: item.nome, eletromidia_id: item.eletromidia_id ?? '', marca: item.marca ?? '', modelo: item.modelo ?? '', status: item.status, observacoes: item.observacoes ?? '' });
+    setEditForm({ nome: item.nome, eletromidia_id: item.eletromidia_id ?? '', marca: item.marca ?? '', modelo: item.modelo ?? '', data_garantia: item.data_garantia ?? '', status: item.status, observacoes: item.observacoes ?? '' });
   };
 
   const saveEdit = () => {
     if (!editing) return;
     updateEquipamento(editing.id, {
-      nome: editForm.nome,
+      nome: editing.categoria === 'TV' ? editing.nome : editForm.nome,
       eletromidia_id: editing.categoria === 'TV' ? editForm.eletromidia_id || null : null,
       marca: editForm.marca || null,
       modelo: editForm.modelo || null,
+      data_garantia: editForm.data_garantia || null,
       status: editForm.status as Equipamento['status'],
       observacoes: editForm.observacoes || null,
     });
@@ -69,8 +76,6 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
       nome: camera.nome,
       tipo: camera.tipo,
       setor: camera.setor ?? '',
-      ip_address: camera.ip_address ?? '',
-      canal_dvr: camera.canal_dvr ? String(camera.canal_dvr) : '',
       marca: camera.marca ?? '',
       modelo: camera.modelo ?? '',
       status: camera.status,
@@ -83,8 +88,6 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
       nome: cameraForm.nome.trim(),
       tipo: cameraForm.tipo,
       setor: cameraForm.setor.trim() || null,
-      ip_address: cameraForm.ip_address.trim() || null,
-      canal_dvr: cameraForm.canal_dvr ? Number(cameraForm.canal_dvr) : null,
       marca: cameraForm.marca.trim() || null,
       modelo: cameraForm.modelo.trim() || null,
       status: cameraForm.status,
@@ -166,30 +169,38 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
                   <tr className="border-b border-slate-100 bg-slate-50">
                     <th className="px-5 py-3 font-semibold text-slate-600">Nome</th>
                     <th className="px-5 py-3 font-semibold text-slate-600">Setor</th>
-                    <th className="px-5 py-3 font-semibold text-slate-600">IP</th>
-                    <th className="px-5 py-3 font-semibold text-slate-600">Canal DVR</th>
+                    <th className="px-5 py-3 font-semibold text-slate-600">Tipo</th>
                     <th className="px-5 py-3 font-semibold text-slate-600">Status</th>
+                    <th className="px-5 py-3 font-semibold text-slate-600">Atualizado</th>
                     <th className="px-5 py-3" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {unidadeCameras.length === 0 ? (
                     <tr><td colSpan={6} className="px-5 py-8 text-center text-slate-400">Nenhuma camera cadastrada nesta unidade.</td></tr>
-                  ) : unidadeCameras.map((camera) => (
-                    <tr key={camera.id} className="hover:bg-slate-50">
-                      <td className="px-5 py-3 font-semibold text-slate-900">{camera.nome}</td>
-                      <td className="px-5 py-3 text-slate-600">{camera.setor ?? '-'}</td>
-                      <td className="px-5 py-3 text-slate-600">{camera.ip_address ?? '-'}</td>
-                      <td className="px-5 py-3 text-slate-600">{camera.canal_dvr ?? '-'}</td>
-                      <td className="px-5 py-3 text-slate-600">{statusCameraLabels[camera.status]}</td>
-                      <td className="px-5 py-3">
-                        <div className="flex gap-2">
-                          <button onClick={() => openCameraEdit(camera)} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-selfit-50 hover:text-selfit-600" title="Atualizar"><Pencil className="h-4 w-4" /></button>
-                          <button onClick={() => removeCamera(camera)} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500" title="Remover"><Trash2 className="h-4 w-4" /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  ) : unidadeCameras.map((camera) => {
+                    const sc = cameraStatusConfig[camera.status];
+                    const StatusIcon = sc.icon;
+                    return (
+                      <tr key={camera.id} className="hover:bg-slate-50">
+                        <td className="px-5 py-3 font-semibold text-slate-900">{camera.nome}</td>
+                        <td className="px-5 py-3 text-slate-600">{camera.setor ?? '-'}</td>
+                        <td className="px-5 py-3 text-slate-600">{tipoCameraLabels[camera.tipo] ?? camera.tipo}</td>
+                        <td className="px-5 py-3">
+                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${sc.class}`}>
+                            <StatusIcon className="h-3.5 w-3.5" /> {statusCameraLabels[camera.status]}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-slate-600">{formatDateTime(camera.updated_at ?? camera.created_at)}</td>
+                        <td className="px-5 py-3">
+                          <div className="flex gap-2">
+                            <button onClick={() => openCameraEdit(camera)} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-selfit-50 hover:text-selfit-600" title="Atualizar"><Pencil className="h-4 w-4" /></button>
+                            <button onClick={() => removeCamera(camera)} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500" title="Remover"><Trash2 className="h-4 w-4" /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </CardContent>
@@ -202,17 +213,18 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50">
-                      <th className="px-5 py-3 font-semibold text-slate-600">Nome</th>
+                      <th className="px-5 py-3 font-semibold text-slate-600">{modulo === 'tvs' ? 'Nome da TV' : 'Nome'}</th>
                       {modulo === 'tvs' && <th className="px-5 py-3 font-semibold text-slate-600">ID Eletromidia</th>}
                       <th className="px-5 py-3 font-semibold text-slate-600">Categoria</th>
                       <th className="px-5 py-3 font-semibold text-slate-600">Modelo</th>
                       <th className="px-5 py-3 font-semibold text-slate-600">Status</th>
+                      <th className="px-5 py-3 font-semibold text-slate-600">Atualizado</th>
                       <th className="px-5 py-3" />
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {itens.length === 0 ? (
-                      <tr><td colSpan={modulo === 'tvs' ? 6 : 5} className="px-5 py-8 text-center text-slate-400">Nenhum item cadastrado nesta unidade.</td></tr>
+                      <tr><td colSpan={modulo === 'tvs' ? 7 : 6} className="px-5 py-8 text-center text-slate-400">Nenhum item cadastrado nesta unidade.</td></tr>
                     ) : (
                       itens.map((item) => {
                         const sc = statusConfig[item.status] ?? statusConfig.outros;
@@ -228,6 +240,7 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
                                 <StatusIcon className="h-3.5 w-3.5" /> {sc.label}
                               </span>
                             </td>
+                            <td className="px-5 py-3 text-slate-600">{formatDateTime(item.updated_at ?? item.created_at)}</td>
                             <td className="px-5 py-3">
                               <div className="flex gap-2">
                                 <button onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-selfit-50 hover:text-selfit-600" title="Atualizar"><Pencil className="h-4 w-4" /></button>
@@ -262,8 +275,6 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
               <select value={cameraForm.status} onChange={(event) => setCameraForm((current) => ({ ...current, status: event.target.value as CameraType['status'] }))} className={inputClass}>
                 {Object.entries(statusCameraLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
-              <input value={cameraForm.ip_address} onChange={(event) => setCameraForm((current) => ({ ...current, ip_address: event.target.value }))} className={`${inputClass} font-mono`} placeholder="IP opcional" />
-              <input type="number" min="1" value={cameraForm.canal_dvr} onChange={(event) => setCameraForm((current) => ({ ...current, canal_dvr: event.target.value }))} className={inputClass} placeholder="Canal DVR opcional" />
               <input value={cameraForm.marca} onChange={(event) => setCameraForm((current) => ({ ...current, marca: event.target.value }))} className={inputClass} placeholder="Marca" />
               <input value={cameraForm.modelo} onChange={(event) => setCameraForm((current) => ({ ...current, modelo: event.target.value }))} className={inputClass} placeholder="Modelo" />
             </div>
@@ -283,7 +294,14 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
               <button onClick={() => setEditing(null)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"><X className="h-5 w-5" /></button>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <input value={editForm.nome} onChange={(event) => setEditForm((current) => ({ ...current, nome: event.target.value }))} className={inputClass} placeholder="Nome" />
+              {editing.categoria === 'TV' ? (
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-500">Nome da TV</label>
+                  <input value={editForm.nome} readOnly className={`${inputClass} cursor-not-allowed font-semibold text-slate-700`} />
+                </div>
+              ) : (
+                <input value={editForm.nome} onChange={(event) => setEditForm((current) => ({ ...current, nome: event.target.value }))} className={inputClass} placeholder="Nome" />
+              )}
               <select value={editForm.status} onChange={(event) => setEditForm((current) => ({ ...current, status: event.target.value }))} className={inputClass}>
                 {Object.entries(statusEquipLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
@@ -292,6 +310,10 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
               )}
               <input value={editForm.marca} onChange={(event) => setEditForm((current) => ({ ...current, marca: event.target.value }))} className={inputClass} placeholder="Marca" />
               <input value={editForm.modelo} onChange={(event) => setEditForm((current) => ({ ...current, modelo: event.target.value }))} className={inputClass} placeholder="Modelo" />
+              <div className="relative">
+                <Calendar className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input type="date" value={editForm.data_garantia} onChange={(event) => setEditForm((current) => ({ ...current, data_garantia: event.target.value }))} className={`${inputClass} pl-9`} />
+              </div>
               <textarea value={editForm.observacoes} onChange={(event) => setEditForm((current) => ({ ...current, observacoes: event.target.value }))} className={`${inputClass} resize-none sm:col-span-2`} rows={3} placeholder="Observacoes" />
             </div>
             <div className="mt-5 flex gap-2">
@@ -324,4 +346,10 @@ function LegendRow({ label, value, total, color }: { label: string; value: numbe
       <span className="text-sm font-semibold text-slate-700">{value} ({total ? ((value / total) * 100).toFixed(0) : 0}%)</span>
     </div>
   );
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return '-';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 }

@@ -98,34 +98,40 @@ export function filterUnidades(
   query: string,
   regiaoFilter: string,
 ) {
-  const typedQuery = query.trim().toLowerCase();
+  const normalizedQuery = normalizeSearchValue(query);
 
   return unidades.filter((unidade) => {
     const matchesRegiao = regiaoFilter === 'all' || unidade.regioes?.sigla === regiaoFilter || unidade.uf === regiaoFilter || unidade.regiao_id === regiaoFilter;
-    const matchesQuery = !typedQuery || [
-      unidade.nome,
-      unidade.cidade,
-      unidade.logradouro,
-      unidade.bairro,
-      unidade.cep,
-      unidade.cnpj,
-      unidade.uf,
-      unidade.regioes?.nome,
-    ].some((value) => value?.toLowerCase().includes(typedQuery));
+    const matchesQuery = !normalizedQuery || normalizeSearchValue(unidade.nome).includes(normalizedQuery);
 
     return matchesRegiao && matchesQuery;
   });
 }
 
+export function getSafeEquipmentCategories(categories: string[] = []) {
+  const allowed = new Set(['TV', 'totem', 'catraca', 'leitor_facial', 'access_point', 'impressora', 'switch', 'firewall', 'roteador', 'nobreak']);
+  return categories.filter((category) => allowed.has(category));
+}
+
 export function filterEquipamentosByModulo(equipamentos: Equipamento[], modulo: ModuloTipo) {
   if (modulo === 'tvs') return equipamentos.filter((item) => item.categoria === 'TV');
-  if (modulo === 'equipamentos') return equipamentos.filter((item) => item.categoria !== 'TV');
+  if (modulo === 'equipamentos') return equipamentos.filter((item) => item.categoria !== 'TV' && getSafeEquipmentCategories([item.categoria]).length > 0);
   return [];
 }
 
-export function nextTvNumberForUnit(equipamentos: Equipamento[], unidadeId: string) {
-  const total = equipamentos.filter((item) => item.unidade_id === unidadeId && item.categoria === 'TV').length;
-  return String(total + 1).padStart(2, '0');
+export function buildTvName(unidadeNome: string, sequence: string) {
+  const unidade = unidadeNome.trim();
+  return unidade ? `${unidade} - ${sequence}` : sequence;
+}
+
+export function nextTvNumberForInventory(equipamentos: Equipamento[]) {
+  const maxNumber = equipamentos
+    .filter((item) => item.categoria === 'TV')
+    .map((item) => readTvSequence(item.nome))
+    .filter(Number.isFinite)
+    .reduce((max, value) => Math.max(max, value), 0);
+
+  return String(maxNumber + 1).padStart(2, '0');
 }
 
 export function cameraMatchesSearch(camera: Camera, query: string, unidadeNome = '') {
@@ -133,29 +139,27 @@ export function cameraMatchesSearch(camera: Camera, query: string, unidadeNome =
   if (!typedQuery) return true;
 
   const normalizedQuery = normalizeSearchValue(typedQuery);
-  const compactQuery = compactSearchValue(typedQuery);
-  const canal = camera.canal_dvr ? String(camera.canal_dvr) : '';
-  const canalPadded = camera.canal_dvr ? String(camera.canal_dvr).padStart(2, '0') : '';
 
   const searchableValues = [
     camera.nome,
     camera.setor,
-    camera.ip_address,
     camera.marca,
     camera.modelo,
     unidadeNome,
-    canal,
-    canalPadded,
-    canal ? `canal ${canal}` : '',
-    canal ? `canal ${canalPadded}` : '',
-    canal ? `dvr ${canal}` : '',
-    canal ? `dvr ${canalPadded}` : '',
   ];
 
   return searchableValues.some((value) => {
     if (!value) return false;
-    return normalizeSearchValue(value).includes(normalizedQuery) || compactSearchValue(value).includes(compactQuery);
+    return normalizeSearchValue(value).includes(normalizedQuery);
   });
+}
+
+export function matchesUnidadeSearch(query: string, unidadeNome: string, regiaoSigla?: string | null, cidade?: string | null) {
+  const typedQuery = query.trim();
+  if (!typedQuery) return true;
+
+  const values = [unidadeNome, regiaoSigla, cidade].filter(Boolean) as string[];
+  return values.some((value) => normalizeSearchValue(value).includes(normalizeSearchValue(typedQuery)));
 }
 
 export type UnidadeCsvPreview = {
@@ -276,6 +280,8 @@ function normalizeSearchValue(value: string) {
     .replace(/[\u0300-\u036f]/g, '');
 }
 
-function compactSearchValue(value: string) {
-  return normalizeSearchValue(value).replace(/[^a-z0-9]/g, '');
+function readTvSequence(value: string) {
+  const match = value.trim().match(/(\d+)$/);
+  return match ? Number(match[1]) : Number(value);
 }
+
