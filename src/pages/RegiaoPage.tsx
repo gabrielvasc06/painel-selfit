@@ -6,7 +6,7 @@ import { useModulo } from '@/providers/ModuloProvider';
 
 export function RegiaoPage({ onOpenRegiao }: { onOpenRegiao: (id: string) => void }) {
   const { modulo } = useModulo();
-  const { regioes, unidades, getEquipamentosByModulo, cameras } = useInventory();
+  const { regioes, unidades, getEquipamentosByModulo } = useInventory();
   const labels = moduleLabels[modulo];
   const MainIcon = modulo === 'tvs' ? Tv : modulo === 'cameras' ? Camera : Cpu;
 
@@ -17,17 +17,6 @@ export function RegiaoPage({ onOpenRegiao }: { onOpenRegiao: (id: string) => voi
 
   const getStats = (regiaoId: string) => {
     const unitIds = unidades.filter((unidade) => unidade.regiao_id === regiaoId).map((unidade) => unidade.id);
-    if (modulo === 'cameras') {
-      const scoped = cameras.filter((camera) => unitIds.includes(camera.unidade_id));
-      return {
-        itens: scoped.length,
-        unidades_count: unitIds.length,
-        ativos: scoped.filter((camera) => camera.status === 'ativa').length,
-        manutencao: scoped.filter((camera) => camera.status === 'manutencao').length,
-        outros: scoped.filter((camera) => camera.status === 'inativa').length,
-      };
-    }
-
     const scoped = getEquipamentosByModulo(modulo).filter((item) => item.unidade_id && unitIds.includes(item.unidade_id));
     return {
       itens: scoped.length,

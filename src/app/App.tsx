@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { LayoutGrid } from 'lucide-react';
 import { InventoryProvider } from '@/providers/InventoryProvider';
 import { ModuloProvider } from '@/providers/ModuloProvider';
-import { getModuleBadge, pageMeta, validPages } from '@/routes/pageRegistry';
+import { getModuleBadge, pageMeta } from '@/routes/pageRegistry';
 import type { ModuloTipo } from '@/services/inventory/inventoryTypes';
 import { Sidebar, type PageId } from '@/components/layout/Sidebar';
 import { CadastrarCameraPage } from '@/pages/CadastrarCameraPage';
@@ -21,75 +21,43 @@ import { ModuleSelectScreen } from '@/pages/ModuleSelectScreen';
 import { RegiaoDetailPage } from '@/pages/RegiaoDetailPage';
 import { RegiaoPage } from '@/pages/RegiaoPage';
 import { UnidadeDetailPage } from '@/pages/UnidadeDetailPage';
-
-function readStoredModule(): ModuloTipo | null {
-  const stored = localStorage.getItem('selfit.currentModule');
-  return stored === 'tvs' || stored === 'equipamentos' || stored === 'cameras' ? stored : null;
-}
-
-function readStoredPage(): PageId {
-  const stored = localStorage.getItem('selfit.page');
-  return validPages.includes(stored as PageId) ? stored as PageId : 'dashboard';
-}
-
-function readStoredDrill(): { type: string; id: string } | null {
-  const stored = localStorage.getItem('selfit.drill');
-  if (!stored) return null;
-
-  try {
-    const parsed = JSON.parse(stored);
-    return typeof parsed?.type === 'string' && typeof parsed?.id === 'string' ? parsed : null;
-  } catch {
-    return null;
-  }
-}
+import { authenticate, clearAuthToken, getAuthToken, sessionExpiredEvent } from '@/services/api';
 
 function AppShell() {
-  const [authed, setAuthed] = useState(() => localStorage.getItem('selfit.authenticated') === 'true');
-  const [userName, setUserName] = useState(() => localStorage.getItem('selfit.userName') ?? '');
-  const [currentModule, setCurrentModule] = useState<ModuloTipo | null>(readStoredModule);
-  const [page, setPage] = useState<PageId>(readStoredPage);
+  const [authed, setAuthed] = useState(() => Boolean(getAuthToken()));
+  const [userName, setUserName] = useState('');
+  const [currentModule, setCurrentModule] = useState<ModuloTipo | null>(null);
+  const [page, setPage] = useState<PageId>('dashboard');
   const [previousPage, setPreviousPage] = useState<PageId>('dashboard');
-  const [drill, setDrill] = useState<{ type: string; id: string } | null>(readStoredDrill);
+  const [drill, setDrill] = useState<{ type: string; id: string } | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('selfit.authenticated', String(authed));
-  }, [authed]);
-
-  useEffect(() => {
-    if (userName) localStorage.setItem('selfit.userName', userName);
-    else localStorage.removeItem('selfit.userName');
-  }, [userName]);
-
-  useEffect(() => {
-    if (currentModule) localStorage.setItem('selfit.currentModule', currentModule);
-    else localStorage.removeItem('selfit.currentModule');
-  }, [currentModule]);
-
-  useEffect(() => {
-    localStorage.setItem('selfit.page', page);
-  }, [page]);
-
-  useEffect(() => {
-    if (drill) localStorage.setItem('selfit.drill', JSON.stringify(drill));
-    else localStorage.removeItem('selfit.drill');
-  }, [drill]);
+    const expireSession = () => {
+      setAuthed(false);
+      setUserName('');
+      setCurrentModule(null);
+      setPage('dashboard');
+      setDrill(null);
+    };
+    window.addEventListener(sessionExpiredEvent, expireSession);
+    return () => window.removeEventListener(sessionExpiredEvent, expireSession);
+  }, []);
 
   const handleLogout = () => {
+    clearAuthToken();
     setAuthed(false);
     setCurrentModule(null);
     setUserName('');
     setPage('dashboard');
     setDrill(null);
-    localStorage.removeItem('selfit.authenticated');
-    localStorage.removeItem('selfit.userName');
-    localStorage.removeItem('selfit.currentModule');
-    localStorage.removeItem('selfit.page');
-    localStorage.removeItem('selfit.drill');
   };
 
   if (!authed) {
-    return <LoginScreen onLogin={(name) => { setUserName(name || 'admin'); setAuthed(true); }} />;
+    return <LoginScreen onLogin={async (username, password) => {
+      await authenticate(username, password);
+      setUserName(username.trim().toUpperCase());
+      setAuthed(true);
+    }} />;
   }
 
   if (!currentModule) {
@@ -129,7 +97,7 @@ function AppShell() {
 
   return (
     <ModuloProvider modulo={currentModule} setModulo={setCurrentModule}>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-dvh bg-slate-50">
         <Sidebar
           current={page}
           onNavigate={navigate}
@@ -138,7 +106,7 @@ function AppShell() {
           modulo={currentModule}
         />
 
-        <div className="lg:pl-72">
+        <div className="min-h-dvh lg:pl-72">
           <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/80 px-6 py-4 backdrop-blur-md lg:px-8">
             <div className="ml-10 lg:ml-0">
               <div className="mb-1">
@@ -159,14 +127,14 @@ function AppShell() {
             </button>
           </header>
 
-          <main className="p-6 lg:p-8">
-            <div key={`${currentModule}-${page}-${drill?.type ?? ''}-${drill?.id ?? ''}`} className="animate-fade-in">
+          <main className="min-h-[calc(100dvh-5.5rem)] overflow-visible p-4 sm:p-6 lg:p-8">
+            <div key={`${currentModule}-${page}-${drill?.type ?? ''}-${drill?.id ?? ''}`} className="min-w-0">
               {drill?.type === 'historico' && <HistoricoPage onBack={() => setDrill(null)} />}
               {drill?.type === 'unidade' && <UnidadeDetailPage unidadeId={drill.id} onBack={() => setDrill(null)} />}
               {drill?.type === 'regiao-detail' && <RegiaoDetailPage regiaoId={drill.id} onBack={() => setDrill(null)} />}
 
               {!drill && page === 'dashboard' && <DashboardPage />}
-              {!drill && page === 'consultar' && <ConsultarPage onOpenUnidade={(id) => setDrill({ type: 'unidade', id })} />}
+              {!drill && page === 'consultar' && <ConsultarPage />}
               {!drill && page === 'cadastrar' && <CadastrarPage />}
               {!drill && page === 'cadastrar_unidade' && <CadastrarUnidadePage />}
               {!drill && page === 'cadastrar_equipamento' && (currentModule === 'cameras' ? <CadastrarCameraPage /> : <CadastrarEquipamentoPage />)}

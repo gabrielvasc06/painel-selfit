@@ -7,9 +7,15 @@
 @layer base {
   html {
     font-family: 'Inter', Helvetica, Arial, sans-serif;
+    min-height: 100%;
   }
   body {
     @apply antialiased;
+    min-height: 100%;
+    overflow-y: auto;
+  }
+  #root {
+    min-height: 100dvh;
   }
 }
 
