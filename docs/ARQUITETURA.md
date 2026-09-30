@@ -9,6 +9,7 @@ Este documento resume onde cada parte do sistema fica e como front, backend e ba
 - Banco: MySQL, base `selfit_db`.
 - Documentacao da API: Swagger em `http://localhost:3000/api-docs`.
 - Homologacao automatica: `npm run homologacao`.
+- Setup de maquina nova: `docs/SETUP_LOCAL.md`.
 
 ## Fluxo Principal
 
@@ -57,6 +58,9 @@ Regra importante: TV, equipamento e camera ficam em tabelas separadas. A API usa
 ## Scripts De Manutencao
 
 - `npm run homologacao`: testa login, CORS 5174, unidades, cadastro, edicao, manutencao, exclusao e limpeza.
+- `npm run api:migrate`: cria/atualiza as tabelas no MySQL local.
+- `npm run db:seed`: carrega usuario local e unidades proprias sem duplicar registros.
+- `npm run db:seed:check`: simula o seed para validar conexao e dados base.
 - `node scripts/audit-inventory-integrity.mjs`: verifica separacao dos modulos e integridade geral.
 - `node scripts/audit-backend-sql-contract.mjs`: valida contrato entre backend e SQL.
 - `node scripts/audit-unidades-numeros.mjs`: lista numeros de unidades com zeros ou formato suspeito.

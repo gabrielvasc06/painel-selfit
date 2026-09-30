@@ -1,0 +1,1702 @@
+[
+  {
+    "nome": "ABEL CABRAL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0100-77",
+    "cep": "59151250",
+    "uf": "RN",
+    "bairro": "NOVA PARNAMIRIM",
+    "rua": "AV. ABEL CABRAL",
+    "numero": "SN"
+  },
+  {
+    "nome": "AFOGADOS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0082-50",
+    "cep": "50850000",
+    "uf": "PE",
+    "bairro": "AFOGADOS",
+    "rua": "R SAO MIGUEL",
+    "numero": "176"
+  },
+  {
+    "nome": "ÁGUAS LINDAS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0184-85",
+    "cep": "67020000",
+    "uf": "PA",
+    "bairro": "AGUAS LINDAS",
+    "rua": "RODOVIA BR 316",
+    "numero": "SN"
+  },
+  {
+    "nome": "ALDEIA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0175-94",
+    "cep": "54783010",
+    "uf": "PE",
+    "bairro": "ALDEIA DOS CAMARÁS",
+    "rua": "ESTRADA DE ALDEIA",
+    "numero": "9057"
+  },
+  {
+    "nome": "ALDEOTA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0081-70",
+    "cep": "60150100",
+    "uf": "CE",
+    "bairro": "ALDEOTA",
+    "rua": "RUA EDUARDO GARCIA",
+    "numero": "300"
+  },
+  {
+    "nome": "ANIL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0120-10",
+    "cep": "65045380",
+    "uf": "MA",
+    "bairro": "SANTO ANTONIO",
+    "rua": "AV EDSON BRANDÃO",
+    "numero": "SN"
+  },
+  {
+    "nome": "ANJO DA GUARDA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0118-04",
+    "cep": "65085581",
+    "uf": "MA",
+    "bairro": "ANJO DA GUARDA",
+    "rua": "AVENIDA DOS PORTUGUESES",
+    "numero": "100"
+  },
+  {
+    "nome": "ANTÔNIO BASÍLIO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0114-72",
+    "cep": "59054380",
+    "uf": "RN",
+    "bairro": "LAGOA NOVA",
+    "rua": "AVENIDA ANTONIO BASILIO",
+    "numero": "2079"
+  },
+  {
+    "nome": "ANTÔNIO CASSIMIRO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0144-98",
+    "cep": "56321630",
+    "uf": "PE",
+    "bairro": "ANTONIO CASSIMIRO",
+    "rua": "AV DAS NAÇÕES FERNANDO FARIAS",
+    "numero": "380"
+  },
+  {
+    "nome": "ARENA DAS DUNAS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0156-21",
+    "cep": "59064625",
+    "uf": "RN",
+    "bairro": "LAGOA NOVA",
+    "rua": "AV PRUDENTE DE MORAIS",
+    "numero": "5121"
+  },
+  {
+    "nome": "ARIRIZAL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0133-35",
+    "cep": "65067197",
+    "uf": "MA",
+    "bairro": "COHAMA",
+    "rua": "RUA ARIRIZAL",
+    "numero": "5"
+  },
+  {
+    "nome": "ARRUDA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0089-27",
+    "cep": "52120010",
+    "uf": "PE",
+    "bairro": "ARRUDA",
+    "rua": "RUA BOLIVAR",
+    "numero": "442"
+  },
+  {
+    "nome": "ASSIS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0140-64",
+    "cep": "66010010",
+    "uf": "PA",
+    "bairro": "CAMPINA",
+    "rua": "AVENIDA ASSIS DE VASCONCELOS",
+    "numero": "199"
+  },
+  {
+    "nome": "ATRÁS DA BANCA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0146-50",
+    "cep": "56308050",
+    "uf": "PE",
+    "bairro": "ATRÁS DA BANCA",
+    "rua": "R SAO VICENTE DE PAULA",
+    "numero": "219"
+  },
+  {
+    "nome": "AUGUSTO FRANCO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0035-34",
+    "cep": "49097670",
+    "uf": "SE",
+    "bairro": "PONTO NOVO",
+    "rua": "AV AUGUSTO FRANCO",
+    "numero": "2848"
+  },
+  {
+    "nome": "AV RECIFE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0172-41",
+    "cep": "50865030",
+    "uf": "PE",
+    "bairro": "ESTÂNCIA",
+    "rua": "AV RECIFE",
+    "numero": "5453"
+  },
+  {
+    "nome": "AV. DOS TRABALHADORES",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0143-07",
+    "cep": "78050700",
+    "uf": "MT",
+    "bairro": "CARUMBE",
+    "rua": "AV GOVERNADOR DANTE MARTINS DE OLIVEIRA",
+    "numero": "3625"
+  },
+  {
+    "nome": "BAIRRO BRASIL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0199-61",
+    "cep": "45065075",
+    "uf": "BA",
+    "bairro": "PATAGONIA",
+    "rua": "AV PRESIDENTE DUTRA",
+    "numero": "1030"
+  },
+  {
+    "nome": "BAIRRO DE FÁTIMA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0121-00",
+    "cep": "65015560",
+    "uf": "MA",
+    "bairro": "BAIRRO DE FATIMA",
+    "rua": "AV GUAXENDUBA",
+    "numero": "1612"
+  },
+  {
+    "nome": "BAIRRO DE FÁTIMA 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0182-13",
+    "cep": "65015560",
+    "uf": "MA",
+    "bairro": "BAIRRO DE FATIMA",
+    "rua": "AVENIDA GUAXENDUBA",
+    "numero": "1494"
+  },
+  {
+    "nome": "BARÃO DE GURGUÉIA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0091-41",
+    "cep": "64019655",
+    "uf": "PI",
+    "bairro": "TABULETA",
+    "rua": "AV BARAO DE GURGUEIA",
+    "numero": "3690"
+  },
+  {
+    "nome": "BARÃO DE ITAMBI",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0050-73",
+    "cep": "22231000",
+    "uf": "RJ",
+    "bairro": "BOTAFOGO",
+    "rua": "RUA BARAO DE ITAMBI",
+    "numero": "50"
+  },
+  {
+    "nome": "BARRA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0031-00",
+    "cep": "40140390",
+    "uf": "BA",
+    "bairro": "BARRA",
+    "rua": "RUA AUGUSTO FREDERICO SCHMITH",
+    "numero": "95"
+  },
+  {
+    "nome": "BARRA HALL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0029-96",
+    "cep": "40140030",
+    "uf": "BA",
+    "bairro": "BARRA",
+    "rua": "RUA CESAR ZAMA",
+    "numero": "316"
+  },
+  {
+    "nome": "BARRAMAR",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0154-60",
+    "cep": "65071380",
+    "uf": "MA",
+    "bairro": "CALHAU",
+    "rua": "AV DOS HOLANDESES/CONS.HILTON RODRIGUES",
+    "numero": "18"
+  },
+  {
+    "nome": "BAYEUX",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0115-53",
+    "cep": "58110160",
+    "uf": "PB",
+    "bairro": "CENTRO",
+    "rua": "AV LIBERDADE",
+    "numero": "3030"
+  },
+  {
+    "nome": "BENFICA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0111-20",
+    "cep": "50720001",
+    "uf": "PE",
+    "bairro": "MADALENA",
+    "rua": "R BENFICA",
+    "numero": "715"
+  },
+  {
+    "nome": "BERNARDO VIEIRA DE MELO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0087-65",
+    "cep": "54410010",
+    "uf": "PE",
+    "bairro": "PIEDADE",
+    "rua": "AVENIDA BERNARDO VIEIRA DE MELO",
+    "numero": "941"
+  },
+  {
+    "nome": "BESSA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0103-10",
+    "cep": "58037432",
+    "uf": "PB",
+    "bairro": "JARDIM OCEANIA",
+    "rua": "R BACHAREL JOSE DE OLIVEIRA CURCHATUZ",
+    "numero": "S/N"
+  },
+  {
+    "nome": "BEZERRA DE MENEZES",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0037-04",
+    "cep": "60325004",
+    "uf": "CE",
+    "bairro": "PARQUELANDIA",
+    "rua": "AVENIDA BEZERRA DE MENEZES",
+    "numero": "1811"
+  },
+  {
+    "nome": "BOA VIAGEM",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "18.485.351/0001-03",
+    "cep": "51030020",
+    "uf": "PE",
+    "bairro": "BOA VIAGEM",
+    "rua": "AVENIDA VISCONDE DE JEQUITINHONHA",
+    "numero": "420"
+  },
+  {
+    "nome": "BOA VIAGEM 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0106-62",
+    "cep": "51021280",
+    "uf": "PE",
+    "bairro": "BOA VIAGEM",
+    "rua": "R BRUNO VELOSO",
+    "numero": "528"
+  },
+  {
+    "nome": "BOULEVARD SHOPPING",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0068-00",
+    "cep": "45028906",
+    "uf": "BA",
+    "bairro": "CANDEIAS",
+    "rua": "AVENIDA OLIVIA FLORES",
+    "numero": "2500"
+  },
+  {
+    "nome": "BOULEVARD TROPICAL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0022-10",
+    "cep": "65075441",
+    "uf": "MA",
+    "bairro": "RENASCENCA",
+    "rua": "AV. COLARES MOREIRA",
+    "numero": "400"
+  },
+  {
+    "nome": "CAMARAGIBE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0139-20",
+    "cep": "54768000",
+    "uf": "PE",
+    "bairro": "TIMBÍ",
+    "rua": "AVENIDA DOUTOR BELMINO CORREIA",
+    "numero": "3240"
+  },
+  {
+    "nome": "CAMINHO DAS ÁRVORES",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0005-19",
+    "cep": "41820470",
+    "uf": "BA",
+    "bairro": "CAMINHO DAS ÁRVORES",
+    "rua": "AL DAS CAJAZEIRAS",
+    "numero": "59"
+  },
+  {
+    "nome": "CAMPINA GRANDE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0021-39",
+    "cep": "58400258",
+    "uf": "PB",
+    "bairro": "CENTRO",
+    "rua": "RUA DOUTOR SEVERINO CRUZ",
+    "numero": "755"
+  },
+  {
+    "nome": "CAMPO GRANDE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0125-25",
+    "cep": "52031000",
+    "uf": "PE",
+    "bairro": "CAMPO GRANDE",
+    "rua": "ESTRADA DE BELEM",
+    "numero": "1704"
+  },
+  {
+    "nome": "CAMPO GRANDE 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0138-40",
+    "cep": "52040180",
+    "uf": "PE",
+    "bairro": "CAMPO GRANDE",
+    "rua": "R JERONIMO VILELA",
+    "numero": "273"
+  },
+  {
+    "nome": "CAMPOLIM",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0054-05",
+    "cep": "18048140",
+    "uf": "SP",
+    "bairro": "PARQUE CAMPOLIM",
+    "rua": "RUA SENHORA MARIA APARECIDA PESSUTTI MILEGO",
+    "numero": "250"
+  },
+  {
+    "nome": "CANDEIAS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0145-79",
+    "cep": "54450015",
+    "uf": "PE",
+    "bairro": "CANDEIAS",
+    "rua": "AV PRESIDENTE CASTELO BRANCO",
+    "numero": "1647"
+  },
+  {
+    "nome": "CARAPICUIBA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0043-44",
+    "cep": "06328330",
+    "uf": "SP",
+    "bairro": "VILA MUNICIPAL",
+    "rua": "AV DESEMBARGADOR DR EDUARDO CUNHA DE ABREU",
+    "numero": "1455"
+  },
+  {
+    "nome": "CARREFOUR BANCÁRIOS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0194-57",
+    "cep": "58051000",
+    "uf": "PB",
+    "bairro": "JARDIM SÃO PAULO",
+    "rua": "R EMPRESARIO JOAO RODRIGUES ALVES",
+    "numero": "100"
+  },
+  {
+    "nome": "CARREFOUR DOMINGOS FERREIRA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0181-32",
+    "cep": "51020240",
+    "uf": "PE",
+    "bairro": "BOA VIAGEM",
+    "rua": "RUA ANTONIO FALCAO",
+    "numero": "383"
+  },
+  {
+    "nome": "CARREFOUR JUNDIAÍ ( VILA VIOTO)",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0053-16",
+    "cep": "13209500",
+    "uf": "SP",
+    "bairro": "VILA VIOTO - .",
+    "rua": "AV. PROFESSORA MARIA DO CARMO GUIMARÃES PELLEGRINI VIL",
+    "numero": "800"
+  },
+  {
+    "nome": "CARUARU",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0006-08",
+    "cep": "55012040",
+    "uf": "PE",
+    "bairro": "MAURICIO DE NASSAU",
+    "rua": "AVENIDA OSWALDO CRUZ",
+    "numero": "217"
+  },
+  {
+    "nome": "CASA AMARELA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0007-80",
+    "cep": "52060155",
+    "uf": "PE",
+    "bairro": "CASA AMARELA",
+    "rua": "RUA DESB GOES CAVALCANTE",
+    "numero": "12"
+  },
+  {
+    "nome": "CASA AMARELA 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0166-01",
+    "cep": "52070060",
+    "uf": "PE",
+    "bairro": "CASA AMARELA",
+    "rua": "RUA DONA ANA XAVIER",
+    "numero": "89"
+  },
+  {
+    "nome": "CASA CAIADA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0084-12",
+    "cep": "53130530",
+    "uf": "PE",
+    "bairro": "BAIRRO NOVO",
+    "rua": "AV GOVERNADOR CARLOS DE LIMA CAVALCANTE",
+    "numero": "1306"
+  },
+  {
+    "nome": "CASA FORTE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0086-84",
+    "cep": "52060412",
+    "uf": "PE",
+    "bairro": "SANTANA",
+    "rua": "PRACA JORNALISTA FRANCISCO PESSOA DE QUEIROZ",
+    "numero": "23"
+  },
+  {
+    "nome": "CASTELO BRANCO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0185-66",
+    "cep": "64016410",
+    "uf": "PI",
+    "bairro": "CIDADE NOVA",
+    "rua": "AVENIDA BARAO DE CASTELO BRANCO",
+    "numero": "980"
+  },
+  {
+    "nome": "CAXANGÁ",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0130-92",
+    "cep": "50731005",
+    "uf": "PE",
+    "bairro": "IPUTINGA",
+    "rua": "AVENIDA CAXANGÁ",
+    "numero": "2834"
+  },
+  {
+    "nome": "CAXANGÁ 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0153-89",
+    "cep": "50610230",
+    "uf": "PE",
+    "bairro": "MADALENA",
+    "rua": "AV CAXANGA",
+    "numero": "642"
+  },
+  {
+    "nome": "CIDADE JARDIM",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0044-25",
+    "cep": "30380640",
+    "uf": "MG",
+    "bairro": "CORACAO DE JESUS",
+    "rua": "RUA IRAÍ",
+    "numero": "235"
+  },
+  {
+    "nome": "COHAFUMA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0073-60",
+    "cep": "65074199",
+    "uf": "MA",
+    "bairro": "VINHAIS",
+    "rua": "AVENIDA JERONIMO DE ALBUQUERQUE",
+    "numero": "61"
+  },
+  {
+    "nome": "COHAMA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0110-49",
+    "cep": "65074115",
+    "uf": "MA",
+    "bairro": "COHAMA",
+    "rua": "AV JERONIMO DE ALBUQUERQUE",
+    "numero": "500"
+  },
+  {
+    "nome": "COHATRAC",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0141-45",
+    "cep": "65051843",
+    "uf": "MA",
+    "bairro": "PARQUE AURORA",
+    "rua": "AVENIDA PRINCIPAL /AVENIDA 05",
+    "numero": "14"
+  },
+  {
+    "nome": "COLINAS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0047-78",
+    "cep": "12243081",
+    "uf": "SP",
+    "bairro": "VILA EMA",
+    "rua": "AVENIDA JORGE ZARUR",
+    "numero": "100"
+  },
+  {
+    "nome": "CONDE DO BONFIM",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0065-50",
+    "cep": "20520053",
+    "uf": "RJ",
+    "bairro": "TIJUCA",
+    "rua": "RUA CONDE DE BONFIM",
+    "numero": "186"
+  },
+  {
+    "nome": "COSTA AZUL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0020-58",
+    "cep": "41760040",
+    "uf": "BA",
+    "bairro": "COSTA AZUL",
+    "rua": "RUA ADELAIDE FERNANDES DA COSTA",
+    "numero": "903"
+  },
+  {
+    "nome": "CPA 3",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0136-88",
+    "cep": "78058688",
+    "uf": "MT",
+    "bairro": "NOVO HORIZONTE",
+    "rua": "AVENIDA GOVERNADOR DANTE MARTINS DE OLIVEIRA",
+    "numero": "1245"
+  },
+  {
+    "nome": "DANIEL DE LA TOUCHE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0051-54",
+    "cep": "65074115",
+    "uf": "MA",
+    "bairro": "COHAMA",
+    "rua": "AVENIDA DANIEL DE LA TOUCHE",
+    "numero": "1"
+  },
+  {
+    "nome": "DB PONTA NEGRA MANAUS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0093-03",
+    "cep": "69037473",
+    "uf": "AM",
+    "bairro": "NOVA ESPERANÇA",
+    "rua": "AV CORONEL TEIXEIRA",
+    "numero": "7687"
+  },
+  {
+    "nome": "DIRCEU",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0090-60",
+    "cep": "64078625",
+    "uf": "PI",
+    "bairro": "PARQUE IDEAL",
+    "rua": "R JOAQUIM NELSON",
+    "numero": "2743"
+  },
+  {
+    "nome": "DIRCEU 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0167-84",
+    "cep": "64075535",
+    "uf": "PI",
+    "bairro": "BEIRA RIO",
+    "rua": "AVENIDA DEPUTADO PAULO FERRAZ",
+    "numero": "1895"
+  },
+  {
+    "nome": "DOM LUIS ( PATIO DOM LUIS)",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0030-20",
+    "cep": "60160196",
+    "uf": "CE",
+    "bairro": "MEIRELES -",
+    "rua": "AV. DOM LUIS",
+    "numero": "1200"
+  },
+  {
+    "nome": "DOMINGOS FERREIRA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0177-56",
+    "cep": "51021040",
+    "uf": "PE",
+    "bairro": "BOA VIAGEM",
+    "rua": "AVENIDA ENGENHEIRO DOMINGOS FERREIRA",
+    "numero": "3901"
+  },
+  {
+    "nome": "DOMINGOS FERREIRA 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0160-08",
+    "cep": "51020220",
+    "uf": "PE",
+    "bairro": "BOA VIAGEM",
+    "rua": "RUA MARIA CAROLINA",
+    "numero": "205"
+  },
+  {
+    "nome": "ENCRUZILHADA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0119-87",
+    "cep": "52030000",
+    "uf": "PE",
+    "bairro": "ENCRUZILHADA",
+    "rua": "EST DE BELÉM",
+    "numero": "44"
+  },
+  {
+    "nome": "EPITÁCIO PESSOA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0003-57",
+    "cep": "58042006",
+    "uf": "PB",
+    "bairro": "TAMBAUZINHO",
+    "rua": "AVENIDA PRESIDENTE EPITACIO PESSOA",
+    "numero": "3001"
+  },
+  {
+    "nome": "ESTAÇÃO CUIABÁ",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0076-02",
+    "cep": "78040365",
+    "uf": "MT",
+    "bairro": "SANTA ROSA",
+    "rua": "AVENIDA MIGUEL SUTIL",
+    "numero": "9300"
+  },
+  {
+    "nome": "FEIRA DE SANTANA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0015-90",
+    "cep": "44052064",
+    "uf": "BA",
+    "bairro": "FEIRA DE SANTANA - BA",
+    "rua": "AV. CEL. JOSÉ PINTO DOS SANTOS",
+    "numero": "S/N"
+  },
+  {
+    "nome": "FORQUILHA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0132-54",
+    "cep": "65054040",
+    "uf": "MA",
+    "bairro": "FORQUILHA",
+    "rua": "EST DA MAIOBA - FORQUILHA",
+    "numero": "20"
+  },
+  {
+    "nome": "FRANCA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0085-01",
+    "cep": "14403000",
+    "uf": "SP",
+    "bairro": "JARDIM VENEZA",
+    "rua": "AVENIDA DOUTOR ISMAEL ALONSO Y. ALONSO",
+    "numero": "1799"
+  },
+  {
+    "nome": "FREI SERAFIM",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0168-65",
+    "cep": "64001020",
+    "uf": "PI",
+    "bairro": "CENTRO",
+    "rua": "AVENIDA FREI SERAFIM",
+    "numero": "2170"
+  },
+  {
+    "nome": "GLICERIO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0049-30",
+    "cep": "15015400",
+    "uf": "SP",
+    "bairro": "CENTRO -",
+    "rua": "R. GEN. GLICÉRIO",
+    "numero": "3733"
+  },
+  {
+    "nome": "GODOFREDO MACIEL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0107-43",
+    "cep": "60711495",
+    "uf": "CE",
+    "bairro": "LAGOA REDONDA",
+    "rua": "AV. GODOFREDO MACIEL",
+    "numero": "4035"
+  },
+  {
+    "nome": "GOLDEN SHOPPING",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0032-91",
+    "cep": "65071380",
+    "uf": "MA",
+    "bairro": "CALHAU",
+    "rua": "AVENIDA DOS HOLANDESES",
+    "numero": "200"
+  },
+  {
+    "nome": "GUANABARA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0189-90",
+    "cep": "67113000",
+    "uf": "PA",
+    "bairro": "COQUEIRO",
+    "rua": "RODOVIA BR 316",
+    "numero": "141-A"
+  },
+  {
+    "nome": "HOMERO CASTELO BRANCO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0010-86",
+    "cep": "64052005",
+    "uf": "PI",
+    "bairro": "SAO CRISTOVAO",
+    "rua": "AVENIDA HOMERO CASTELO BRANCO",
+    "numero": "1036"
+  },
+  {
+    "nome": "ICARAÍ",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0055-88",
+    "cep": "24230251",
+    "uf": "RJ",
+    "bairro": "ICARAI",
+    "rua": "AVENIDA SETE DE SETEMBRO",
+    "numero": "293"
+  },
+  {
+    "nome": "INDIANÓPOLIS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0117-15",
+    "cep": "55024000",
+    "uf": "PE",
+    "bairro": "INDIANAPOLIS",
+    "rua": "AV JOSE RODRIGUES DE JESUS",
+    "numero": "120"
+  },
+  {
+    "nome": "IT CENTER",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0034-53",
+    "cep": "66120000",
+    "uf": "PA",
+    "bairro": "SACRAMENTA",
+    "rua": "AVENIDA SENADOR LEMOS",
+    "numero": "3.153"
+  },
+  {
+    "nome": "JAIME BENEVOLO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0083-31",
+    "cep": "60050081",
+    "uf": "CE",
+    "bairro": "JOSE BONIFACIO",
+    "rua": "RUA JAIME BENEVOLO",
+    "numero": "1188"
+  },
+  {
+    "nome": "JANGA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0109-05",
+    "cep": "53435000",
+    "uf": "PE",
+    "bairro": "JANGA",
+    "rua": "AV DR CLAUDIO JOSE GUEIROS LEITE",
+    "numero": "4244"
+  },
+  {
+    "nome": "JARDIM DAS AMERICAS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0080-99",
+    "cep": "78060600",
+    "uf": "MT",
+    "bairro": "JARDIM DAS AMERICAS",
+    "rua": "AVENIDA FERNANDO CORREA DA COSTA",
+    "numero": "1259"
+  },
+  {
+    "nome": "JARDIM MONTE LÍBANO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0195-38",
+    "cep": "78048200",
+    "uf": "MT",
+    "bairro": "ALVORADA",
+    "rua": "AVENIDA REPUBLICA DO LIBANO (JD MTE LIBANO)",
+    "numero": "1410"
+  },
+  {
+    "nome": "JARDINS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0018-33",
+    "cep": "49027190",
+    "uf": "SE",
+    "bairro": "GRAGERU",
+    "rua": "AVENIDA MARIETA LEITE",
+    "numero": "3"
+  },
+  {
+    "nome": "JEAN EMILE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0074-40",
+    "cep": "51190450",
+    "uf": "PE",
+    "bairro": "IPSEP",
+    "rua": "RUA JEAN EMILE FAVRE",
+    "numero": "719"
+  },
+  {
+    "nome": "JÓQUEI",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0123-63",
+    "cep": "64048180",
+    "uf": "PI",
+    "bairro": "JOQUEI",
+    "rua": "AVENIDA NOSSA SENHORA DE FATIMA",
+    "numero": "161"
+  },
+  {
+    "nome": "JORDÃO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0097-37",
+    "cep": "51250110",
+    "uf": "PE",
+    "bairro": "JORDAO",
+    "rua": "AV MARIA IRENE",
+    "numero": "1349"
+  },
+  {
+    "nome": "JURACY MAGALHÃES",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0179-18",
+    "cep": "45026090",
+    "uf": "BA",
+    "bairro": "LOTE CHACARAS JARDIM GUAN",
+    "rua": "AVENIDA JURACY MAGALHAES",
+    "numero": "2890"
+  },
+  {
+    "nome": "LAGOA NOVA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0016-71",
+    "cep": "59056000",
+    "uf": "RN",
+    "bairro": "NATAL/RN",
+    "rua": "AV. SEN. SALGADO FILHO",
+    "numero": "1656"
+  },
+  {
+    "nome": "LAGOA NOVA 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0171-60",
+    "cep": "59075740",
+    "uf": "RN",
+    "bairro": "LAGOA NOVA",
+    "rua": "AV MIGUEL CASTRO",
+    "numero": "1929"
+  },
+  {
+    "nome": "LAURO DE FREITAS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0028-05",
+    "cep": "42701450",
+    "uf": "BA",
+    "bairro": "PITANGUEIRAS",
+    "rua": "AVENIDA LUIZ TARQUINIO PONTES",
+    "numero": "2603"
+  },
+  {
+    "nome": "LOURIVAL PARENTE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0163-50",
+    "cep": "64023500",
+    "uf": "PI",
+    "bairro": "LOURIVAL PARENTE",
+    "rua": "RUA IVAN TITO DE OLIVEIRA",
+    "numero": "S/N"
+  },
+  {
+    "nome": "MADALENA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0024-81",
+    "cep": "50720545",
+    "uf": "PE",
+    "bairro": "MADALENA",
+    "rua": "RUA PROFESSOR BENEDITO MONTEIRO",
+    "numero": "224"
+  },
+  {
+    "nome": "MAG SHOPPING",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0002-76",
+    "cep": "58037972",
+    "uf": "PB",
+    "bairro": "MANAIRA",
+    "rua": "AV. GOV. FLAVIO RIBEIRO COUTINHO",
+    "numero": "115"
+  },
+  {
+    "nome": "MAIOBÃO 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0135-05",
+    "cep": "65118562",
+    "uf": "MA",
+    "bairro": "VILA SARNEY FILHO I",
+    "rua": "RODOVIA MA 201",
+    "numero": "2011"
+  },
+  {
+    "nome": "MAIOBÃO/ ESTRADA DO RIBAMAR",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0095-75",
+    "cep": "65130000",
+    "uf": "MA",
+    "bairro": "BACURITIUA",
+    "rua": "ROD RODOVIA MA 201",
+    "numero": "26"
+  },
+  {
+    "nome": "MANAUS PLAZA SHOPPING",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0071-06",
+    "cep": "69050010",
+    "uf": "AM",
+    "bairro": "CHAPADA -",
+    "rua": "AV. DJALMA BATISTA",
+    "numero": "2100"
+  },
+  {
+    "nome": "MANGABEIRA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0077-93",
+    "cep": "58055018",
+    "uf": "PB",
+    "bairro": "MANGABEIRA",
+    "rua": "AV. HILTON SOUTO MAIOR",
+    "numero": "3901"
+  },
+  {
+    "nome": "MANGABEIRAS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0023-09",
+    "cep": "57037532",
+    "uf": "AL",
+    "bairro": "MANGABEIRAS",
+    "rua": "AVENIDA COMENDADOR GUSTAVO PAIVA",
+    "numero": "3261"
+  },
+  {
+    "nome": "MANGUEIRÃO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0150-36",
+    "cep": "65065070",
+    "uf": "MA",
+    "bairro": "OLHO D'ÁGUA",
+    "rua": "AVENIDA BRASIL",
+    "numero": "40"
+  },
+  {
+    "nome": "MARAMBAIA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0147-30",
+    "cep": "66613150",
+    "uf": "PA",
+    "bairro": "SOUZA",
+    "rua": "AVENIDA PEDRO ALVARES CABRAL",
+    "numero": "9031"
+  },
+  {
+    "nome": "MARIA QUITÉRIA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0165-12",
+    "cep": "44051015",
+    "uf": "BA",
+    "bairro": "SÃO JOÃO",
+    "rua": "AVENIDA MARIA QUITERIA",
+    "numero": "3901"
+  },
+  {
+    "nome": "MARILIA SHOPPING",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0046-97",
+    "cep": "17507280",
+    "uf": "SP",
+    "bairro": "JARDIM MARIA MARTHA",
+    "rua": "RUA DOS TUCUNARES",
+    "numero": "500"
+  },
+  {
+    "nome": "MARQUES DE PARANAGUA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0190-23",
+    "cep": "64003685",
+    "uf": "PI",
+    "bairro": "MARQUES",
+    "rua": "RUA MAGALHAES FILHO",
+    "numero": "2021"
+  },
+  {
+    "nome": "MATATU",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0094-94",
+    "cep": "40255370",
+    "uf": "BA",
+    "bairro": "MATATU",
+    "rua": "R.BARROS FALCÃO",
+    "numero": "170"
+  },
+  {
+    "nome": "MENDONÇA FURTADO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0040-00",
+    "cep": "68005258",
+    "uf": "PA",
+    "bairro": "SANTA CLARA",
+    "rua": "AVENIDA MENDONCA FURTADO",
+    "numero": "1474"
+  },
+  {
+    "nome": "MOEMA TINOCO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0174-03",
+    "cep": "59133090",
+    "uf": "RN",
+    "bairro": "PAJUÇARA",
+    "rua": "AVENIDA MOEMA TINOCO DA CUNHA LIMA",
+    "numero": "1667"
+  },
+  {
+    "nome": "MOR GOUVEIA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0127-97",
+    "cep": "59060235",
+    "uf": "RN",
+    "bairro": "BOM PASTOR",
+    "rua": "AV CAPITÃO MOR GOUVEIA",
+    "numero": "733"
+  },
+  {
+    "nome": "MORADA DO OURO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0137-69",
+    "cep": "78053505",
+    "uf": "MT",
+    "bairro": "MORADA DO OURO",
+    "rua": "AVENIDA THOME DE ARRUDA FORTES",
+    "numero": "SN"
+  },
+  {
+    "nome": "NEVALDO ROCHA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0164-31",
+    "cep": "59032445",
+    "uf": "RN",
+    "bairro": "ALECRIM",
+    "rua": "AVENIDA NEVALDO ROCHA",
+    "numero": "2185"
+  },
+  {
+    "nome": "NORTHWAY",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0098-18",
+    "cep": "53401445",
+    "uf": "PE",
+    "bairro": "CENTRO",
+    "rua": "RODOVIA PE 15",
+    "numero": "242"
+  },
+  {
+    "nome": "NOVA DESCOBERTA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0099-07",
+    "cep": "52291250",
+    "uf": "PE",
+    "bairro": "BREJO DE BEBERIBE",
+    "rua": "AV VEREADOR OTACILIO AZEVEDO",
+    "numero": "2146"
+  },
+  {
+    "nome": "NOVA PARNAMIRIM",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0105-81",
+    "cep": "59151902",
+    "uf": "RN",
+    "bairro": "LOTE BOA ESPERANCA",
+    "rua": "AV AYRTON SENNA",
+    "numero": "2081"
+  },
+  {
+    "nome": "NOVA PARNAMIRIM 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0159-74",
+    "cep": "59151600",
+    "uf": "RN",
+    "bairro": "NOVA PARNAMIRIM",
+    "rua": "AV AYRTON SENNA",
+    "numero": "1070"
+  },
+  {
+    "nome": "OLARIA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0063-98",
+    "cep": "21021522",
+    "uf": "RJ",
+    "bairro": "PENHA",
+    "rua": "RUA LEOPOLDINA REGO",
+    "numero": "666"
+  },
+  {
+    "nome": "OLHO D'ÁGUA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0101-58",
+    "cep": "65065470",
+    "uf": "MA",
+    "bairro": "TURU",
+    "rua": "AV SAO LUIS REI DE FRANCA",
+    "numero": "2"
+  },
+  {
+    "nome": "OLHO D'ÁGUA 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0116-34",
+    "cep": "65065180",
+    "uf": "MA",
+    "bairro": "OLHO D'AGUA",
+    "rua": "AV DOS HOLANDESES/CONS.HILTON RODRIGUES",
+    "numero": "18"
+  },
+  {
+    "nome": "PAISSANDU",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0113-91",
+    "cep": "50070200",
+    "uf": "PE",
+    "bairro": "PAISSANDU",
+    "rua": "R PAISSANDU",
+    "numero": "321"
+  },
+  {
+    "nome": "PARALELA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0004-38",
+    "cep": "41720200",
+    "uf": "BA",
+    "bairro": "IMBUÍ",
+    "rua": "AVENIDA LUÍS VIANA FILHO",
+    "numero": "3056"
+  },
+  {
+    "nome": "PARNAÍBA 1",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0151-17",
+    "cep": "64207005",
+    "uf": "PI",
+    "bairro": "FREI HIGINO",
+    "rua": "AVENIDA SAO SEBASTIAO",
+    "numero": "S/N"
+  },
+  {
+    "nome": "PARNAÍBA 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0152-06",
+    "cep": "64212215",
+    "uf": "PI",
+    "bairro": "RODOVIARIA",
+    "rua": "RUA CEARÁ",
+    "numero": "S/N"
+  },
+  {
+    "nome": "PARQUE SHOPPING BELÉM",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0036-15",
+    "cep": "66635100",
+    "uf": "PA",
+    "bairro": "PARQUE VERDE",
+    "rua": "AV. AUGUSTO MONTENEGRO",
+    "numero": "4300"
+  },
+  {
+    "nome": "PARQUE SHOPPING MACEIÓ",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0075-21",
+    "cep": "57038000",
+    "uf": "AL",
+    "bairro": "CRUZ DAS ALMAS",
+    "rua": "AVENIDA COMENDADOR GUSTAVO PAIVA",
+    "numero": "5945"
+  },
+  {
+    "nome": "PATIO NORTE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0131-73",
+    "cep": "65110000",
+    "uf": "MA",
+    "bairro": "SARAMANTA",
+    "rua": "R ESTRADA DE RIBAMAR",
+    "numero": "1000"
+  },
+  {
+    "nome": "PAULISTA CENTRO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0129-59",
+    "cep": "53401460",
+    "uf": "PE",
+    "bairro": "CENTRO",
+    "rua": "AVENIDA MARECHAL FLORIANO PEIXOTO",
+    "numero": "77"
+  },
+  {
+    "nome": "PIEDADE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0013-29",
+    "cep": "54420220",
+    "uf": "PE",
+    "bairro": "PIEDADE",
+    "rua": "RUA NOSSA SENHORA DE FATIMA",
+    "numero": "239"
+  },
+  {
+    "nome": "PIEDADE 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0126-06",
+    "cep": "54330000",
+    "uf": "PE",
+    "bairro": "CAJUEIRO SECO",
+    "rua": "AV BARRETO DE MENEZES",
+    "numero": "371"
+  },
+  {
+    "nome": "PIEDADE 3",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0188-09",
+    "cep": "54430035",
+    "uf": "PE",
+    "bairro": "CANDEIAS",
+    "rua": "RUA DOUTOR ANICETO VAREJAO",
+    "numero": "415"
+  },
+  {
+    "nome": "PITUBA 2",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0011-67",
+    "cep": "41830100",
+    "uf": "BA",
+    "bairro": "PITUBA",
+    "rua": "RUA PARAIBA",
+    "numero": "476"
+  },
+  {
+    "nome": "PONTA NEGRA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0017-52",
+    "cep": "59094130",
+    "uf": "RN",
+    "bairro": "PONTA NEGRA",
+    "rua": "RUA CABO DE SAO ROQUE",
+    "numero": "8805"
+  },
+  {
+    "nome": "PONTA VERDE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0008-61",
+    "cep": "57035330",
+    "uf": "AL",
+    "bairro": "PONTA VERDE",
+    "rua": "RUA DEPUTADO JOSE LAGES",
+    "numero": "3283"
+  },
+  {
+    "nome": "PRESIDENTE KENNEDY",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0027-24",
+    "cep": "64056375",
+    "uf": "PI",
+    "bairro": "MORADA DO SOL",
+    "rua": "AVENIDA PRESIDENTE KENNEDY",
+    "numero": "820"
+  },
+  {
+    "nome": "PRESIDENTE VARGAS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0060-45",
+    "cep": "14020260",
+    "uf": "SP",
+    "bairro": "JARDIM AMERICA",
+    "rua": "AVENIDA PRESIDENTE VARGAS",
+    "numero": "1617"
+  },
+  {
+    "nome": "RESERVA (WASHINGTON SOARES)",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0039-68",
+    "cep": "60810350",
+    "uf": "CE",
+    "bairro": "ENGENHEIRO LUCIANO CAVALCANTE",
+    "rua": "AV. WASHINGTON SOARES",
+    "numero": "3000"
+  },
+  {
+    "nome": "RIBAMAR",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0162-70",
+    "cep": "65113660",
+    "uf": "MA",
+    "bairro": "OUTEIRO",
+    "rua": "AVENIDA CLODOMIR CARDOSO",
+    "numero": "S/N"
+  },
+  {
+    "nome": "RIO VERMELHO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0014-00",
+    "cep": "41950610",
+    "uf": "BA",
+    "bairro": "RIO VERMELHO",
+    "rua": "RUA CONSELHEIRO PEDRO LUIZ",
+    "numero": "92"
+  },
+  {
+    "nome": "RIVERSIDE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0012-48",
+    "cep": "64048110",
+    "uf": "PI",
+    "bairro": "JOQUEI",
+    "rua": "AVENIDA ININGA",
+    "numero": "1201"
+  },
+  {
+    "nome": "ROSA E SILVA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0019-14",
+    "cep": "52050215",
+    "uf": "PE",
+    "bairro": "GRAÇAS",
+    "rua": "AV. CONSELHEIRO ROSA E SILVA",
+    "numero": "797"
+  },
+  {
+    "nome": "ROTA DO SOL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0197-08",
+    "cep": "59090400",
+    "uf": "RN",
+    "bairro": "PONTA NEGRA",
+    "rua": "AV ESTRELA DO MAR",
+    "numero": "2305"
+  },
+  {
+    "nome": "RUBENS DE MENDONÇA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0191-04",
+    "cep": "78008000",
+    "uf": "MT",
+    "bairro": "BAÚ",
+    "rua": "AV HISTORIADOR RUBENS DE MENDONCA",
+    "numero": "157"
+  },
+  {
+    "nome": "SANTA ROSALIA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0048-59",
+    "cep": "18095410",
+    "uf": "SP",
+    "bairro": "JARDIM SANTA ROSALIA",
+    "rua": "RUA MARIA CINTO DE BIAGGI",
+    "numero": "164"
+  },
+  {
+    "nome": "SÃO BRÁS",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0122-82",
+    "cep": "66093020",
+    "uf": "PA",
+    "bairro": "MARCO",
+    "rua": "AV ALMIRANTE BARROSO",
+    "numero": "15"
+  },
+  {
+    "nome": "SÃO GONÇALO DO AMARANTE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0038-87",
+    "cep": "59296515",
+    "uf": "RN",
+    "bairro": "AMARANTE",
+    "rua": "AVN BENEDITO SANTANA",
+    "numero": "SN"
+  },
+  {
+    "nome": "SÃO LUÍS CENTRO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0158-93",
+    "cep": "65015560",
+    "uf": "MA",
+    "bairro": "APICUM",
+    "rua": "AV CAJAZEIRAS",
+    "numero": "147"
+  },
+  {
+    "nome": "SÃO LUÍS SHOPPING",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0102-39",
+    "cep": "65076820",
+    "uf": "MA",
+    "bairro": "JARACATY",
+    "rua": "AV PROFESSOR CARLOS CUNHA",
+    "numero": "429"
+  },
+  {
+    "nome": "SÃO RAFAEL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0009-42",
+    "cep": "41250400",
+    "uf": "BA",
+    "bairro": "SAO MARCOS",
+    "rua": "ESTRADA DO MANDU",
+    "numero": "56-68"
+  },
+  {
+    "nome": "SARAMANTA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0157-02",
+    "cep": "65120523",
+    "uf": "MA",
+    "bairro": "SARAMANTA",
+    "rua": "ROD MA-201",
+    "numero": "SN"
+  },
+  {
+    "nome": "SCOPA PLATINUM",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0033-72",
+    "cep": "60115191",
+    "uf": "CE",
+    "bairro": "ALDEOTA",
+    "rua": "R. MONSENHOR BRUNO",
+    "numero": "1153"
+  },
+  {
+    "nome": "SHOPPING CAMARÁ",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0079-55",
+    "cep": "54759475",
+    "uf": "PE",
+    "bairro": "VILA DA FABRICA",
+    "rua": "RUA MANOEL HONORATO DA COSTA",
+    "numero": "555"
+  },
+  {
+    "nome": "SHOPPING PARANGABA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0067-11",
+    "cep": "60740020",
+    "uf": "CE",
+    "bairro": "PARANGABA",
+    "rua": "RUA GERMANO FRANCK",
+    "numero": "300"
+  },
+  {
+    "nome": "SHOPPING PÁTIO MARABÁ",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0041-82",
+    "cep": "68507445",
+    "uf": "PA",
+    "bairro": "NOVA MARABA",
+    "rua": "ROD. TRANSAMAZÔNICA",
+    "numero": "30"
+  },
+  {
+    "nome": "SHOPPING RIO CLARO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0045-06",
+    "cep": "13506845",
+    "uf": "SP",
+    "bairro": "VILA HORTO FLORESTAL",
+    "rua": "AV. CONDE FRANCISCO MATARAZZO JUNIOR",
+    "numero": "205"
+  },
+  {
+    "nome": "SUPER FÁCIL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0062-07",
+    "cep": "58053000",
+    "uf": "PB",
+    "bairro": "AGUA FRIA",
+    "rua": "RUA DIOGENES CHIANCA",
+    "numero": "1443"
+  },
+  {
+    "nome": "TAMARINEIRA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0124-44",
+    "cep": "52051380",
+    "uf": "PE",
+    "bairro": "TAMARINEIRA",
+    "rua": "EST DO ARRAIAL",
+    "numero": "2262"
+  },
+  {
+    "nome": "TANCREDO NEVES",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0061-26",
+    "cep": "56304190",
+    "uf": "PE",
+    "bairro": "CENTRO",
+    "rua": "AVENIDA PRESIDENTE TANCREDO NEVES",
+    "numero": "1079"
+  },
+  {
+    "nome": "TENONÉ",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0112-00",
+    "cep": "66820000",
+    "uf": "PA",
+    "bairro": "TENONE",
+    "rua": "ROD AUGUSTO MONTENEGRO",
+    "numero": "SN"
+  },
+  {
+    "nome": "TIMON",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0142-26",
+    "cep": "65630030",
+    "uf": "MA",
+    "bairro": "CENTRO",
+    "rua": "AV PIAUÍ",
+    "numero": "130"
+  },
+  {
+    "nome": "TIMON - CENTRO",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0149-00",
+    "cep": "65631391",
+    "uf": "MA",
+    "bairro": "PARQUE PIAUI I",
+    "rua": "AVENIDA PRESIDENTE MEDICI",
+    "numero": "705"
+  },
+  {
+    "nome": "TIRIRICAL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0104-09",
+    "cep": "65077357",
+    "uf": "MA",
+    "bairro": "PONTA D'AREIA",
+    "rua": "AV. DOS HOLANDESES",
+    "numero": "S/N"
+  },
+  {
+    "nome": "TIROL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0026-43",
+    "cep": "59020970",
+    "uf": "RN",
+    "bairro": "TIROL",
+    "rua": "AV HERMES DA FONSECA",
+    "numero": "1148"
+  },
+  {
+    "nome": "TORRE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0178-37",
+    "cep": "50710100",
+    "uf": "PE",
+    "bairro": "MADALENA",
+    "rua": "RUA REAL DA TORRE",
+    "numero": "1013"
+  },
+  {
+    "nome": "TURU",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0108-24",
+    "cep": "65065470",
+    "uf": "MA",
+    "bairro": "TURU",
+    "rua": "AV. SÃO LUÍS REI DE FRANÇA",
+    "numero": "S/N"
+  },
+  {
+    "nome": "VARZEA",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0052-35",
+    "cep": "50810000",
+    "uf": "PE",
+    "bairro": "VARZEA",
+    "rua": "AV AFONSO OLINDENSE",
+    "numero": "377"
+  },
+  {
+    "nome": "VIA SUL",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0088-46",
+    "cep": "60833005",
+    "uf": "CE",
+    "bairro": "SAPIRANGA-COITÉ",
+    "rua": "AV WASHINGTON SOARES",
+    "numero": "4335"
+  },
+  {
+    "nome": "VIERALVES (N. SRA DAS GRAÇAS)",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0025-62",
+    "cep": "69053140",
+    "uf": "AM",
+    "bairro": "NOSSA SENHORA DAS GRAÇAS -",
+    "rua": "AV. JOÃO VALÉRIO",
+    "numero": "708"
+  },
+  {
+    "nome": "ZEQUINHA FREIRE",
+    "tipo_unidade": "PROPRIA",
+    "cnpj": "22.902.694/0092-22",
+    "cep": "64053400",
+    "uf": "PI",
+    "bairro": "SANTA ISABEL",
+    "rua": "AVENIDA ZEQUINHA FREIRE",
+    "numero": "595"
+  }
+]

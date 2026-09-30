@@ -8,6 +8,8 @@
     "dev": "vite --host 0.0.0.0 --port 5174 --strictPort",
     "api:start": "npm --prefix api-selfit start",
     "api:migrate": "npm --prefix api-selfit run migrate",
+    "db:seed": "node scripts/seed-local-database.mjs",
+    "db:seed:check": "node scripts/seed-local-database.mjs --dry-run",
     "build": "vite build",
     "lint": "eslint .",
     "homologacao": "node scripts/homologacao-software.mjs",
