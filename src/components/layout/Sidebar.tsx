@@ -1,9 +1,11 @@
+// Arquivo: src/components/layout/Sidebar.tsx
+// Serve para: menu lateral principal e atalhos de navegacao do sistema.
+
 import { useEffect, useState } from 'react';
 import {
   Building2,
   Camera,
   Cpu,
-  Layers,
   LayoutDashboard,
   LogOut,
   MapPin,

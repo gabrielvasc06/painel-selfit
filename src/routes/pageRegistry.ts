@@ -1,3 +1,6 @@
+// Arquivo: src/routes/pageRegistry.ts
+// Serve para: mapeia titulos e subtitulos exibidos para cada pagina e modulo.
+
 import type { PageId } from '@/components/layout/Sidebar';
 import type { ModuloTipo } from '@/services/inventory/inventoryTypes';
 

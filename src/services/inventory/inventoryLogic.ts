@@ -1,4 +1,7 @@
-import type { Camera, Equipamento, ModuloTipo, Regiao, Unidade } from '@/services/inventory/inventoryTypes';
+// Arquivo: src/services/inventory/inventoryLogic.ts
+// Serve para: concentra regras de filtro, normalizacao e importacao de unidades/inventario.
+
+import type { Equipamento, ModuloTipo, Regiao, Unidade } from '@/services/inventory/inventoryTypes';
 
 const estadoNomeParaUf: Record<string, string> = {
   acre: 'AC',
@@ -93,6 +96,12 @@ const cepRanges: Array<[number, number, string]> = [
   [90000000, 99999999, 'RS'],
 ];
 
+const blockedOwnUnitCnpjs = new Set([
+  '22902694006630', // LAR CENTER
+  '22902694006983', // SANTA CLARA
+  '22902694007017', // ARAPANES
+]);
+
 export function filterUnidades(
   unidades: (Unidade & { regioes?: Regiao })[],
   query: string,
@@ -109,50 +118,16 @@ export function filterUnidades(
 }
 
 export function getSafeEquipmentCategories(categories: string[] = []) {
-  const allowed = new Set(['TV', 'totem', 'catraca', 'leitor_facial', 'access_point', 'impressora', 'switch', 'firewall', 'roteador', 'nobreak']);
+  const allowed = new Set(['TV', 'CAMERAS', 'TOTEM', 'CATRACA', 'LEITOR_FACIAL', 'ACCESS_POINT', 'IMPRESSORA', 'SWITCH', 'FIREWALL', 'ROTEADOR', 'NOBREAK', 'totem', 'catraca', 'leitor_facial', 'access_point', 'impressora', 'switch', 'firewall', 'roteador', 'nobreak']);
   return categories.filter((category) => allowed.has(category));
 }
 
 export function filterEquipamentosByModulo(equipamentos: Equipamento[], modulo: ModuloTipo) {
-  if (modulo === 'tvs') return equipamentos.filter((item) => item.categoria === 'TV');
-  if (modulo === 'equipamentos') return equipamentos.filter((item) => item.categoria !== 'TV' && getSafeEquipmentCategories([item.categoria]).length > 0);
-  return [];
+  if (modulo === 'tvs') return equipamentos.filter((item) => item.tipo_modulo === 'TV' || item.categoria === 'TV');
+  if (modulo === 'cameras') return equipamentos.filter((item) => item.tipo_modulo === 'CAMERA' || item.categoria === 'CAMERAS');
+  return equipamentos.filter((item) => (item.tipo_modulo === 'EQUIPAMENTO' || (!item.tipo_modulo && item.categoria !== 'TV' && item.categoria !== 'CAMERAS')) && getSafeEquipmentCategories([item.categoria]).length > 0);
 }
 
-export function buildTvName(unidadeNome: string, sequence: string) {
-  const unidade = unidadeNome.trim();
-  return unidade ? `${unidade} - ${sequence}` : sequence;
-}
-
-export function nextTvNumberForInventory(equipamentos: Equipamento[]) {
-  const maxNumber = equipamentos
-    .filter((item) => item.categoria === 'TV')
-    .map((item) => readTvSequence(item.nome))
-    .filter(Number.isFinite)
-    .reduce((max, value) => Math.max(max, value), 0);
-
-  return String(maxNumber + 1).padStart(2, '0');
-}
-
-export function cameraMatchesSearch(camera: Camera, query: string, unidadeNome = '') {
-  const typedQuery = query.trim();
-  if (!typedQuery) return true;
-
-  const normalizedQuery = normalizeSearchValue(typedQuery);
-
-  const searchableValues = [
-    camera.nome,
-    camera.setor,
-    camera.marca,
-    camera.modelo,
-    unidadeNome,
-  ];
-
-  return searchableValues.some((value) => {
-    if (!value) return false;
-    return normalizeSearchValue(value).includes(normalizedQuery);
-  });
-}
 
 export function matchesUnidadeSearch(query: string, unidadeNome: string, regiaoSigla?: string | null, cidade?: string | null) {
   const typedQuery = query.trim();
@@ -162,8 +137,33 @@ export function matchesUnidadeSearch(query: string, unidadeNome: string, regiaoS
   return values.some((value) => normalizeSearchValue(value).includes(normalizeSearchValue(typedQuery)));
 }
 
+export function normalizeUnitName(value: string) {
+  return value
+    .trim()
+    .toLocaleUpperCase('pt-BR')
+    .replace(/(^|[\s-])III(?=$|[\s-])/g, (_match, prefix: string) => `${prefix}3`)
+    .replace(/(^|[\s-])II(?=$|[\s-])/g, (_match, prefix: string) => `${prefix}2`)
+    .replace(/(^|[\s-])I(?=$|[\s-])/g, (_match, prefix: string) => `${prefix}1`)
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function normalizeUnitNumber(value: string) {
+  const raw = value.trim().toLocaleUpperCase('pt-BR').replace(/\s+/g, ' ');
+  const normalized = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (!raw) return '';
+  if (/^(S\/?N|SEM NUMERO)$/.test(normalized)) return 'S/N';
+  if (/^0+$/.test(raw)) return 'S/N';
+
+  const padded = raw.match(/^0+([1-9]\d*[A-Z]?)$/);
+  if (padded) return padded[1];
+
+  return raw;
+}
+
 export type UnidadeCsvPreview = {
   nome: string;
+  tipo_unidade: 'PROPRIA';
   cidade: string;
   logradouro: string;
   estado: string;
@@ -181,22 +181,66 @@ export function parseUnidadesCsv(text: string): UnidadeCsvPreview[] {
   const separator = lines[0].includes(';') ? ';' : ',';
   const headers = splitCsvLine(lines[0], separator).map(normalizeKey);
 
-  return lines.slice(1).map((line) => {
+  const rows = lines.slice(1).map((line) => {
     const values = splitCsvLine(line, separator);
-    const row = Object.fromEntries(headers.map((header, index) => [header, values[index]?.trim() ?? '']));
+    return Object.fromEntries(headers.map((header, index) => [header, values[index]?.trim() ?? '']));
+  });
 
-    const nome = readValue(row, ['nome', 'unidade', 'nome_da_unidade', 'filial']);
-    const cidade = readValue(row, ['cidade', 'municipio', 'localidade']);
-    const logradouro = readValue(row, ['rua', 'logradouro', 'endereco', 'avenida']);
-    const numero = readValue(row, ['numero', 'n', 'num']);
-    const cep = readValue(row, ['cep']).replace(/\D/g, '');
-    const bairro = readValue(row, ['bairro']);
-    const cnpj = readValue(row, ['cnpj']);
-    const estadoRaw = readValue(row, ['estado', 'uf', 'sigla', 'regiao']);
+  return parseUnidadesRows(rows);
+}
+
+export function parseUnidadesRows(rows: Array<Record<string, unknown>>): UnidadeCsvPreview[] {
+  return rows.map((source) => {
+    const normalizedRow = Object.fromEntries(Object.entries(source).map(([key, value]) => [normalizeKey(key), String(value ?? '').trim()]));
+
+    const nome = normalizeUnitName(readValue(normalizedRow, ['nome', 'unidade', 'nome_da_unidade']));
+    const tipo_unidade = 'PROPRIA' as const;
+    const origem = readValue(normalizedRow, ['tipo_unidade', 'tipo', 'tipo_da_unidade', 'origem', 'modalidade', 'aba', '_sheet']);
+    const statusPlanilha = [
+      origem,
+      nome,
+      readValue(normalizedRow, ['data_inauguracao']),
+      readValue(normalizedRow, ['mes_ano_inauguracao']),
+      readValue(normalizedRow, ['status']),
+    ].filter(Boolean).join(' ');
+    const cidade = readValue(normalizedRow, ['cidade', 'municipio', 'localidade']);
+    const enderecoCompleto = readValue(normalizedRow, ['endereco']);
+    const endereco = parseEndereco(enderecoCompleto);
+    const logradouro = readValue(normalizedRow, ['rua', 'logradouro', 'avenida']) || endereco.logradouro;
+    const numero = normalizeUnitNumber(readValue(normalizedRow, ['numero', 'n', 'num']) || endereco.numero);
+    const cepDigits = (readValue(normalizedRow, ['cep']) || endereco.cep).replace(/\D/g, '');
+    const cep = cepDigits.length < 8 ? cepDigits.padStart(8, '0') : cepDigits;
+    const bairro = readValue(normalizedRow, ['bairro']) || endereco.bairro;
+    const rawCnpj = readValue(normalizedRow, ['cnpj']);
+    const estadoRaw = readValue(normalizedRow, ['estado', 'uf', 'sigla', 'regiao']);
     const estado = inferUf({ estado: estadoRaw, cidade, cep });
+    const cnpjDigits = rawCnpj.replace(/\D/g, '');
+    const cnpj = cnpjDigits.length < 14 ? cnpjDigits.padStart(14, '0') : rawCnpj;
+    const erro = isFranchiseSource(origem)
+      ? 'Unidades franqueadas nao entram no sistema.'
+      : isOwnUnitBlocked(statusPlanilha)
+        ? 'Unidade propria ainda nao ativa na planilha.'
+        : blockedOwnUnitCnpjs.has(cnpjDigits)
+          ? 'Unidade fora do escopo operacional.'
+          : !nome
+            ? 'Nome da unidade obrigatorio.'
+            : cnpjDigits.length !== 14
+              ? 'CNPJ deve conter 14 digitos.'
+              : cep.length !== 8
+                ? 'CEP deve conter 8 digitos.'
+                : !estado
+                  ? 'UF nao identificada.'
+                  : !bairro
+                    ? 'Bairro obrigatorio.'
+                    : !logradouro
+                      ? 'Rua obrigatoria.'
+                      : !numero
+                        ? 'Numero obrigatorio.'
+                        : undefined;
 
     return {
       nome,
+      tipo_unidade,
       cidade,
       logradouro,
       estado,
@@ -204,13 +248,19 @@ export function parseUnidadesCsv(text: string): UnidadeCsvPreview[] {
       cep,
       bairro,
       cnpj,
-      erro: !nome
-        ? 'Nome da unidade e obrigatorio.'
-        : !estado
-          ? 'Estado nao identificado pela planilha.'
-          : undefined,
+      erro,
     };
   });
+}
+
+function isFranchiseSource(value: string) {
+  const normalized = normalizeKey(value);
+  return normalized.includes('franquia');
+}
+
+function isOwnUnitBlocked(value: string) {
+  const normalized = normalizeKey(value);
+  return ['pre_operacional', 'fechada', 'weburn', 'galpao', 'holding', 'matriz'].some((blocked) => normalized.includes(blocked));
 }
 
 function splitCsvLine(line: string, separator: string) {
@@ -262,6 +312,37 @@ function inferUf({ estado, cidade, cep }: { estado: string; cidade: string; cep:
   return '';
 }
 
+function parseEndereco(value: string) {
+  const raw = value.trim();
+  if (!raw) return { logradouro: '', numero: '', bairro: '', cep: '' };
+
+  const cepMatch = raw.match(/(\d{2}\.?\d{3}-?\d{3}|\d{8})/);
+  const cep = cepMatch?.[1]?.replace(/\D/g, '') ?? '';
+  const withoutCep = raw
+    .replace(/CEP\s*:?\s*/i, '')
+    .replace(cepMatch?.[0] ?? '', '')
+    .replace(/\s+-\s*$/g, '')
+    .trim();
+  const parts = withoutCep.split(',').map((part) => part.trim()).filter(Boolean);
+
+  if (parts.length === 0) return { logradouro: withoutCep, numero: '', bairro: '', cep };
+  const logradouro = parts[0] ?? '';
+  const numberPart = parts.find((part, index) => index > 0 && /(^|\s)(SN|S\/N|\d+[A-Z]?)(\s|$)/i.test(part)) ?? '';
+  const numeroMatch = numberPart.match(/(SN|S\/N|\d+[A-Z]?)/i);
+  const numero = normalizeUnitNumber(numeroMatch?.[1] ?? '');
+  const numberIndex = numberPart ? parts.indexOf(numberPart) : -1;
+  const bairro = numberIndex >= 0
+    ? (parts.slice(numberIndex + 1).find((part) => !/LOJA|PISO|ANDAR|SALA|CEP/i.test(part)) ?? '')
+    : (parts[parts.length - 1] ?? '');
+
+  return {
+    logradouro,
+    numero,
+    bairro,
+    cep,
+  };
+}
+
 function normalizeKey(value: string) {
   return value
     .trim()
@@ -279,9 +360,3 @@ function normalizeSearchValue(value: string) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
 }
-
-function readTvSequence(value: string) {
-  const match = value.trim().match(/(\d+)$/);
-  return match ? Number(match[1]) : Number(value);
-}
-

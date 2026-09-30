@@ -1,329 +1,297 @@
-import { useMemo, useState } from 'react';
-import { ArrowLeft, Calendar, DollarSign, History, MapPin, Pencil, Plus, Save, Search, Trash2, Wrench, X } from 'lucide-react';
+// Arquivo: src/pages/ManutencoesPage.tsx
+// Serve para: registra, consulta, edita e remove manutencoes do modulo atual.
+
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Pencil, Plus, Save, Search, Trash2, Wrench, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { apiGetList, apiRequest, inventoryUpdatedEvent, notifyInventoryUpdated, type ApiEnvelope, type ApiMaintenanceRecord, type ApiUnitRecord } from '@/services/api';
+import { categoriaLabels, moduleLabels, type ModuloTipo } from '@/services/inventory/inventoryTypes';
 import { useInventory } from '@/providers/InventoryProvider';
-import { categoriaLabels, moduleLabels, type Equipamento, type Manutencao } from '@/services/inventory/inventoryTypes';
 import { useModulo } from '@/providers/ModuloProvider';
+import { formatDateBr } from '@/utils/date';
 
-const tipoLabels: Record<string, string> = {
-  troca: 'Troca',
-  reparo: 'Reparo',
-  outros: 'Outros',
-};
-
-const tipoColors: Record<string, string> = {
-  troca: 'bg-sky-100 text-sky-700 border-sky-200',
-  reparo: 'bg-amber-100 text-amber-700 border-amber-200',
-  outros: 'bg-slate-100 text-slate-600 border-slate-200',
-};
-
-const inputClass = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-900 placeholder:text-slate-400 transition-all focus:border-selfit-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-selfit-500/20';
-
-type MaintenanceForm = {
-  regiao_id: string;
-  unidade_id: string;
+interface MaintenanceForm {
   equipamento_id: string;
-  tipo: Manutencao['tipo'];
   descricao: string;
-  data_manutencao: string;
+  data_envio: string;
+  data_retorno: string;
   custo: string;
-};
-
-const emptyMaintenanceForm: MaintenanceForm = {
-  regiao_id: '',
-  unidade_id: '',
-  equipamento_id: '',
-  tipo: 'reparo',
-  descricao: '',
-  data_manutencao: '',
-  custo: '',
-};
-
-function normalizeSearchTerm(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+  status_manutencao: string;
 }
 
-function formatDateTime(value?: string | null) {
-  if (!value) return '-';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+const emptyForm: MaintenanceForm = {
+  equipamento_id: '',
+  descricao: '',
+  data_envio: '',
+  data_retorno: '',
+  custo: '',
+  status_manutencao: 'ABERTA',
+};
+
+const moduleApiType: Record<ModuloTipo, string> = {
+  tvs: 'TV',
+  equipamentos: 'EQUIPAMENTO',
+  cameras: 'CAMERA',
+};
+
+function moduleMatches(record: ApiMaintenanceRecord, module: ModuloTipo) {
+  if (module === 'tvs') return record.tipo_modulo === 'TV' || record.categoria === 'TV';
+  if (module === 'cameras') return record.tipo_modulo === 'CAMERA' || record.categoria === 'CAMERAS';
+  return record.tipo_modulo === 'EQUIPAMENTO' || (!record.tipo_modulo && record.categoria !== 'TV' && record.categoria !== 'CAMERAS');
+}
+
+function dateValue(value?: string | null) {
+  return value ? value.slice(0, 10) : '';
 }
 
 export function ManutencoesPage({ onBack }: { onBack: () => void }) {
   const { modulo } = useModulo();
-  const {
-    regioes,
-    getUnidade,
-    getUnidadesComRegiao,
-    getEquipamentosByModulo,
-    cameras,
-    manutencoes,
-    addManutencao,
-    updateManutencao,
-    deleteManutencao,
-    updateEquipamento,
-    updateCamera,
-  } = useInventory();
-  const [showForm, setShowForm] = useState(false);
-  const [regiaoFilter, setRegiaoFilter] = useState('all');
+  const { getEquipamentosByModulo } = useInventory();
+  const equipmentOptions = getEquipamentosByModulo(modulo);
+  const labels = moduleLabels[modulo];
+
+  const [records, setRecords] = useState<ApiMaintenanceRecord[]>([]);
   const [search, setSearch] = useState('');
-  const [editingManutencao, setEditingManutencao] = useState<Manutencao | null>(null);
-  const [form, setForm] = useState<MaintenanceForm>(emptyMaintenanceForm);
-  const unidades = getUnidadesComRegiao();
+  const [suggestions, setSuggestions] = useState<ApiUnitRecord[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<ApiMaintenanceRecord | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ApiMaintenanceRecord | null>(null);
+  const [form, setForm] = useState<MaintenanceForm>(emptyForm);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
-  const equipamentos = useMemo(() => {
-    if (modulo === 'cameras') {
-      return cameras.map((camera): Equipamento => ({
-        id: camera.id,
-        nome: camera.nome,
-        categoria: 'TV',
-        unidade_id: camera.unidade_id,
-        status: camera.status === 'ativa' ? 'ativo' : camera.status === 'manutencao' ? 'manutencao' : 'inativo',
-        marca: camera.marca,
-        modelo: camera.modelo,
-      }));
-    }
+  useEffect(() => {
+    let active = true;
+    const timer = window.setTimeout(() => {
+      const term = search.trim();
+      if (term.length < 3) {
+        setRecords([]);
+        setLoading(false);
+        setError('');
+        return;
+      }
 
-    return getEquipamentosByModulo(modulo);
-  }, [cameras, getEquipamentosByModulo, modulo]);
+      const params = new URLSearchParams({ tipo: moduleApiType[modulo], busca: term });
+      setLoading(true);
+      setError('');
+      void apiGetList<ApiMaintenanceRecord>(`/equipamentos/manutencao?${params.toString()}`)
+        .then((items) => { if (active) setRecords(items); })
+        .catch((loadError) => { if (active) setError((loadError as Error).message || 'Nao foi possivel carregar manutencoes.'); })
+        .finally(() => { if (active) setLoading(false); });
+    }, 250);
 
-  const unidadesDoFormulario = useMemo(() => (
-    form.regiao_id ? unidades.filter((unidade) => unidade.regiao_id === form.regiao_id) : []
-  ), [form.regiao_id, unidades]);
-
-  const filteredEquipamentos = useMemo(() => (
-    form.unidade_id ? equipamentos.filter((item) => item.unidade_id === form.unidade_id) : []
-  ), [equipamentos, form.unidade_id]);
-
-  const scopedManutencoes = useMemo(() => {
-    const term = normalizeSearchTerm(search);
-    const hasActiveSearch = Boolean(term) || regiaoFilter !== 'all';
-    if (!hasActiveSearch) return [];
-
-    return manutencoes
-      .filter((item) => item.modulo === modulo)
-      .filter((item) => regiaoFilter === 'all' || (() => {
-        const equipamento = equipamentos.find((eq) => eq.id === item.equipamento_id);
-        const unidade = equipamento?.unidade_id ? getUnidade(equipamento.unidade_id) : undefined;
-        return unidade?.regioes?.sigla === regiaoFilter || unidade?.uf === regiaoFilter;
-      })())
-      .filter((item) => {
-        if (!term) return true;
-        const equipamento = equipamentos.find((eq) => eq.id === item.equipamento_id);
-        const unidade = equipamento?.unidade_id ? getUnidade(equipamento.unidade_id) : undefined;
-        return unidade?.nome ? normalizeSearchTerm(unidade.nome).includes(term) : false;
-      });
-  }, [equipamentos, getUnidade, manutencoes, modulo, regiaoFilter, search]);
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!form.regiao_id || !form.unidade_id || !form.equipamento_id) return;
-    const payload = {
-      equipamento_id: form.equipamento_id,
-      tipo: form.tipo,
-      descricao: form.descricao || null,
-      data_manutencao: form.data_manutencao || new Date().toISOString().split('T')[0],
-      custo: form.custo ? parseFloat(form.custo) : null,
-      modulo,
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
     };
+  }, [modulo, reloadKey, search]);
 
-    if (editingManutencao) {
-      updateManutencao(editingManutencao.id, payload);
-    } else {
-      addManutencao(payload);
+  useEffect(() => {
+    const term = search.trim();
+    const digits = term.replace(/\D/g, '');
+    if (term.length < 3 && digits.length < 3) {
+      setSuggestions([]);
+      setLoadingSuggestions(false);
+      return;
     }
 
-    if (modulo === 'cameras') {
-      updateCamera(form.equipamento_id, { status: 'manutencao' });
-    } else {
-      updateEquipamento(form.equipamento_id, { status: 'manutencao' });
-    }
+    let active = true;
+    const timer = window.setTimeout(() => {
+      setLoadingSuggestions(true);
+      const params = new URLSearchParams(digits.length >= 3 ? { busca: term } : { prefixo: term });
+      void apiGetList<ApiUnitRecord>(`/unidades?${params.toString()}`)
+        .then((items) => { if (active) setSuggestions(items.slice(0, 8)); })
+        .catch(() => { if (active) setSuggestions([]); })
+        .finally(() => { if (active) setLoadingSuggestions(false); });
+    }, 200);
 
-    setForm(emptyMaintenanceForm);
-    setEditingManutencao(null);
-    setShowForm(false);
-  };
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [search]);
 
-  const updateForm = (key: keyof MaintenanceForm, value: string) => {
-    setForm((current) => ({
-      ...current,
-      [key]: value,
-      ...(key === 'regiao_id' ? { unidade_id: '', equipamento_id: '' } : {}),
-      ...(key === 'unidade_id' ? { equipamento_id: '' } : {}),
-    }));
-  };
+  useEffect(() => {
+    const refresh = () => setReloadKey((value) => value + 1);
+    window.addEventListener(inventoryUpdatedEvent, refresh);
+    return () => window.removeEventListener(inventoryUpdatedEvent, refresh);
+  }, []);
 
-  const startCreate = () => {
-    setEditingManutencao(null);
-    setForm(emptyMaintenanceForm);
-    setShowForm(true);
-  };
+  const scoped = useMemo(() => records.filter((record) => moduleMatches(record, modulo)), [modulo, records]);
 
-  const startEdit = (manutencao: Manutencao) => {
-    const equipamento = equipamentos.find((item) => item.id === manutencao.equipamento_id);
-    const unidade = equipamento?.unidade_id ? getUnidade(equipamento.unidade_id) : undefined;
-    setEditingManutencao(manutencao);
+  const beginEdit = (record: ApiMaintenanceRecord) => {
+    setEditing(record);
     setForm({
-      regiao_id: unidade?.regiao_id ?? '',
-      unidade_id: unidade?.id ?? '',
-      equipamento_id: manutencao.equipamento_id,
-      tipo: manutencao.tipo,
-      descricao: manutencao.descricao ?? '',
-      data_manutencao: manutencao.data_manutencao,
-      custo: manutencao.custo != null ? String(manutencao.custo) : '',
+      equipamento_id: record.equipamento_id,
+      descricao: record.descricao_manutencao,
+      data_envio: dateValue(record.data_envio),
+      data_retorno: dateValue(record.data_retorno),
+      custo: record.custo == null ? '' : String(record.custo),
+      status_manutencao: record.status_manutencao,
     });
     setShowForm(true);
   };
 
   const closeForm = () => {
     setShowForm(false);
-    setEditingManutencao(null);
-    setForm(emptyMaintenanceForm);
+    setEditing(null);
+    setForm(emptyForm);
   };
 
-  const labels = moduleLabels[modulo];
-  const hasActiveSearch = search.trim().length > 0 || regiaoFilter !== 'all';
+  const save = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!form.equipamento_id || !form.descricao.trim() || !form.data_envio) return;
+
+    setSaving(true);
+    setError('');
+    setSuccess('');
+    const payload = {
+      equipamento_id: form.equipamento_id,
+      descricao: form.descricao.trim().toLocaleUpperCase('pt-BR'),
+      data_envio: form.data_envio,
+      data_retorno: form.data_retorno || null,
+      custo: form.custo ? Number(form.custo) : null,
+      status_manutencao: form.status_manutencao.toLocaleUpperCase('pt-BR'),
+    };
+
+    try {
+      const result = await apiRequest<ApiEnvelope<{ id: number }>>(editing ? `/manutencoes/${editing.manutencao_id}` : '/manutencoes', {
+        method: editing ? 'PUT' : 'POST',
+        body: JSON.stringify(payload),
+      });
+      if (result.sucesso === false) throw new Error(result.message ?? result.mensagem ?? 'A API recusou a manutencao.');
+      closeForm();
+      setSuccess(result.message ?? result.mensagem ?? (editing ? 'Manutencao atualizada com sucesso.' : 'Manutencao registrada com sucesso.'));
+      notifyInventoryUpdated();
+      setReloadKey((value) => value + 1);
+    } catch (saveError) {
+      setError((saveError as Error).message || 'Nao foi possivel salvar a manutencao.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async (record: ApiMaintenanceRecord) => {
+    setError('');
+    setSuccess('');
+    try {
+      const result = await apiRequest<ApiEnvelope<never>>(`/manutencoes/${record.manutencao_id}`, { method: 'DELETE' });
+      notifyInventoryUpdated();
+      setReloadKey((value) => value + 1);
+      setPendingDelete(null);
+      setSuccess(result.message ?? result.mensagem ?? 'Manutencao removida com sucesso.');
+    } catch (removeError) {
+      setError((removeError as Error).message || 'Nao foi possivel remover a manutencao.');
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <button onClick={onBack} className="flex items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-selfit-600">
-        <ArrowLeft className="h-4 w-4" /> Voltar
-      </button>
+      <button onClick={onBack} className="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-selfit-600"><ArrowLeft className="h-4 w-4" />Voltar</button>
 
-      <div className="flex flex-col gap-4 rounded-2xl border-2 border-black bg-white px-6 py-5 shadow-sm animate-fade-in lg:flex-row lg:items-center">
+      <div className="flex flex-col gap-4 rounded-2xl border-2 border-black bg-white px-6 py-5 lg:flex-row lg:items-center">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-white"><Wrench className="h-5 w-5" /></div>
-        <div>
-          <h1 className="font-display text-2xl font-bold text-slate-900">Historico de Manutencoes</h1>
-          <p className="text-sm text-slate-500">Registros exclusivos de {labels.itemPlural.toLowerCase()}</p>
-        </div>
-        <div className="ml-auto flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
+        <div><h1 className="font-display text-2xl font-bold">Manutencoes</h1><p className="text-sm text-slate-500">Registros do banco para {labels.itemPlural}</p></div>
+        <div className="ml-auto flex w-full max-w-xl flex-col gap-3 sm:flex-row">
+          <label className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar pelo nome da unidade..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-4 text-sm text-slate-700 focus:border-selfit-500 focus:outline-none focus:ring-2 focus:ring-selfit-500/20"
-            />
-          </div>
-          <select value={regiaoFilter} onChange={(event) => setRegiaoFilter(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 focus:border-selfit-500 focus:outline-none">
-            <option value="all">Todos estados</option>
-            {regioes.map((regiao) => <option key={regiao.id} value={regiao.sigla}>{regiao.sigla}</option>)}
-          </select>
-          <Button size="sm" onClick={showForm ? closeForm : startCreate}>
-            {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />} {showForm ? 'Fechar' : 'Registrar'}
-          </Button>
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar pelo nome da unidade" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm uppercase" />
+            {(suggestions.length > 0 || loadingSuggestions) && (
+              <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-20 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                {loadingSuggestions ? <div className="flex items-center gap-2 px-4 py-3 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" />Buscando unidades...</div> : suggestions.map((unit) => (
+                  <button
+                    key={unit.id}
+                    type="button"
+                    onClick={() => {
+                      setSearch(unit.nome);
+                      setSuggestions([]);
+                    }}
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm hover:bg-slate-50"
+                  >
+                    <span className="font-semibold uppercase text-slate-900">{unit.nome}</span>
+                    <span className="text-xs uppercase text-slate-500">{unit.uf ?? '-'} - {unit.cep ?? '-'}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </label>
+          <Button size="sm" onClick={() => { setEditing(null); setForm(emptyForm); setShowForm((current) => !current); }}>{showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}{showForm ? 'Fechar' : 'Registrar'}</Button>
         </div>
       </div>
 
+      {error && <div role="alert" className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
+
       {showForm && (
-        <Card className="animate-fade-in-up border-black p-6">
-          <CardHeader className="px-0 pt-0"><CardTitle className="text-lg">{editingManutencao ? 'Atualizar Manutencao' : 'Nova Manutencao'}</CardTitle></CardHeader>
-          <CardContent className="px-0 pt-4">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Estado" icon={MapPin}>
-                  <select required value={form.regiao_id} onChange={(event) => updateForm('regiao_id', event.target.value)} className={inputClass}>
-                    <option value="">Selecione o estado...</option>
-                    {regioes.map((regiao) => <option key={regiao.id} value={regiao.id}>{regiao.sigla} - {regiao.nome}</option>)}
-                  </select>
-                </Field>
-                <Field label="Unidade" icon={MapPin}>
-                  <select required value={form.unidade_id} onChange={(event) => updateForm('unidade_id', event.target.value)} className={inputClass} disabled={!form.regiao_id}>
-                    <option value="">{form.regiao_id ? 'Selecione a unidade...' : 'Escolha um estado'}</option>
-                    {unidadesDoFormulario.map((unidade) => <option key={unidade.id} value={unidade.id}>{unidade.nome}</option>)}
-                  </select>
-                </Field>
-                <Field label={labels.item} icon={Wrench}>
-                  <select required value={form.equipamento_id} onChange={(event) => updateForm('equipamento_id', event.target.value)} className={inputClass} disabled={!form.unidade_id}>
-                    <option value="">{form.unidade_id ? `Selecione ${labels.item.toLowerCase()}...` : 'Escolha uma unidade'}</option>
-                    {filteredEquipamentos.map((item) => <option key={item.id} value={item.id}>{item.nome} - {modulo === 'cameras' ? 'Camera' : categoriaLabels[item.categoria]}</option>)}
-                  </select>
-                </Field>
-                <Field label="Tipo" icon={Wrench}>
-                  <select value={form.tipo} onChange={(event) => updateForm('tipo', event.target.value as Manutencao['tipo'])} className={inputClass}>
-                    {Object.entries(tipoLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                  </select>
-                </Field>
-                <Field label="Data" icon={Calendar}>
-                  <input type="date" value={form.data_manutencao} onChange={(event) => updateForm('data_manutencao', event.target.value)} className={inputClass} />
-                </Field>
-                <Field label="Custo (R$)" icon={DollarSign}>
-                  <input type="number" step="0.01" min="0" value={form.custo} onChange={(event) => updateForm('custo', event.target.value)} placeholder="0.00" className={inputClass} />
-                </Field>
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700">Descricao</label>
-                <textarea value={form.descricao} onChange={(event) => updateForm('descricao', event.target.value)} rows={3} placeholder="Descreva a manutencao realizada..." className={`${inputClass} resize-none`} />
-              </div>
-              <div className="flex gap-3">
-                <Button type="submit" size="lg">
-                  {editingManutencao ? <Save className="h-5 w-5" /> : <Wrench className="h-5 w-5" />}
-                  {editingManutencao ? 'Salvar Alteracoes' : 'Registrar'}
-                </Button>
-                <Button type="button" variant="outline" size="lg" onClick={closeForm}>Cancelar</Button>
-              </div>
+        <Card className="border-black p-5">
+          <CardHeader className="px-0 pt-0"><CardTitle>{editing ? 'Atualizar manutencao' : 'Registrar manutencao'}</CardTitle></CardHeader>
+          <CardContent className="px-0">
+            <form onSubmit={save} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <label className="space-y-1 text-sm font-medium">Item<select required disabled={Boolean(editing)} value={form.equipamento_id} onChange={(event) => setForm((current) => ({ ...current, equipamento_id: event.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2"><option value="">Selecione...</option>{equipmentOptions.map((item) => <option key={item.id} value={item.id}>{item.nome} - {item.marca ?? ''}</option>)}</select></label>
+              <label className="space-y-1 text-sm font-medium">Status<select value={form.status_manutencao} onChange={(event) => setForm((current) => ({ ...current, status_manutencao: event.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2"><option>ABERTA</option><option>CONCLUIDA</option><option>CANCELADA</option></select></label>
+              <label className="space-y-1 text-sm font-medium">Data de envio<input required type="date" value={form.data_envio} onChange={(event) => setForm((current) => ({ ...current, data_envio: event.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
+              <label className="space-y-1 text-sm font-medium">Data de retorno<input type="date" value={form.data_retorno} onChange={(event) => setForm((current) => ({ ...current, data_retorno: event.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
+              <label className="space-y-1 text-sm font-medium">Custo<input type="number" step="0.01" min="0" value={form.custo} onChange={(event) => setForm((current) => ({ ...current, custo: event.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
+              <label className="space-y-1 text-sm font-medium sm:col-span-2">Descricao<textarea required maxLength={65535} rows={3} value={form.descricao} onChange={(event) => setForm((current) => ({ ...current, descricao: event.target.value.toLocaleUpperCase('pt-BR') }))} className="w-full rounded-lg border border-slate-300 px-3 py-2 uppercase" /></label>
+              <div className="flex gap-2 sm:col-span-2"><Button disabled={saving}>{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{editing ? 'Salvar' : 'Registrar'}</Button><Button type="button" variant="outline" onClick={closeForm}>Cancelar</Button></div>
             </form>
           </CardContent>
         </Card>
       )}
 
-      {!showForm && (
-        <Card className="animate-fade-in-up" style={{ animationDelay: '80ms' }}>
-          <CardHeader className="border-b border-slate-100"><CardTitle className="flex items-center gap-2 text-lg"><History className="h-5 w-5 text-selfit-500" /> Registros ({scopedManutencoes.length})</CardTitle></CardHeader>
-          <CardContent className="pt-6">
-            {!hasActiveSearch ? (
-              <div className="py-12 text-center"><Search className="mx-auto mb-3 h-10 w-10 text-slate-300" /><p className="text-sm text-slate-400">Busque pelo nome da unidade ou filtre por estado para ver manutencoes.</p></div>
-            ) : scopedManutencoes.length === 0 ? (
-              <div className="py-12 text-center"><Wrench className="mx-auto mb-3 h-10 w-10 text-slate-300" /><p className="text-sm text-slate-400">Nenhuma manutencao registrada para esta busca.</p></div>
-            ) : (
-              <div className="space-y-3">
-                {scopedManutencoes.map((manutencao) => {
-                  const item = equipamentos.find((eq) => eq.id === manutencao.equipamento_id);
-                  const unidade = item?.unidade_id ? getUnidade(item.unidade_id) : undefined;
-                  return (
-                    <div key={manutencao.id} className="flex items-start gap-4 rounded-xl border border-slate-100 p-4 transition-colors hover:bg-slate-50">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600"><Wrench className="h-5 w-5" /></div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold text-slate-900">{item?.nome ?? 'Item removido'}</p>
-                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold ${tipoColors[manutencao.tipo] ?? tipoColors.outros}`}>{tipoLabels[manutencao.tipo] ?? manutencao.tipo}</span>
-                        </div>
-                        {item && <p className="text-xs text-slate-500">{modulo === 'cameras' ? 'Camera' : categoriaLabels[item.categoria]} - {unidade?.nome ?? '-'} <MapPin className="ml-1 inline h-3 w-3" /> {unidade?.regioes?.sigla ?? unidade?.uf ?? '-'}</p>}
-                        {manutencao.descricao && <p className="mt-1 text-sm text-slate-600">{manutencao.descricao}</p>}
-                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                          <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(manutencao.data_manutencao).toLocaleDateString('pt-BR')}</span>
-                          {manutencao.custo != null && <span className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> R$ {manutencao.custo.toFixed(2)}</span>}
-                          <span>Atualizado: {formatDateTime(manutencao.updated_at ?? manutencao.created_at)}</span>
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 gap-1">
-                        <button onClick={() => startEdit(manutencao)} className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-selfit-50 hover:text-selfit-600" title="Atualizar manutencao"><Pencil className="h-4 w-4" /></button>
-                        <button onClick={() => deleteManutencao(manutencao.id)} className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500" title="Remover manutencao"><Trash2 className="h-4 w-4" /></button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+      {search.trim().length < 3 ? (
+        <Card className="p-10 text-center text-sm text-slate-500">Digite ao menos 3 caracteres do nome da unidade para consultar as manutencoes.</Card>
+      ) : (
+        <Card>
+          <CardHeader className="border-b border-slate-100"><CardTitle>Manutencoes encontradas ({scoped.length})</CardTitle></CardHeader>
+          <CardContent className="p-0">
+            {loading ? <div className="flex items-center justify-center gap-2 p-12 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" />Consultando manutencoes...</div>
+              : scoped.length === 0 ? <p className="p-12 text-center text-sm text-slate-500">{error ? 'Falha na consulta da API.' : 'Nenhuma manutencao encontrada.'}</p>
+                : <div className="overflow-x-auto"><table className="w-full min-w-[850px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Item</th><th className="px-4 py-3">Categoria</th><th className="px-4 py-3">Unidade / UF</th><th className="px-4 py-3">Descricao</th><th className="px-4 py-3">Envio</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Acoes</th></tr></thead><tbody className="divide-y divide-slate-100">{scoped.map((record) => <tr key={record.manutencao_id} className="uppercase"><td className="px-4 py-3 font-semibold">{record.nome_identificacao}</td><td className="px-4 py-3">{categoriaLabels[record.categoria] ?? record.categoria}</td><td className="px-4 py-3">{record.unidade_nome} / {record.uf ?? '-'}</td><td className="max-w-xs px-4 py-3 normal-case">{record.descricao_manutencao}</td><td className="px-4 py-3">{formatDateBr(record.data_envio)}</td><td className="px-4 py-3">{record.status_manutencao}</td><td className="px-4 py-3"><div className="flex gap-1"><button type="button" title="Atualizar" onClick={() => beginEdit(record)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button><button type="button" title="Remover" onClick={() => setPendingDelete(record)} className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button></div></td></tr>)}</tbody></table></div>}
           </CardContent>
         </Card>
       )}
-    </div>
-  );
-}
 
-function Field({ label, icon: Icon, children }: { label: string; icon: typeof Wrench; children: React.ReactNode }) {
-  return (
-    <div className="space-y-2">
-      <label className="flex items-center gap-2 text-sm font-semibold text-slate-700"><Icon className="h-4 w-4 text-slate-400" /> {label}</label>
-      {children}
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title="Confirmar exclusao"
+        description="Revise a manutencao antes de remover."
+        details={pendingDelete?.nome_identificacao}
+        confirmLabel="Remover manutencao"
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => pendingDelete && void remove(pendingDelete)}
+      />
+
+      {success && createPortal(
+        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm" onClick={() => setSuccess('')}>
+          <div className="w-full max-w-md overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                  <CheckCircle2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="font-display text-lg font-bold text-slate-950">Concluido</h2>
+                  <p className="mt-1 text-sm text-slate-500">{success}</p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setSuccess('')} aria-label="Fechar" className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex justify-end bg-slate-50 px-5 py-4">
+              <Button type="button" onClick={() => setSuccess('')}>OK</Button>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }

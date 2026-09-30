@@ -1,9 +1,12 @@
+// Arquivo: src/pages/LoginScreen.tsx
+// Serve para: tela de autenticacao do usuario corporativo.
+
 import { useState } from 'react';
 import { AlertCircle, Eye, EyeOff, Loader2, Lock, ShieldCheck, User } from 'lucide-react';
 import selfitLogoUrl from '@/assets/logos/selfit-logo.png';
 
 interface LoginScreenProps {
-  onLogin: (username: string) => void;
+  onLogin: (username: string, password: string) => Promise<void>;
 }
 
 export function LoginScreen({ onLogin }: LoginScreenProps) {
@@ -13,11 +16,11 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
 
-    const cleanUsername = username.trim().toLowerCase();
+    const cleanUsername = username.trim();
     if (!cleanUsername) {
       setError('Informe seu usuario corporativo.');
       return;
@@ -29,10 +32,13 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     }
 
     setLoading(true);
-    window.setTimeout(() => {
+    try {
+      await onLogin(cleanUsername, password);
+    } catch (loginError) {
+      setError((loginError as Error).message || 'Nao foi possivel autenticar.');
+    } finally {
       setLoading(false);
-      onLogin(cleanUsername.includes('@') ? cleanUsername.split('@')[0] : cleanUsername);
-    }, 300);
+    }
   };
 
   return (

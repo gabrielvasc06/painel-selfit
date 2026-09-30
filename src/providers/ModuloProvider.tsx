@@ -1,3 +1,6 @@
+// Arquivo: src/providers/ModuloProvider.tsx
+// Serve para: guarda qual modulo esta ativo: TVs, equipamentos ou cameras.
+
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, ReactNode } from 'react';
 import type { ModuloTipo } from '@/services/inventory/inventoryTypes';

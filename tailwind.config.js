@@ -1,3 +1,6 @@
+// Arquivo: tailwind.config.js
+// Serve para: configura tema, fontes e caminhos usados pelo Tailwind.
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],

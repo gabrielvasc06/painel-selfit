@@ -1,3 +1,6 @@
+// Arquivo: eslint.config.js
+// Serve para: configura lint para manter padrao e detectar erros no front.
+
 import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';

@@ -1,8 +1,11 @@
+// Arquivo: src/app/App.tsx
+// Serve para: orquestra login, modulo ativo, navegacao, refresh de pagina e telas renderizadas.
+
 import { useEffect, useState } from 'react';
 import { LayoutGrid } from 'lucide-react';
 import { InventoryProvider } from '@/providers/InventoryProvider';
 import { ModuloProvider } from '@/providers/ModuloProvider';
-import { getModuleBadge, pageMeta, validPages } from '@/routes/pageRegistry';
+import { getModuleBadge, pageMeta } from '@/routes/pageRegistry';
 import type { ModuloTipo } from '@/services/inventory/inventoryTypes';
 import { Sidebar, type PageId } from '@/components/layout/Sidebar';
 import { CadastrarCameraPage } from '@/pages/CadastrarCameraPage';
@@ -21,75 +24,108 @@ import { ModuleSelectScreen } from '@/pages/ModuleSelectScreen';
 import { RegiaoDetailPage } from '@/pages/RegiaoDetailPage';
 import { RegiaoPage } from '@/pages/RegiaoPage';
 import { UnidadeDetailPage } from '@/pages/UnidadeDetailPage';
+import { authenticate, clearAuthToken, getAuthToken, sessionExpiredEvent } from '@/services/api';
 
-function readStoredModule(): ModuloTipo | null {
-  const stored = localStorage.getItem('selfit.currentModule');
-  return stored === 'tvs' || stored === 'equipamentos' || stored === 'cameras' ? stored : null;
-}
+const NAVIGATION_STATE_KEY = 'selfit:navigation-state';
+const moduleValues: ModuloTipo[] = ['tvs', 'equipamentos', 'cameras'];
+const pageValues: PageId[] = ['dashboard', 'consultar', 'cadastrar', 'cadastrar_unidade', 'cadastrar_equipamento', 'equipamentos', 'regiao', 'garantias', 'manutencoes'];
 
-function readStoredPage(): PageId {
-  const stored = localStorage.getItem('selfit.page');
-  return validPages.includes(stored as PageId) ? stored as PageId : 'dashboard';
-}
+type DrillState = { type: string; id: string } | null;
 
-function readStoredDrill(): { type: string; id: string } | null {
-  const stored = localStorage.getItem('selfit.drill');
-  if (!stored) return null;
+type NavigationState = {
+  userName: string;
+  currentModule: ModuloTipo | null;
+  page: PageId;
+  previousPage: PageId;
+  drill: DrillState;
+};
 
+const defaultNavigationState: NavigationState = {
+  userName: '',
+  currentModule: null,
+  page: 'dashboard',
+  previousPage: 'dashboard',
+  drill: null,
+};
+
+function readNavigationState(): NavigationState {
   try {
-    const parsed = JSON.parse(stored);
-    return typeof parsed?.type === 'string' && typeof parsed?.id === 'string' ? parsed : null;
+    const raw = sessionStorage.getItem(NAVIGATION_STATE_KEY);
+    if (!raw) return defaultNavigationState;
+    const parsed = JSON.parse(raw) as Partial<NavigationState>;
+    const currentModule = parsed.currentModule && moduleValues.includes(parsed.currentModule) ? parsed.currentModule : null;
+    const page = parsed.page && pageValues.includes(parsed.page) ? parsed.page : 'dashboard';
+    const previousPage = parsed.previousPage && pageValues.includes(parsed.previousPage) ? parsed.previousPage : 'dashboard';
+    const drill = parsed.drill && typeof parsed.drill.type === 'string' && typeof parsed.drill.id === 'string'
+      ? parsed.drill
+      : null;
+
+    return {
+      userName: typeof parsed.userName === 'string' ? parsed.userName : '',
+      currentModule,
+      page,
+      previousPage,
+      drill,
+    };
   } catch {
-    return null;
+    sessionStorage.removeItem(NAVIGATION_STATE_KEY);
+    return defaultNavigationState;
   }
 }
 
+function clearNavigationState() {
+  sessionStorage.removeItem(NAVIGATION_STATE_KEY);
+}
+
 function AppShell() {
-  const [authed, setAuthed] = useState(() => localStorage.getItem('selfit.authenticated') === 'true');
-  const [userName, setUserName] = useState(() => localStorage.getItem('selfit.userName') ?? '');
-  const [currentModule, setCurrentModule] = useState<ModuloTipo | null>(readStoredModule);
-  const [page, setPage] = useState<PageId>(readStoredPage);
-  const [previousPage, setPreviousPage] = useState<PageId>('dashboard');
-  const [drill, setDrill] = useState<{ type: string; id: string } | null>(readStoredDrill);
+  const initialNavigationState = useState(readNavigationState)[0];
+  const [authed, setAuthed] = useState(() => Boolean(getAuthToken()));
+  const [userName, setUserName] = useState(initialNavigationState.userName);
+  const [currentModule, setCurrentModule] = useState<ModuloTipo | null>(initialNavigationState.currentModule);
+  const [page, setPage] = useState<PageId>(initialNavigationState.page);
+  const [previousPage, setPreviousPage] = useState<PageId>(initialNavigationState.previousPage);
+  const [drill, setDrill] = useState<DrillState>(initialNavigationState.drill);
 
   useEffect(() => {
-    localStorage.setItem('selfit.authenticated', String(authed));
-  }, [authed]);
+    const expireSession = () => {
+      clearNavigationState();
+      setAuthed(false);
+      setUserName('');
+      setCurrentModule(null);
+      setPage('dashboard');
+      setDrill(null);
+    };
+    window.addEventListener(sessionExpiredEvent, expireSession);
+    return () => window.removeEventListener(sessionExpiredEvent, expireSession);
+  }, []);
 
   useEffect(() => {
-    if (userName) localStorage.setItem('selfit.userName', userName);
-    else localStorage.removeItem('selfit.userName');
-  }, [userName]);
-
-  useEffect(() => {
-    if (currentModule) localStorage.setItem('selfit.currentModule', currentModule);
-    else localStorage.removeItem('selfit.currentModule');
-  }, [currentModule]);
-
-  useEffect(() => {
-    localStorage.setItem('selfit.page', page);
-  }, [page]);
-
-  useEffect(() => {
-    if (drill) localStorage.setItem('selfit.drill', JSON.stringify(drill));
-    else localStorage.removeItem('selfit.drill');
-  }, [drill]);
+    if (!authed) return;
+    sessionStorage.setItem(NAVIGATION_STATE_KEY, JSON.stringify({
+      userName,
+      currentModule,
+      page,
+      previousPage,
+      drill,
+    }));
+  }, [authed, userName, currentModule, page, previousPage, drill]);
 
   const handleLogout = () => {
+    clearAuthToken();
+    clearNavigationState();
     setAuthed(false);
     setCurrentModule(null);
     setUserName('');
     setPage('dashboard');
     setDrill(null);
-    localStorage.removeItem('selfit.authenticated');
-    localStorage.removeItem('selfit.userName');
-    localStorage.removeItem('selfit.currentModule');
-    localStorage.removeItem('selfit.page');
-    localStorage.removeItem('selfit.drill');
   };
 
   if (!authed) {
-    return <LoginScreen onLogin={(name) => { setUserName(name || 'admin'); setAuthed(true); }} />;
+    return <LoginScreen onLogin={async (username, password) => {
+      await authenticate(username, password);
+      setUserName(username.trim().toUpperCase());
+      setAuthed(true);
+    }} />;
   }
 
   if (!currentModule) {
@@ -128,64 +164,62 @@ function AppShell() {
   };
 
   return (
-    <ModuloProvider modulo={currentModule} setModulo={setCurrentModule}>
-      <div className="min-h-screen bg-slate-50">
-        <Sidebar
-          current={page}
-          onNavigate={navigate}
-          onLogout={handleLogout}
-          userName={userName || 'admin'}
-          modulo={currentModule}
-        />
+    <InventoryProvider>
+      <ModuloProvider modulo={currentModule} setModulo={setCurrentModule}>
+        <div className="min-h-dvh bg-slate-50">
+          <Sidebar
+            current={page}
+            onNavigate={navigate}
+            onLogout={handleLogout}
+            userName={userName || 'admin'}
+            modulo={currentModule}
+          />
 
-        <div className="lg:pl-72">
-          <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/80 px-6 py-4 backdrop-blur-md lg:px-8">
-            <div className="ml-10 lg:ml-0">
-              <div className="mb-1">
-                <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
-                  {getModuleBadge(currentModule)}
-                </span>
+          <div className="min-h-dvh lg:pl-72">
+            <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/80 px-6 py-4 backdrop-blur-md lg:px-8">
+              <div className="ml-10 lg:ml-0">
+                <div className="mb-1">
+                  <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                    {getModuleBadge(currentModule)}
+                  </span>
+                </div>
+                <h2 className="font-display text-lg font-bold text-slate-900">{title}</h2>
+                <p className="text-sm text-slate-500">{subtitle}</p>
               </div>
-              <h2 className="font-display text-lg font-bold text-slate-900">{title}</h2>
-              <p className="text-sm text-slate-500">{subtitle}</p>
-            </div>
 
-            <button
-              onClick={() => setCurrentModule(null)}
-              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
-            >
-              <LayoutGrid className="h-4 w-4 text-slate-500" />
-              <span className="hidden sm:inline">Trocar Modulo</span>
-            </button>
-          </header>
+              <button
+                onClick={() => setCurrentModule(null)}
+                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                <LayoutGrid className="h-4 w-4 text-slate-500" />
+                <span className="hidden sm:inline">Trocar Modulo</span>
+              </button>
+            </header>
 
-          <main className="p-6 lg:p-8">
-            <div key={`${currentModule}-${page}-${drill?.type ?? ''}-${drill?.id ?? ''}`} className="animate-fade-in">
-              {drill?.type === 'historico' && <HistoricoPage onBack={() => setDrill(null)} />}
-              {drill?.type === 'unidade' && <UnidadeDetailPage unidadeId={drill.id} onBack={() => setDrill(null)} />}
-              {drill?.type === 'regiao-detail' && <RegiaoDetailPage regiaoId={drill.id} onBack={() => setDrill(null)} />}
+            <main className="min-h-[calc(100dvh-5.5rem)] overflow-visible p-4 sm:p-6 lg:p-8">
+              <div key={`${currentModule}-${page}-${drill?.type ?? ''}-${drill?.id ?? ''}`} className="min-w-0">
+                {drill?.type === 'historico' && <HistoricoPage onBack={() => setDrill(null)} />}
+                {drill?.type === 'unidade' && <UnidadeDetailPage unidadeId={drill.id} onBack={() => setDrill(null)} />}
+                {drill?.type === 'regiao-detail' && <RegiaoDetailPage regiaoId={drill.id} onBack={() => setDrill(null)} />}
 
-              {!drill && page === 'dashboard' && <DashboardPage />}
-              {!drill && page === 'consultar' && <ConsultarPage onOpenUnidade={(id) => setDrill({ type: 'unidade', id })} />}
-              {!drill && page === 'cadastrar' && <CadastrarPage />}
-              {!drill && page === 'cadastrar_unidade' && <CadastrarUnidadePage />}
-              {!drill && page === 'cadastrar_equipamento' && (currentModule === 'cameras' ? <CadastrarCameraPage /> : <CadastrarEquipamentoPage />)}
-              {!drill && page === 'equipamentos' && (currentModule === 'cameras' ? <CamerasPage /> : <EquipamentosPage />)}
-              {!drill && page === 'garantias' && <GarantiasPage onBack={navigateBack} />}
-              {!drill && page === 'manutencoes' && <ManutencoesPage onBack={navigateBack} />}
-              {!drill && page === 'regiao' && <RegiaoPage onOpenRegiao={(id) => setDrill({ type: 'regiao-detail', id })} />}
-            </div>
-          </main>
+                {!drill && page === 'dashboard' && <DashboardPage />}
+                {!drill && page === 'consultar' && <ConsultarPage />}
+                {!drill && page === 'cadastrar' && <CadastrarPage />}
+                {!drill && page === 'cadastrar_unidade' && <CadastrarUnidadePage />}
+                {!drill && page === 'cadastrar_equipamento' && (currentModule === 'cameras' ? <CadastrarCameraPage /> : <CadastrarEquipamentoPage />)}
+                {!drill && page === 'equipamentos' && (currentModule === 'cameras' ? <CamerasPage /> : <EquipamentosPage />)}
+                {!drill && page === 'garantias' && <GarantiasPage onBack={navigateBack} />}
+                {!drill && page === 'manutencoes' && <ManutencoesPage onBack={navigateBack} />}
+                {!drill && page === 'regiao' && <RegiaoPage onOpenRegiao={(id) => setDrill({ type: 'regiao-detail', id })} />}
+              </div>
+            </main>
+          </div>
         </div>
-      </div>
-    </ModuloProvider>
+      </ModuloProvider>
+    </InventoryProvider>
   );
 }
 
 export default function App() {
-  return (
-    <InventoryProvider>
-      <AppShell />
-    </InventoryProvider>
-  );
+  return <AppShell />;
 }

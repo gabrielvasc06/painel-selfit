@@ -4,9 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "start": "npm run dev",
+    "dev": "vite --host 0.0.0.0 --port 5174 --strictPort",
+    "api:start": "npm --prefix api-selfit start",
+    "api:migrate": "npm --prefix api-selfit run migrate",
+    "db:seed": "node scripts/seed-local-database.mjs",
+    "db:seed:check": "node scripts/seed-local-database.mjs --dry-run",
     "build": "vite build",
     "lint": "eslint .",
+    "homologacao": "node scripts/homologacao-software.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "test": "node tests/inventory.test.mjs"
@@ -17,6 +23,7 @@
     "lucide-react": "^0.446.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "read-excel-file": "^9.3.10",
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {

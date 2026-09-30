@@ -1,3 +1,6 @@
+// Arquivo: src/pages/RegiaoDetailPage.tsx
+// Serve para: mostra unidades e indicadores agrupados por UF/regiao.
+
 import { ArrowLeft, Building, Camera, Cpu, MapPin, Tv } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { DonutChart } from '@/pages/DashboardPage';
@@ -7,7 +10,7 @@ import { useModulo } from '@/providers/ModuloProvider';
 
 export function RegiaoDetailPage({ regiaoId, onBack }: { regiaoId: string; onBack: () => void }) {
   const { modulo } = useModulo();
-  const { regioes, unidades, getEquipamentosByModulo, cameras } = useInventory();
+  const { regioes, unidades, getEquipamentosByModulo } = useInventory();
   const regiao = regioes.find((item) => item.id === regiaoId);
   const labels = moduleLabels[modulo];
   const MainIcon = modulo === 'tvs' ? Tv : modulo === 'cameras' ? Camera : Cpu;
@@ -18,18 +21,11 @@ export function RegiaoDetailPage({ regiaoId, onBack }: { regiaoId: string; onBac
 
   const unidadesDaRegiao = unidades.filter((unidade) => unidade.regiao_id === regiaoId);
   const unitIds = unidadesDaRegiao.map((unidade) => unidade.id);
-  const cameraItems = modulo === 'cameras' ? cameras.filter((camera) => unitIds.includes(camera.unidade_id)) : [];
-  const equipamentoItems = modulo === 'cameras' ? [] : getEquipamentosByModulo(modulo).filter((item) => item.unidade_id && unitIds.includes(item.unidade_id));
-  const total = modulo === 'cameras' ? cameraItems.length : equipamentoItems.length;
-  const ativas = modulo === 'cameras'
-    ? cameraItems.filter((item) => item.status === 'ativa').length
-    : equipamentoItems.filter((item) => item.status === 'ativo').length;
-  const manutencao = modulo === 'cameras'
-    ? cameraItems.filter((item) => item.status === 'manutencao').length
-    : equipamentoItems.filter((item) => item.status === 'manutencao').length;
-  const outros = modulo === 'cameras'
-    ? cameraItems.filter((item) => item.status === 'inativa').length
-    : equipamentoItems.filter((item) => item.status === 'outros' || item.status === 'inativo').length;
+  const equipamentoItems = getEquipamentosByModulo(modulo).filter((item) => item.unidade_id && unitIds.includes(item.unidade_id));
+  const total = equipamentoItems.length;
+  const ativas = equipamentoItems.filter((item) => item.status === 'ativo').length;
+  const manutencao = equipamentoItems.filter((item) => item.status === 'manutencao').length;
+  const outros = equipamentoItems.filter((item) => item.status === 'outros' || item.status === 'inativo').length;
 
   return (
     <div className="space-y-6">
@@ -82,12 +78,11 @@ export function RegiaoDetailPage({ regiaoId, onBack }: { regiaoId: string; onBac
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {unidadesDaRegiao.map((unidade, index) => {
-              const unitCameraItems = modulo === 'cameras' ? cameras.filter((item) => item.unidade_id === unidade.id) : [];
-              const unitEquipamentoItems = modulo === 'cameras' ? [] : getEquipamentosByModulo(modulo).filter((item) => item.unidade_id === unidade.id);
-              const unitTotal = modulo === 'cameras' ? unitCameraItems.length : unitEquipamentoItems.length;
-              const unitActive = modulo === 'cameras' ? unitCameraItems.filter((item) => item.status === 'ativa').length : unitEquipamentoItems.filter((item) => item.status === 'ativo').length;
-              const unitMaint = modulo === 'cameras' ? unitCameraItems.filter((item) => item.status === 'manutencao').length : unitEquipamentoItems.filter((item) => item.status === 'manutencao').length;
-              const unitOther = modulo === 'cameras' ? unitCameraItems.filter((item) => item.status === 'inativa').length : unitEquipamentoItems.filter((item) => item.status === 'outros' || item.status === 'inativo').length;
+              const unitEquipamentoItems = getEquipamentosByModulo(modulo).filter((item) => item.unidade_id === unidade.id);
+              const unitTotal = unitEquipamentoItems.length;
+              const unitActive = unitEquipamentoItems.filter((item) => item.status === 'ativo').length;
+              const unitMaint = unitEquipamentoItems.filter((item) => item.status === 'manutencao').length;
+              const unitOther = unitEquipamentoItems.filter((item) => item.status === 'outros' || item.status === 'inativo').length;
               return (
                 <Card key={unidade.id} className="animate-fade-in-up p-6" style={{ animationDelay: `${index * 80}ms` }}>
                   <CardHeader className="flex flex-row items-center justify-between px-0 pt-0">

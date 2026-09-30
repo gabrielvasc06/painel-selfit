@@ -1,3 +1,6 @@
+// Arquivo: vite.config.mjs
+// Serve para: configura Vite, React e alias @ para o front.
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';

@@ -1,3 +1,6 @@
+// Arquivo: src/pages/DashboardPage.tsx
+// Serve para: painel resumido com indicadores gerais do modulo atual.
+
 import { Archive, Building2, Camera, Cpu, Tv, Wrench } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useInventory } from '@/providers/InventoryProvider';
@@ -6,20 +9,14 @@ import { useModulo } from '@/providers/ModuloProvider';
 
 export function DashboardPage() {
   const { modulo } = useModulo();
-  const { historicos, unidades, getEquipamentosByModulo, cameras } = useInventory();
+  const { unidades, getEquipamentosByModulo } = useInventory();
 
   const labels = moduleLabels[modulo];
-  const items = modulo === 'cameras' ? [] : getEquipamentosByModulo(modulo);
-  const totalItens = modulo === 'cameras' ? cameras.length : items.length;
-  const ativos = modulo === 'cameras'
-    ? cameras.filter((camera) => camera.status === 'ativa').length
-    : items.filter((item) => item.status === 'ativo').length;
-  const manutencao = modulo === 'cameras'
-    ? cameras.filter((camera) => camera.status === 'manutencao').length
-    : items.filter((item) => item.status === 'manutencao').length;
-  const outros = modulo === 'cameras'
-    ? cameras.filter((camera) => camera.status === 'inativa').length
-    : items.filter((item) => item.status === 'outros' || item.status === 'inativo').length;
+  const items = getEquipamentosByModulo(modulo);
+  const totalItens = items.length;
+  const ativos = items.filter((item) => item.status === 'ativo').length;
+  const manutencao = items.filter((item) => item.status === 'manutencao').length;
+  const outros = items.filter((item) => item.status === 'outros' || item.status === 'inativo').length;
   const MainIcon = modulo === 'tvs' ? Tv : modulo === 'cameras' ? Camera : Cpu;
 
   const overviewMetrics = [

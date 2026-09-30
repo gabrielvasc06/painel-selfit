@@ -1,3 +1,6 @@
+// Arquivo: src/pages/PlantaPage.tsx
+// Serve para: visao de planta/listagem operacional por unidade.
+
 import { useMemo, useRef, useState } from 'react';
 import { Building2, Camera, Cpu, Layers, MapPin, Tv, Upload, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -13,7 +16,7 @@ type PlantaLocal = {
 
 export function PlantaPage() {
   const { modulo } = useModulo();
-  const { regioes, getUnidadesComRegiao, getEquipamentosByModulo, cameras } = useInventory();
+  const { regioes, getUnidadesComRegiao, getEquipamentosByModulo } = useInventory();
   const fileRef = useRef<HTMLInputElement>(null);
   const [regiaoFilter, setRegiaoFilter] = useState('all');
   const [selectedUnidadeId, setSelectedUnidadeId] = useState('');
@@ -29,18 +32,6 @@ export function PlantaPage() {
   const monitorItems = useMemo(() => {
     if (!selectedUnidadeId) return [];
 
-    if (modulo === 'cameras') {
-      return cameras
-        .filter((camera) => camera.unidade_id === selectedUnidadeId)
-        .map((camera) => ({
-          id: camera.id,
-          nome: camera.nome,
-          tipo: 'Camera',
-          status: camera.status === 'ativa' ? 'Ativo' : camera.status === 'manutencao' ? 'Manutencao' : 'Offline',
-          statusClass: camera.status === 'ativa' ? 'bg-emerald-500' : camera.status === 'manutencao' ? 'bg-amber-500' : 'bg-red-500',
-        }));
-    }
-
     return getEquipamentosByModulo(modulo)
       .filter((item) => item.unidade_id === selectedUnidadeId)
       .map((item) => ({
@@ -50,7 +41,7 @@ export function PlantaPage() {
         status: item.status === 'ativo' ? 'Ativo' : item.status === 'manutencao' ? 'Manutencao' : 'Outros',
         statusClass: item.status === 'ativo' ? 'bg-emerald-500' : item.status === 'manutencao' ? 'bg-amber-500' : 'bg-slate-500',
       }));
-  }, [cameras, getEquipamentosByModulo, modulo, selectedUnidadeId]);
+  }, [getEquipamentosByModulo, modulo, selectedUnidadeId]);
 
   const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
