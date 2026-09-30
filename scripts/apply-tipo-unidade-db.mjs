@@ -1,3 +1,6 @@
+// Arquivo: scripts/apply-tipo-unidade-db.mjs
+// Serve para: aplica a coluna tipo_unidade no banco quando necessario.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

@@ -1,3 +1,6 @@
+// Arquivo: scripts/audit-unidades-regioes.mjs
+// Serve para: resume unidades por UF e detecta registros fora do escopo.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

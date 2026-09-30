@@ -1,3 +1,6 @@
+// Arquivo: src/components/ui/ConfirmDialog.tsx
+// Serve para: componente visual reutilizavel usado em varias telas do front.
+
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertTriangle, Loader2, Trash2, X } from 'lucide-react';

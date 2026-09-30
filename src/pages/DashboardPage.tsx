@@ -1,3 +1,6 @@
+// Arquivo: src/pages/DashboardPage.tsx
+// Serve para: painel resumido com indicadores gerais do modulo atual.
+
 import { Archive, Building2, Camera, Cpu, Tv, Wrench } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useInventory } from '@/providers/InventoryProvider';

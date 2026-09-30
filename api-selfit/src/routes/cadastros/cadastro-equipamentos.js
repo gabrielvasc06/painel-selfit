@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/routes/cadastros/cadastro-equipamentos.js
+// Serve para: rota unica de cadastro que direciona TV, camera ou equipamento para a tabela correta.
+
 const express = require('express');
 const mysql = require('../../config/db');
 const {

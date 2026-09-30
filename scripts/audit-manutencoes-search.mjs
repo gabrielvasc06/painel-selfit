@@ -1,3 +1,6 @@
+// Arquivo: scripts/audit-manutencoes-search.mjs
+// Serve para: testa a busca de manutencoes por unidade e modulo.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

@@ -1,3 +1,6 @@
+// Arquivo: scripts/inspect-unidades-fills.mjs
+// Serve para: inspeciona preenchimentos e cores das planilhas de unidades.
+
 import fs from 'node:fs';
 import readXlsxFile from 'read-excel-file/node';
 

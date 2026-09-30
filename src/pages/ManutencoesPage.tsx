@@ -1,3 +1,6 @@
+// Arquivo: src/pages/ManutencoesPage.tsx
+// Serve para: registra, consulta, edita e remove manutencoes do modulo atual.
+
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Pencil, Plus, Save, Search, Trash2, Wrench, X } from 'lucide-react';

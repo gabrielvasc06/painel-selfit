@@ -1,3 +1,6 @@
+// Arquivo: scripts/delete-proprias-especiais.mjs
+// Serve para: remove unidades proprias especiais fora do escopo operacional.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

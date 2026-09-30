@@ -1,3 +1,6 @@
+// Arquivo: scripts/normalize-unidades-nomes.mjs
+// Serve para: normaliza nomes de unidades no banco para manter padrao de busca.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

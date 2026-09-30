@@ -1,3 +1,6 @@
+// Arquivo: scripts/audit-bairros-unidades.mjs
+// Serve para: verifica bairros suspeitos nas unidades cadastradas.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

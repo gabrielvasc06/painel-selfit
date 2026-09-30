@@ -1,3 +1,6 @@
+// Arquivo: src/providers/InventoryProvider.tsx
+// Serve para: carrega unidades e inventario da API e entrega esses dados para as telas.
+
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { apiGetList, inventoryUpdatedEvent, type ApiEquipmentRecord, type ApiUnitRecord } from '@/services/api';
@@ -23,54 +26,67 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
+
+    // O front trabalha com um modelo unico de inventario, enquanto o banco separa
+    // TVs, cameras e equipamentos em tabelas diferentes. Estes mapeadores mantem
+    // essa traducao isolada dentro do provider.
+    const mapUnit = (unit: ApiUnitRecord): Unidade => ({
+      id: String(unit.id),
+      nome: unit.nome,
+      tipo_unidade: 'PROPRIA',
+      regiao_id: unit.uf ?? '',
+      cidade: null,
+      endereco: unit.rua,
+      logradouro: unit.rua,
+      numero: unit.numero,
+      bairro: unit.bairro,
+      cep: unit.cep,
+      cnpj: unit.cnpj,
+      codigo_evo: null,
+      uf: unit.uf,
+      amostra: null,
+      created_at: unit.created_at ?? '',
+      regioes: estadosBrasil.find((region) => region.sigla === unit.uf),
+    });
+
+    const mapEquipment = (item: ApiEquipmentRecord): Equipamento => {
+      const normalizedStatus = item.status.toLocaleUpperCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const status: Equipamento['status'] = normalizedStatus === 'ATIVO' ? 'ativo' : normalizedStatus.includes('MANUTEN') ? 'manutencao' : normalizedStatus === 'INATIVO' ? 'inativo' : 'outros';
+      return {
+        id: String(item.id),
+        unidade_id: item.unidade_id == null ? undefined : String(item.unidade_id),
+        nome: item.nome_identificacao,
+        categoria: item.categoria.toLocaleUpperCase('pt-BR') as Equipamento['categoria'],
+        tipo_modulo: item.tipo_modulo,
+        status,
+        marca: item.marca,
+        data_garantia: item.data_garantia,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+      };
+    };
+
     const loadInventory = async () => {
-      try {
-        const [unitRecords, equipmentRecords] = await Promise.all([
-          apiGetList<ApiUnitRecord>('/unidades'),
-          apiGetList<ApiEquipmentRecord>('/equipamentos/consultar'),
-        ]);
-        if (!active) return;
+      // Unidades e inventario carregam de forma independente. Assim, uma falha
+      // momentanea em equipamentos nao esconde unidades em regiao/cadastro.
+      const [unitResult, equipmentResult] = await Promise.allSettled([
+        apiGetList<ApiUnitRecord>('/unidades'),
+        apiGetList<ApiEquipmentRecord>('/equipamentos/consultar'),
+      ]);
+      if (!active) return;
 
-        setUnidades(unitRecords.map((unit) => ({
-          id: String(unit.id),
-          nome: unit.nome,
-          tipo_unidade: 'PROPRIA',
-          regiao_id: unit.uf ?? '',
-          cidade: null,
-          endereco: unit.rua,
-          logradouro: unit.rua,
-          numero: unit.numero,
-          bairro: unit.bairro,
-          cep: unit.cep,
-          cnpj: unit.cnpj,
-          codigo_evo: null,
-          uf: unit.uf,
-          amostra: null,
-          created_at: unit.created_at ?? '',
-          regioes: estadosBrasil.find((region) => region.sigla === unit.uf),
-        })));
+      if (unitResult.status === 'fulfilled') {
+        setUnidades(unitResult.value.map(mapUnit));
+      } else {
+        setUnidades([]);
+        console.error('Nao foi possivel carregar unidades:', unitResult.reason);
+      }
 
-        setEquipamentos(equipmentRecords.map((item) => {
-          const normalizedStatus = item.status.toLocaleUpperCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          const status: Equipamento['status'] = normalizedStatus === 'ATIVO' ? 'ativo' : normalizedStatus.includes('MANUTEN') ? 'manutencao' : normalizedStatus === 'INATIVO' ? 'inativo' : 'outros';
-          return {
-            id: String(item.id),
-            unidade_id: item.unidade_id == null ? undefined : String(item.unidade_id),
-            nome: item.nome_identificacao,
-            categoria: item.categoria.toLocaleUpperCase('pt-BR') as Equipamento['categoria'],
-            tipo_modulo: item.tipo_modulo,
-            status,
-            marca: item.marca,
-            data_garantia: item.data_garantia,
-            created_at: item.created_at,
-            updated_at: item.updated_at,
-          };
-        }));
-      } catch {
-        if (active) {
-          setUnidades([]);
-          setEquipamentos([]);
-        }
+      if (equipmentResult.status === 'fulfilled') {
+        setEquipamentos(equipmentResult.value.map(mapEquipment));
+      } else {
+        setEquipamentos([]);
+        console.error('Nao foi possivel carregar inventario:', equipmentResult.reason);
       }
     };
 

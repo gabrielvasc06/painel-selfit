@@ -1,3 +1,6 @@
+// Arquivo: src/pages/GarantiasPage.tsx
+// Serve para: consulta garantias dos itens cadastrados por unidade.
+
 import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ArrowLeft, Calendar, Clock, Loader2, Search, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';

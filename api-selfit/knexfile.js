@@ -1,5 +1,9 @@
+// Arquivo: api-selfit/knexfile.js
+// Serve para: arquivo de codigo do sistema; participa da implementacao do painel Selfit.
+
 const path = require('path');
-require('dotenv').config(); // Ajuste o caminho do .env se necessário
+
+require('dotenv').config({ path: path.resolve(__dirname, '.env'), quiet: true });
 
 module.exports = {
     development: {
@@ -12,7 +16,7 @@ module.exports = {
             database: process.env.DB_DATABASE,
         },
         migrations: {
-            directory: './src/database/migrations', // Onde os arquivos de migrate ficarão salvos
+            directory: './src/database/migrations',
         },
     },
 };

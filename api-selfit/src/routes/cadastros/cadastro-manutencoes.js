@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/routes/cadastros/cadastro-manutencoes.js
+// Serve para: rotas para criar, atualizar e excluir manutencoes vinculadas por item_tipo e item_id.
+
 const express = require('express');
 const mysql = require('../../config/db');
 const { normalizeText, parseItemRef, tableForType } = require('../helpers/inventory-items');

@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/routes/autenticacao/autenticador-usuarios.js
+// Serve para: rota de login; valida usuario e senha e emite JWT.
+
 const express = require('express');
 const bcrypt = require('bcrypt');
 const mysql = require('../../config/db');

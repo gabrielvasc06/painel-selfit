@@ -1,3 +1,6 @@
+// Arquivo: src/pages/ConsultarPage.tsx
+// Serve para: consulta unidades e mostra os itens cadastrados por unidade.
+
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertCircle, ArrowLeft, Building2, Hash, Loader2, MapPin, Pencil, Save, Search, Trash2, Tv, X } from 'lucide-react';

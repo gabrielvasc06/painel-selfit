@@ -1,3 +1,6 @@
+-- Arquivo: api-selfit/src/database/workbench_update_inventory_modules.sql
+-- Serve para: script SQL para atualizar manualmente o banco pelo MySQL Workbench.
+
 -- Atualizacao do inventario Selfit para MySQL Workbench.
 -- Objetivo:
 -- 1) Separar TVs e cameras da tabela equipamentos.

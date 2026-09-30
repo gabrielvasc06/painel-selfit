@@ -1,3 +1,6 @@
+// Arquivo: scripts/apply-manutencoes-item-schema.mjs
+// Serve para: aplica ajuste de schema para manutencoes usarem item_tipo e item_id.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

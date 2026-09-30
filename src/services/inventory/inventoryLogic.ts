@@ -1,3 +1,6 @@
+// Arquivo: src/services/inventory/inventoryLogic.ts
+// Serve para: concentra regras de filtro, normalizacao e importacao de unidades/inventario.
+
 import type { Equipamento, ModuloTipo, Regiao, Unidade } from '@/services/inventory/inventoryTypes';
 
 const estadoNomeParaUf: Record<string, string> = {
@@ -145,6 +148,19 @@ export function normalizeUnitName(value: string) {
     .trim();
 }
 
+export function normalizeUnitNumber(value: string) {
+  const raw = value.trim().toLocaleUpperCase('pt-BR').replace(/\s+/g, ' ');
+  const normalized = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (!raw) return '';
+  if (/^(S\/?N|SEM NUMERO)$/.test(normalized)) return 'S/N';
+  if (/^0+$/.test(raw)) return 'S/N';
+
+  const padded = raw.match(/^0+([1-9]\d*[A-Z]?)$/);
+  if (padded) return padded[1];
+
+  return raw;
+}
+
 export type UnidadeCsvPreview = {
   nome: string;
   tipo_unidade: 'PROPRIA';
@@ -191,7 +207,7 @@ export function parseUnidadesRows(rows: Array<Record<string, unknown>>): Unidade
     const enderecoCompleto = readValue(normalizedRow, ['endereco']);
     const endereco = parseEndereco(enderecoCompleto);
     const logradouro = readValue(normalizedRow, ['rua', 'logradouro', 'avenida']) || endereco.logradouro;
-    const numero = readValue(normalizedRow, ['numero', 'n', 'num']) || endereco.numero;
+    const numero = normalizeUnitNumber(readValue(normalizedRow, ['numero', 'n', 'num']) || endereco.numero);
     const cepDigits = (readValue(normalizedRow, ['cep']) || endereco.cep).replace(/\D/g, '');
     const cep = cepDigits.length < 8 ? cepDigits.padStart(8, '0') : cepDigits;
     const bairro = readValue(normalizedRow, ['bairro']) || endereco.bairro;
@@ -313,7 +329,7 @@ function parseEndereco(value: string) {
   const logradouro = parts[0] ?? '';
   const numberPart = parts.find((part, index) => index > 0 && /(^|\s)(SN|S\/N|\d+[A-Z]?)(\s|$)/i.test(part)) ?? '';
   const numeroMatch = numberPart.match(/(SN|S\/N|\d+[A-Z]?)/i);
-  const numero = numeroMatch?.[1]?.toUpperCase() ?? '';
+  const numero = normalizeUnitNumber(numeroMatch?.[1] ?? '');
   const numberIndex = numberPart ? parts.indexOf(numberPart) : -1;
   const bairro = numberIndex >= 0
     ? (parts.slice(numberIndex + 1).find((part) => !/LOJA|PISO|ANDAR|SALA|CEP/i.test(part)) ?? '')

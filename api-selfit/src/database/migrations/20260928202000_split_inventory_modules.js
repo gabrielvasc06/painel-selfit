@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/database/migrations/20260928202000_split_inventory_modules.js
+// Serve para: migration do banco; cria ou ajusta estrutura necessaria para a API.
+
 const removedEquipmentColumns = ['modelo', 'mac_address'];
 
 async function hasColumn(knex, table, column) {

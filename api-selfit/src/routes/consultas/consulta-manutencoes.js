@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/routes/consultas/consulta-manutencoes.js
+// Serve para: consulta manutencoes detalhadas por modulo e unidade.
+
 const express = require('express');
 const mysql = require('../../config/db');
 

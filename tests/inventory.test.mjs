@@ -1,3 +1,6 @@
+// Arquivo: tests/inventory.test.mjs
+// Serve para: arquivo de codigo do sistema; participa da implementacao do painel Selfit.
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

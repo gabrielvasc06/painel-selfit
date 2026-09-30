@@ -1,3 +1,6 @@
+// Arquivo: scripts/audit-inventory-integrity.mjs
+// Serve para: verifica integridade e separacao entre TVs, equipamentos, cameras e manutencoes.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

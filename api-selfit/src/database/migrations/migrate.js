@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/database/migrations/migrate.js
+// Serve para: migration do banco; cria ou ajusta estrutura necessaria para a API.
+
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }

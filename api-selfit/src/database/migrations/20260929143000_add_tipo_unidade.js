@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/database/migrations/20260929143000_add_tipo_unidade.js
+// Serve para: migration do banco; cria ou ajusta estrutura necessaria para a API.
+
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }

@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/routes/cadastros/cadastro-usuarios.js
+// Serve para: rota de cadastro de usuarios com senha criptografada.
+
 const express = require('express');
 const mysql = require('../../config/db');
 const bcrypt = require('bcrypt');

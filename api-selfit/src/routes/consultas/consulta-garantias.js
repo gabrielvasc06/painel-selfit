@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/routes/consultas/consulta-garantias.js
+// Serve para: consulta garantias dos itens separados por modulo.
+
 const express = require('express');
 const mysql = require('../../config/db');
 const { itemSelect } = require('../helpers/inventory-items');

@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/routes/consultas/consulta-equipamentos.js
+// Serve para: consulta inventario unificado sem misturar os modulos no banco.
+
 const express = require('express');
 const mysql = require('../../config/db');
 const { itemSelect } = require('../helpers/inventory-items');

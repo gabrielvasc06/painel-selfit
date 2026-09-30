@@ -1,3 +1,6 @@
+// Arquivo: scripts/import-unidades-planilhas.mjs
+// Serve para: importa unidades de planilhas consolidadas e resolve dados faltantes quando possivel.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import readXlsxFile from 'read-excel-file/node';
@@ -80,6 +83,16 @@ function cleanName(value) {
     .trim();
 }
 
+function normalizeUnitNumber(value) {
+  const raw = String(value ?? '').trim().toLocaleUpperCase('pt-BR').replace(/\s+/g, ' ');
+  const normalized = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (!raw) return '';
+  if (/^(S\/?N|SEM NUMERO)$/.test(normalized)) return 'S/N';
+  if (/^0+$/.test(raw)) return 'S/N';
+  const padded = raw.match(/^0+([1-9]\d*[A-Z]?)$/);
+  return padded ? padded[1] : raw;
+}
+
 function formatCnpj(value) {
   const digits = onlyDigits(value);
   if (digits.length !== 14) return String(value ?? '');
@@ -101,7 +114,7 @@ function parseEndereco(value) {
 
   const rua = parts[0] ?? withoutCep;
   const numberPart = parts.find((part, index) => index > 0 && /(^|\s)(SN|S\/N|\d+[A-Z]?)(\s|$)/i.test(part)) ?? '';
-  const numero = numberPart.match(/(SN|S\/N|\d+[A-Z]?)/i)?.[1]?.toUpperCase() ?? '';
+  const numero = normalizeUnitNumber(numberPart.match(/(SN|S\/N|\d+[A-Z]?)/i)?.[1] ?? '');
   const numberIndex = numberPart ? parts.indexOf(numberPart) : -1;
   const bairro = numberIndex >= 0
     ? (parts.slice(numberIndex + 1).find((part) => !/LOJA|PISO|ANDAR|SALA|CEP/i.test(part)) ?? '')
@@ -188,7 +201,7 @@ async function fetchCnpjAddress(cnpjDigits) {
     uf: String(data.uf ?? '').trim().toUpperCase(),
     bairro: String(data.bairro ?? '').trim(),
     rua: [streetType, streetName].filter(Boolean).join(' ').trim() || streetName,
-    numero: String(data.numero ?? '').trim(),
+    numero: normalizeUnitNumber(String(data.numero ?? '').trim()),
   };
 }
 
@@ -224,7 +237,7 @@ for (const row of rawRows) {
     uf: inferUf(row.uf, parsedAddress.cep),
     bairro: parsedAddress.bairro,
     rua: parsedAddress.rua,
-    numero: parsedAddress.numero,
+    numero: normalizeUnitNumber(parsedAddress.numero),
   };
 
   byCnpj.set(row.cnpj_digits, { ...byCnpj.get(row.cnpj_digits), ...current });
@@ -245,7 +258,7 @@ if (resolveCnpj) {
         uf: api.uf || row.uf,
         bairro: api.bairro || row.bairro,
         rua: api.rua || row.rua,
-        numero: api.numero || row.numero,
+        numero: normalizeUnitNumber(api.numero || row.numero),
       });
       cnpjResolved.push(row.cnpj);
       await new Promise((resolve) => setTimeout(resolve, 200));

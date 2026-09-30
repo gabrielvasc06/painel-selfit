@@ -1,6 +1,14 @@
+// Arquivo: api-selfit/src/config/db.js
+// Serve para: arquivo de codigo do sistema; participa da implementacao do painel Selfit.
+
 const mysql = require('mysql2/promise');
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+const { envPath } = require('./env');
+
+for (const key of ['DB_HOST', 'DB_USER', 'DB_DATABASE']) {
+    if (!process.env[key]) {
+        throw new Error(`${key} nao definido. Verifique o arquivo .env da API em: ${envPath}`);
+    }
+}
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST,

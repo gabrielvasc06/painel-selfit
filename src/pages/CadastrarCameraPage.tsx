@@ -1,3 +1,6 @@
+// Arquivo: src/pages/CadastrarCameraPage.tsx
+// Serve para: tela que reaproveita o formulario de cadastro do modulo atual.
+
 import { useInventory } from '@/providers/InventoryProvider';
 import { EquipmentRegistrationForm } from '@/components/inventory/EquipmentRegistrationForm';
 

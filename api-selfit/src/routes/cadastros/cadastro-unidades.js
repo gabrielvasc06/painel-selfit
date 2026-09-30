@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/routes/cadastros/cadastro-unidades.js
+// Serve para: rotas para cadastrar, importar, atualizar e excluir unidades proprias.
+
 const express = require('express');
 const mysql = require('../../config/db');
 const router = express.Router();
@@ -37,6 +40,19 @@ const normalizeUnitName = (value) => String(value || '')
     .replace(/(^|[\s-])I(?=$|[\s-])/g, (_match, prefix) => `${prefix}1`)
     .replace(/\s+/g, ' ')
     .trim();
+
+const normalizeUnitNumber = (value) => {
+    const raw = String(value || '').trim().toUpperCase().replace(/\s+/g, ' ');
+    const normalized = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (!raw) return '';
+    if (/^(S\/?N|SEM NUMERO)$/.test(normalized)) return 'S/N';
+    if (/^0+$/.test(raw)) return 'S/N';
+
+    const padded = raw.match(/^0+([1-9]\d*[A-Z]?)$/);
+    if (padded) return padded[1];
+
+    return raw;
+};
 
 const validarUnidade = (req, res, next) => {
     let { nome, tipo_unidade, cnpj, cep, uf, bairro, rua, numero } = req.body;
@@ -110,7 +126,7 @@ const validarUnidade = (req, res, next) => {
     }
 
     // 7. Número: tratado como string (aceita números, letras e "S/N")
-    const numeroStr = String(numero || '').trim();
+    const numeroStr = normalizeUnitNumber(numero);
     if (!numeroStr) {
         return res.status(400).json({
             sucesso: false,
@@ -126,7 +142,7 @@ const validarUnidade = (req, res, next) => {
     req.body.uf = uf.trim().toUpperCase();
     req.body.bairro = bairro.trim().toUpperCase();
     req.body.rua = rua.trim().toUpperCase();
-    req.body.numero = numeroStr.toUpperCase();
+    req.body.numero = numeroStr;
 
     next();
 };
@@ -410,7 +426,7 @@ router.post('/register/unidades/bulk', async (req, res) => {
         const uf = typeof row.uf === 'string' ? row.uf.trim().toUpperCase() : '';
         const bairro = typeof row.bairro === 'string' ? row.bairro.trim().toUpperCase() : '';
         const rua = typeof row.rua === 'string' ? row.rua.trim().toUpperCase() : '';
-        const numero = String(row.numero ?? '').trim().toUpperCase();
+        const numero = normalizeUnitNumber(row.numero);
         const line = index + 2;
 
         const issue = !nome ? 'nome obrigatorio'

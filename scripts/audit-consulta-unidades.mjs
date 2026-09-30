@@ -1,3 +1,6 @@
+// Arquivo: scripts/audit-consulta-unidades.mjs
+// Serve para: testa consultas de unidades por nome, CEP e CNPJ.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

@@ -1,3 +1,6 @@
+// Arquivo: scripts/reset-inventory-test-data.mjs
+// Serve para: limpa dados de teste de inventario e restaura autoincrementos.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

@@ -1,3 +1,6 @@
+// Arquivo: scripts/audit-backend-sql-contract.mjs
+// Serve para: audita se as consultas e inserts esperados pelo backend batem com o schema SQL.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/routes/atualizacao-exclusao/exclusao-equipamento.js
+// Serve para: remove itens por exclusao logica usando deleted_at.
+
 const express = require('express');
 const mysql = require('../../config/db');
 const { parseItemRef, tableForType } = require('../helpers/inventory-items');

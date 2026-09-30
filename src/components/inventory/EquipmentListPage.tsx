@@ -1,3 +1,6 @@
+// Arquivo: src/components/inventory/EquipmentListPage.tsx
+// Serve para: lista compartilhada para consultar, editar e remover itens de inventario.
+
 import { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, Loader2, Pencil, RefreshCw, Save, Search, Trash2, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';

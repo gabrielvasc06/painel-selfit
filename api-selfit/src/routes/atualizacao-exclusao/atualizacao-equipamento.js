@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/routes/atualizacao-exclusao/atualizacao-equipamento.js
+// Serve para: atualiza itens de inventario preservando a tabela correta pelo id prefixado.
+
 const express = require('express');
 const mysql = require('../../config/db');
 const { assertAllowedCategory, normalizeText, parseItemRef, tableForType } = require('../helpers/inventory-items');

@@ -1,3 +1,6 @@
+// Arquivo: src/services/inventory/inventoryTypes.ts
+// Serve para: define tipos, categorias, labels e estados usados pelo inventario.
+
 export type ModuloTipo = 'tvs' | 'equipamentos' | 'cameras';
 
 export interface Regiao {

@@ -1,3 +1,8 @@
+/*
+ * Arquivo: src/index.css
+ * Serve para: estilos globais, Tailwind e ajustes visuais compartilhados por todo o front.
+ */
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap');
 
 @tailwind base;

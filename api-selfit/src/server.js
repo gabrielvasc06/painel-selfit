@@ -1,14 +1,19 @@
-require('dotenv').config();
+// Arquivo: api-selfit/src/server.js
+// Serve para: inicia o Express, aplica CORS, Swagger, autenticacao e registra as rotas da API.
+
+const { envPath } = require('./config/env');
 const express = require('express');
 const cors = require('cors');
+const { createCorsOptions } = require('./config/cors');
 
 const app = express();
 const port = process.env.PORT;
 
-app.use(cors({
-    origin: process.env.FRONT
-}));
+if (!port) {
+    throw new Error(`PORT nao definido. Verifique o arquivo .env da API em: ${envPath}`);
+}
 
+app.use(cors(createCorsOptions()));
 app.use(express.json());
 
 if (process.env.NODE_ENV !== 'production') {

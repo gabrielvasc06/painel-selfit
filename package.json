@@ -4,9 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "start": "npm run dev",
+    "dev": "vite --host 0.0.0.0 --port 5174 --strictPort",
+    "api:start": "npm --prefix api-selfit start",
+    "api:migrate": "npm --prefix api-selfit run migrate",
     "build": "vite build",
     "lint": "eslint .",
+    "homologacao": "node scripts/homologacao-software.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "test": "node tests/inventory.test.mjs"

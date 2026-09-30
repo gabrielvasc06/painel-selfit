@@ -1,3 +1,6 @@
+// Arquivo: scripts/inspect-unidades-green.mjs
+// Serve para: inspeciona linhas verdes das planilhas para entender status de unidades.
+
 import fs from 'node:fs';
 import readXlsxFile from 'read-excel-file/node';
 

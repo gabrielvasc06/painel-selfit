@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/database/migrations/20260928193000_remove_obsolete_equipment_fields.js
+// Serve para: migration do banco; cria ou ajusta estrutura necessaria para a API.
+
 const removedColumns = ['numero_serie', 'placa_patrimonio', 'localizacao', 'endereco_ip'];
 
 exports.up = async function (knex) {

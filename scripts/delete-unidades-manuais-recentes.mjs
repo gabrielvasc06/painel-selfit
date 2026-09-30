@@ -1,3 +1,6 @@
+// Arquivo: scripts/delete-unidades-manuais-recentes.mjs
+// Serve para: remove unidades cadastradas manualmente em testes recentes.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

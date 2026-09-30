@@ -1,3 +1,6 @@
+// Arquivo: scripts/audit-bairros-viacep.mjs
+// Serve para: compara bairros das unidades com dados retornados pelo ViaCEP.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

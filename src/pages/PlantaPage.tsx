@@ -1,3 +1,6 @@
+// Arquivo: src/pages/PlantaPage.tsx
+// Serve para: visao de planta/listagem operacional por unidade.
+
 import { useMemo, useRef, useState } from 'react';
 import { Building2, Camera, Cpu, Layers, MapPin, Tv, Upload, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';

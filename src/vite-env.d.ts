@@ -1,3 +1,6 @@
+// Arquivo: src/vite-env.d.ts
+// Serve para: declara tipos globais do Vite e variaveis de ambiente usadas pelo front.
+
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {

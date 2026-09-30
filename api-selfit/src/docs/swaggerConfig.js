@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/docs/swaggerConfig.js
+// Serve para: arquivo de codigo do sistema; participa da implementacao do painel Selfit.
+
 const swaggerJsdoc = require('swagger-jsdoc');
 
 const successEnvelope = {
@@ -61,7 +64,7 @@ const itemSchema = {
         unidade_cnpj: { type: 'string', example: '22.902.694/0079-55' },
         unidade_cep: { type: 'string', example: '54759475' },
         uf: { type: 'string', example: 'PE' },
-        nome_identificacao: { type: 'string', example: 'SHOPPING CAMARA - FW' },
+        nome_identificacao: { type: 'string', example: 'C. BANCARIOS - FW01' },
         categoria: { type: 'string', example: 'FIREWALL' },
         marca: { type: 'string', example: 'FORTINET' },
         status: { type: 'string', example: 'ATIVO' },
@@ -77,10 +80,14 @@ const itemInputSchema = {
     properties: {
         unidade_nome: { type: 'string', example: 'SHOPPING CAMARA' },
         unidade_uf: { type: 'string', example: 'PE' },
-        nome_identificacao: { type: 'string', example: 'SHOPPING CAMARA - FW' },
+        nome_identificacao: {
+            type: 'string',
+            description: 'Padrao recomendado: NOME DA UNIDADE - SIGLA + numero sequencial. Exemplos: DB PONTA NEGRA - TV01, C. BANCARIOS - TT01, C. BANCARIOS - CATRACA01, C. BANCARIOS - L. FACIAL01, C. BANCARIOS - AP01, C. BANCARIOS - IMP01, C. BANCARIOS - SW01, C. BANCARIOS - FW01, C. BANCARIOS - ROT01, C. BANCARIOS - NOBREAK01, C. BANCARIOS - CAM01.',
+            example: 'C. BANCARIOS - FW01',
+        },
         categoria: {
             type: 'string',
-            description: 'TV grava em tvs; CAMERAS grava em cameras; demais categorias permitidas gravam em equipamentos.',
+            description: 'TV grava em tvs; CAMERAS grava em cameras; demais categorias permitidas gravam em equipamentos. Sugestao de siglas no nome: TV=TV, TOTEM=TT, CATRACA=CATRACA, LEITOR_FACIAL=L. FACIAL, ACCESS_POINT=AP, IMPRESSORA=IMP, SWITCH=SW, FIREWALL=FW, ROTEADOR=ROT, NOBREAK=NOBREAK, CAMERAS=CAM.',
             enum: ['TV', 'CAMERAS', 'TOTEM', 'CATRACA', 'LEITOR_FACIAL', 'ACCESS_POINT', 'IMPRESSORA', 'SWITCH', 'FIREWALL', 'ROTEADOR', 'NOBREAK'],
             example: 'FIREWALL',
         },
@@ -146,7 +153,7 @@ const options = {
         info: {
             title: 'API Selfit',
             version: '1.0.0',
-            description: 'Contrato da API do painel Selfit para unidades, TVs, equipamentos, cameras, garantias e manutencoes.',
+            description: 'Contrato da API do painel Selfit para unidades, TVs, equipamentos, cameras, garantias e manutencoes.\n\nPadrao recomendado para identificacao dos ativos: NOME DA UNIDADE - SIGLA + numero sequencial.\n\nExemplos por modulo:\n- TV: DB PONTA NEGRA - TV01\n- Totem: C. BANCARIOS - TT01\n- Catraca: C. BANCARIOS - CATRACA01\n- Leitor facial: C. BANCARIOS - L. FACIAL01\n- Access point: C. BANCARIOS - AP01\n- Impressora: C. BANCARIOS - IMP01\n- Switch: C. BANCARIOS - SW01\n- Firewall: C. BANCARIOS - FW01\n- Roteador: C. BANCARIOS - ROT01\n- Nobreak: C. BANCARIOS - NOBREAK01\n- Camera: C. BANCARIOS - CAM01',
         },
         servers: [
             {
@@ -214,7 +221,7 @@ const options = {
                     type: 'object',
                     properties: {
                         unidade_nome: { type: 'string', example: 'SHOPPING CAMARA' },
-                        nome_identificacao: { type: 'string', example: 'SHOPPING CAMARA - FW 02' },
+                        nome_identificacao: { type: 'string', example: 'C. BANCARIOS - FW02' },
                         categoria: { type: 'string', example: 'FIREWALL' },
                         marca: { type: 'string', example: 'FORTINET' },
                         status: { type: 'string', example: 'ATIVO' },
@@ -341,10 +348,151 @@ const options = {
                     tags: ['Inventario'],
                     security: protectedRoute,
                     summary: 'Cadastra TV, camera ou equipamento',
-                    description: 'A categoria define a tabela: TV -> tvs, CAMERAS -> cameras, demais categorias permitidas -> equipamentos.',
+                    description: 'A categoria define a tabela: TV -> tvs, CAMERAS -> cameras, demais categorias permitidas -> equipamentos. Use o padrao NOME DA UNIDADE - SIGLA + numero sequencial para facilitar consultas e manutencoes.',
                     requestBody: {
                         required: true,
-                        content: { 'application/json': { schema: { $ref: '#/components/schemas/InventoryItemInput' } } },
+                        content: {
+                            'application/json': {
+                                schema: { $ref: '#/components/schemas/InventoryItemInput' },
+                                examples: {
+                                    tv: {
+                                        summary: 'TV',
+                                        description: 'Cadastro de TV no modulo TVs.',
+                                        value: {
+                                            unidade_nome: 'DB PONTA NEGRA',
+                                            unidade_uf: 'RN',
+                                            nome_identificacao: 'DB PONTA NEGRA - TV01',
+                                            categoria: 'TV',
+                                            marca: 'SAMSUNG',
+                                            status: 'ATIVO',
+                                            data_garantia: '2028-12-31',
+                                        },
+                                    },
+                                    totem: {
+                                        summary: 'Totem',
+                                        description: 'Cadastro de totem no modulo Equipamentos.',
+                                        value: {
+                                            unidade_nome: 'C. BANCARIOS',
+                                            unidade_uf: 'PB',
+                                            nome_identificacao: 'C. BANCARIOS - TT01',
+                                            categoria: 'TOTEM',
+                                            marca: 'GERTEC',
+                                            status: 'ATIVO',
+                                            data_garantia: '2028-12-31',
+                                        },
+                                    },
+                                    catraca: {
+                                        summary: 'Catraca',
+                                        value: {
+                                            unidade_nome: 'C. BANCARIOS',
+                                            unidade_uf: 'PB',
+                                            nome_identificacao: 'C. BANCARIOS - CATRACA01',
+                                            categoria: 'CATRACA',
+                                            marca: 'HENRY',
+                                            status: 'ATIVO',
+                                            data_garantia: '2028-12-31',
+                                        },
+                                    },
+                                    leitorFacial: {
+                                        summary: 'Leitor facial',
+                                        value: {
+                                            unidade_nome: 'C. BANCARIOS',
+                                            unidade_uf: 'PB',
+                                            nome_identificacao: 'C. BANCARIOS - L. FACIAL01',
+                                            categoria: 'LEITOR_FACIAL',
+                                            marca: 'CONTROL ID',
+                                            status: 'ATIVO',
+                                            data_garantia: '2028-12-31',
+                                        },
+                                    },
+                                    accessPoint: {
+                                        summary: 'Access point',
+                                        value: {
+                                            unidade_nome: 'C. BANCARIOS',
+                                            unidade_uf: 'PB',
+                                            nome_identificacao: 'C. BANCARIOS - AP01',
+                                            categoria: 'ACCESS_POINT',
+                                            marca: 'UBIQUITI',
+                                            status: 'ATIVO',
+                                            data_garantia: '2028-12-31',
+                                        },
+                                    },
+                                    impressora: {
+                                        summary: 'Impressora',
+                                        value: {
+                                            unidade_nome: 'C. BANCARIOS',
+                                            unidade_uf: 'PB',
+                                            nome_identificacao: 'C. BANCARIOS - IMP01',
+                                            categoria: 'IMPRESSORA',
+                                            marca: 'BROTHER',
+                                            status: 'ATIVO',
+                                            data_garantia: '2028-12-31',
+                                        },
+                                    },
+                                    switch: {
+                                        summary: 'Switch',
+                                        value: {
+                                            unidade_nome: 'C. BANCARIOS',
+                                            unidade_uf: 'PB',
+                                            nome_identificacao: 'C. BANCARIOS - SW01',
+                                            categoria: 'SWITCH',
+                                            marca: 'TP-LINK',
+                                            status: 'ATIVO',
+                                            data_garantia: '2028-12-31',
+                                        },
+                                    },
+                                    firewall: {
+                                        summary: 'Firewall',
+                                        value: {
+                                            unidade_nome: 'C. BANCARIOS',
+                                            unidade_uf: 'PB',
+                                            nome_identificacao: 'C. BANCARIOS - FW01',
+                                            categoria: 'FIREWALL',
+                                            marca: 'FORTINET',
+                                            status: 'ATIVO',
+                                            data_garantia: '2028-12-31',
+                                        },
+                                    },
+                                    roteador: {
+                                        summary: 'Roteador',
+                                        value: {
+                                            unidade_nome: 'C. BANCARIOS',
+                                            unidade_uf: 'PB',
+                                            nome_identificacao: 'C. BANCARIOS - ROT01',
+                                            categoria: 'ROTEADOR',
+                                            marca: 'MIKROTIK',
+                                            status: 'ATIVO',
+                                            data_garantia: '2028-12-31',
+                                        },
+                                    },
+                                    nobreak: {
+                                        summary: 'Nobreak',
+                                        value: {
+                                            unidade_nome: 'C. BANCARIOS',
+                                            unidade_uf: 'PB',
+                                            nome_identificacao: 'C. BANCARIOS - NOBREAK01',
+                                            categoria: 'NOBREAK',
+                                            marca: 'SMS',
+                                            status: 'ATIVO',
+                                            data_garantia: '2028-12-31',
+                                        },
+                                    },
+                                    camera: {
+                                        summary: 'Camera',
+                                        description: 'Cadastro de camera no modulo Cameras.',
+                                        value: {
+                                            unidade_nome: 'C. BANCARIOS',
+                                            unidade_uf: 'PB',
+                                            nome_identificacao: 'C. BANCARIOS - CAM01',
+                                            categoria: 'CAMERAS',
+                                            marca: 'INTELBRAS',
+                                            status: 'ATIVO',
+                                            data_garantia: '2028-12-31',
+                                        },
+                                    },
+                                },
+                            },
+                        },
                     },
                     responses: {
                         201: { description: 'Item cadastrado.', content: { 'application/json': { schema: { $ref: '#/components/schemas/SuccessEnvelope' } } } },

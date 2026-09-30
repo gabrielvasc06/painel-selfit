@@ -1,3 +1,6 @@
+// Arquivo: scripts/delete-franquias.mjs
+// Serve para: remove unidades franqueadas quando a base deve manter apenas unidades proprias.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

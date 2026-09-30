@@ -1,3 +1,6 @@
+// Arquivo: src/components/ui/Card.tsx
+// Serve para: componente visual reutilizavel usado em varias telas do front.
+
 import * as React from 'react';
 import { cn } from '@/utils/cn';
 

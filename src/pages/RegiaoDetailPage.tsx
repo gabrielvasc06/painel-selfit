@@ -1,3 +1,6 @@
+// Arquivo: src/pages/RegiaoDetailPage.tsx
+// Serve para: mostra unidades e indicadores agrupados por UF/regiao.
+
 import { ArrowLeft, Building, Camera, Cpu, MapPin, Tv } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { DonutChart } from '@/pages/DashboardPage';

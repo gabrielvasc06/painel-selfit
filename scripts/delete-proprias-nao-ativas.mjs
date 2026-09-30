@@ -1,3 +1,6 @@
+// Arquivo: scripts/delete-proprias-nao-ativas.mjs
+// Serve para: remove unidades proprias marcadas como nao ativas.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import readXlsxFile from 'read-excel-file/node';

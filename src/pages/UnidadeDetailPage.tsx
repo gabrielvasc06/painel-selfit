@@ -1,3 +1,6 @@
+// Arquivo: src/pages/UnidadeDetailPage.tsx
+// Serve para: detalha uma unidade e seus itens do modulo selecionado.
+
 import { useState } from 'react';
 import { AlertCircle, ArrowLeft, Building2, Loader2, MapPin, Pencil, Save, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';

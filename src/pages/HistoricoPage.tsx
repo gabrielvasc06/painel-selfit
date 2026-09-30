@@ -1,3 +1,6 @@
+// Arquivo: src/pages/HistoricoPage.tsx
+// Serve para: estrutura a visualizacao historica quando houver registros de alteracao.
+
 import { ArrowLeft, Building, Calendar, Clock, History, MapPin, Tv, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { useInventory } from '@/providers/InventoryProvider';

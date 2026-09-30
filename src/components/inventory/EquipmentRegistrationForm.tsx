@@ -1,3 +1,6 @@
+// Arquivo: src/components/inventory/EquipmentRegistrationForm.tsx
+// Serve para: formulario compartilhado para cadastrar TVs, equipamentos e cameras.
+
 import { useState } from 'react';
 import { AlertCircle, CheckCircle2, Loader2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/Button';

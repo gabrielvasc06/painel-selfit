@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/routes/helpers/inventory-items.js
+// Serve para: resolve categorias, tabelas e ids prefixados de TV, camera e equipamento.
+
 const ITEM_TABLES = {
     EQUIPAMENTO: {
         table: 'equipamentos',
@@ -16,6 +19,8 @@ const ITEM_TABLES = {
     },
 };
 
+// Categorias que pertencem ao modulo "Equipamentos".
+// TV e CAMERA sao tratadas em tabelas proprias para nao misturar os modulos.
 const EQUIPMENT_CATEGORIES = new Set([
     'TOTEM',
     'CATRACA',
@@ -49,6 +54,8 @@ function assertAllowedCategory(category) {
 }
 
 function parseItemRef(value) {
+    // O front trafega identificadores prefixados, ex.: TV:1, CAMERA:3.
+    // Isso evita ambiguidade porque tabelas diferentes podem ter o mesmo id numerico.
     const text = String(value ?? '').trim().toUpperCase();
     const match = text.match(/^(TV|CAMERA|EQUIPAMENTO):(\d+)$/);
     if (match) return { tipo: match[1], id: Number(match[2]) };

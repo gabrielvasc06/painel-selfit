@@ -1,3 +1,6 @@
+// Arquivo: scripts/delete-unidade.mjs
+// Serve para: remove uma unidade especifica e seus vinculos controlados.
+
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 

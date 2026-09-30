@@ -1,3 +1,6 @@
+// Arquivo: src/components/ui/Button.tsx
+// Serve para: componente visual reutilizavel usado em varias telas do front.
+
 /* eslint-disable react-refresh/only-export-components */
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';

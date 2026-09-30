@@ -1,3 +1,6 @@
+// Arquivo: api-selfit/src/middleware/auth.js
+// Serve para: arquivo de codigo do sistema; participa da implementacao do painel Selfit.
+
 // middlewares/auth.js
 const jwt = require('jsonwebtoken');
 

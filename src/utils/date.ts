@@ -1,3 +1,6 @@
+// Arquivo: src/utils/date.ts
+// Serve para: helpers para converter, mascarar e exibir datas no padrao brasileiro.
+
 export function maskDateBr(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 8);
   if (digits.length <= 2) return digits;

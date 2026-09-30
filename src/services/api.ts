@@ -1,8 +1,12 @@
+// Arquivo: src/services/api.ts
+// Serve para: centraliza chamadas HTTP, token JWT e eventos de sessao/inventario do front.
+
 const API_BASE_URL = (import.meta.env.VITE_SELFIT_API_URL ?? 'http://localhost:3000').replace(/\/$/, '');
 const TOKEN_KEY = 'token';
 export const sessionExpiredEvent = 'selfit:session-expired';
 export const inventoryUpdatedEvent = 'selfit:inventory-updated';
 
+// Evento unico usado pelas telas para recarregar listas apos cadastro, edicao ou remocao.
 export function notifyInventoryUpdated() {
   window.dispatchEvent(new Event(inventoryUpdatedEvent));
 }
@@ -76,6 +80,8 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   const headers = new Headers(init.headers);
   if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
 
+  // Todas as rotas depois do login sao protegidas por JWT no backend.
+  // Quando o token expira, o app limpa a sessao e volta para o login.
   const token = isAuthRequest ? null : getAuthToken();
   if (token) headers.set('Authorization', `Bearer ${token}`);
 

@@ -1,3 +1,6 @@
+// Arquivo: scripts/import-unidades-excel.mjs
+// Serve para: importa unidades a partir do Excel original, normalizando campos antes do banco.
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -95,6 +98,16 @@ function normalizeUnitName(value) {
     .trim();
 }
 
+function normalizeUnitNumber(value) {
+  const raw = String(value ?? '').trim().toLocaleUpperCase('pt-BR').replace(/\s+/g, ' ');
+  const normalized = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (!raw) return '';
+  if (/^(S\/?N|SEM NUMERO)$/.test(normalized)) return 'S/N';
+  if (/^0+$/.test(raw)) return 'S/N';
+  const padded = raw.match(/^0+([1-9]\d*[A-Z]?)$/);
+  return padded ? padded[1] : raw;
+}
+
 function readValue(row, aliases) {
   for (const alias of aliases) {
     const value = row[normalizeKey(alias)];
@@ -127,7 +140,7 @@ function parseEndereco(value) {
   const logradouro = parts[0] ?? '';
   const numberPart = parts.find((part, index) => index > 0 && /(^|\s)(SN|S\/N|\d+[A-Z]?)(\s|$)/i.test(part)) ?? '';
   const numeroMatch = numberPart.match(/(SN|S\/N|\d+[A-Z]?)/i);
-  const numero = numeroMatch?.[1]?.toUpperCase() ?? '';
+  const numero = normalizeUnitNumber(numeroMatch?.[1] ?? '');
   const numberIndex = numberPart ? parts.indexOf(numberPart) : -1;
   const bairro = numberIndex >= 0
     ? (parts.slice(numberIndex + 1).find((part) => !/LOJA|PISO|ANDAR|SALA|CEP/i.test(part)) ?? '')
@@ -181,7 +194,7 @@ const parsed = dataRows
       uf: inferUf(readValue(row, ['uf', 'estado', 'sigla', 'regiao']), cep),
       bairro: readValue(row, ['bairro']) || endereco.bairro,
       rua: readValue(row, ['rua', 'logradouro', 'avenida']) || endereco.logradouro,
-      numero: readValue(row, ['numero', 'n', 'num']) || endereco.numero,
+      numero: normalizeUnitNumber(readValue(row, ['numero', 'n', 'num']) || endereco.numero),
     };
 
     const erro = !unidade.nome

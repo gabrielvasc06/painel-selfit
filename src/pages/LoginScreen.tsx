@@ -1,3 +1,6 @@
+// Arquivo: src/pages/LoginScreen.tsx
+// Serve para: tela de autenticacao do usuario corporativo.
+
 import { useState } from 'react';
 import { AlertCircle, Eye, EyeOff, Loader2, Lock, ShieldCheck, User } from 'lucide-react';
 import selfitLogoUrl from '@/assets/logos/selfit-logo.png';

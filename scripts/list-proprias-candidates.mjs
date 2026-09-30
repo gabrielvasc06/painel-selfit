@@ -1,3 +1,6 @@
+// Arquivo: scripts/list-proprias-candidates.mjs
+// Serve para: lista candidatas a unidades proprias antes de importar.
+
 import readXlsxFile from 'read-excel-file/node';
 
 const workbook = await readXlsxFile('C:/Users/vanderson.gabriel/Downloads/UNIDADES.xlsx');
