@@ -26,7 +26,7 @@ Por solicitacao do responsavel, ADMIN foi criado no banco principal e no de homo
 - Integracao MySQL cria schema temporario exclusivo, executa migrations em banco vazio e novamente, confirma ausencia de credenciais automaticas, cria administrador e exercita consultas, cadastros, atualizacoes, manutencoes e exclusoes nos tres modulos. Confirma ainda frontend e login em NODE_ENV=production e remove apenas o schema criado pelo teste.
 - Lint, TypeScript e build de producao sao parte de `npm run check`; 5 testes do frontend e 11 testes de seguranca passaram.
 - O pacote foi instalado com `npm ci --omit=dev` e testado no Chrome headless contra os bancos principal e homologacao: login ADMIN, painel, consulta de unidades, recarga de sessao e token invalido, sem erros JavaScript.
-- As duas composicoes Docker passaram em `docker compose config --quiet` com valores de validacao sem segredos reais. A verificacao do pacote encontrou zero arquivos de ambiente real e zero ocorrencias das credenciais locais.
+- O Compose unico foi validado com e sem o perfil database em `docker compose config --quiet`, usando valores sem segredos reais. A verificacao do pacote encontrou zero arquivos de ambiente real e zero ocorrencias das credenciais locais.
 
 ## Limites conhecidos
 

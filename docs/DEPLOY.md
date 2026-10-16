@@ -34,18 +34,18 @@ Gere uma chave local com `node -e "console.log(require('node:crypto').randomByte
 ## Docker com banco existente ou gerenciado
 
 ```powershell
-Copy-Item .env.production.example .env.production
+Copy-Item api-selfit/.env.example api-selfit/.env.production
 ```
 
-Edite `.env.production`, apontando DB_HOST para o banco existente e configurando senha, chave, redes e usuarios. Nao sobrescreva um ambiente real ja configurado.
+Edite `api-selfit/.env.production`: defina NODE_ENV=production, FRONT com o dominio HTTPS real, DB_HOST para o banco existente, senha, chave, redes e usuarios. Nao sobrescreva um ambiente real ja configurado.
 
 ```powershell
-docker compose --env-file .env.production config --quiet
-docker compose --env-file .env.production build
-docker compose --env-file .env.production run --rm migrate
-docker compose --env-file .env.production up -d app
-docker compose --env-file .env.production ps
-docker compose --env-file .env.production logs --tail 100 app
+docker compose --env-file api-selfit/.env.production -f deploy/compose.yaml config --quiet
+docker compose --env-file api-selfit/.env.production -f deploy/compose.yaml build
+docker compose --env-file api-selfit/.env.production -f deploy/compose.yaml run --rm migrate
+docker compose --env-file api-selfit/.env.production -f deploy/compose.yaml up -d app
+docker compose --env-file api-selfit/.env.production -f deploy/compose.yaml ps
+docker compose --env-file api-selfit/.env.production -f deploy/compose.yaml logs --tail 100 app
 ```
 
 A porta publicada e `127.0.0.1:8080`; exponha o painel pelo proxy HTTPS. O banco e a API nao precisam de portas publicas. A imagem roda como usuario sem privilegios, com filesystem de runtime somente leitura no Compose e logs limitados. A senha root do MySQL nao e enviada ao container da aplicacao.
@@ -57,14 +57,14 @@ Para CA do MySQL, monte o certificado somente leitura em `app` e `migrate` e con
 Use DB_HOST=db, DB_USER=selfit_app, senha exclusiva da aplicacao e MYSQL_ROOT_PASSWORD diferente. O MySQL usa volume persistente e nao publica a porta 3306.
 
 ```powershell
-docker compose --env-file .env.production -f compose.yaml -f compose.mysql.yaml config --quiet
-docker compose --env-file .env.production -f compose.yaml -f compose.mysql.yaml build
-docker compose --env-file .env.production -f compose.yaml -f compose.mysql.yaml up -d --wait db
-docker compose --env-file .env.production -f compose.yaml -f compose.mysql.yaml run --rm migrate
-docker compose --env-file .env.production -f compose.yaml -f compose.mysql.yaml up -d app
+docker compose --env-file api-selfit/.env.production -f deploy/compose.yaml --profile database config --quiet
+docker compose --env-file api-selfit/.env.production -f deploy/compose.yaml --profile database build
+docker compose --env-file api-selfit/.env.production -f deploy/compose.yaml --profile database up -d --wait db
+docker compose --env-file api-selfit/.env.production -f deploy/compose.yaml --profile database run --rm migrate
+docker compose --env-file api-selfit/.env.production -f deploy/compose.yaml --profile database up -d app
 ```
 
-O healthcheck do MySQL confirma consulta autenticada antes de liberar dependentes. Migrations rodam uma vez antes da aplicacao. Alterar MYSQL_PASSWORD em um volume ja inicializado nao altera a senha gravada no MySQL: a rotacao precisa ser feita tambem no servidor de banco.
+O MySQL e opcional e pertence ao perfil database. Defina MYSQL_ROOT_PASSWORD antes de inicia-lo: sem senha o MySQL recusa iniciar. O comando --wait confirma o healthcheck autenticado antes do passo de migrations. Migrations rodam uma vez antes da aplicacao. Alterar MYSQL_PASSWORD em um volume ja inicializado nao altera a senha gravada no MySQL: a rotacao precisa ser feita tambem no servidor de banco.
 
 ## Primeiro administrador em banco novo
 
@@ -74,13 +74,13 @@ Migrations nao criam usuario ou senha. Em PowerShell, obtenha a senha sem deixa-
 $env:BOOTSTRAP_USER = 'ADMIN'
 $securePassword = Read-Host 'Senha inicial (12 caracteres ou mais)' -AsSecureString
 $env:BOOTSTRAP_PASSWORD = [System.Net.NetworkCredential]::new('', $securePassword).Password
-docker compose --env-file .env.production run --rm -e BOOTSTRAP_USER -e BOOTSTRAP_PASSWORD migrate node api-selfit/scripts/create-user.js
+docker compose --env-file api-selfit/.env.production -f deploy/compose.yaml run --rm -e BOOTSTRAP_USER -e BOOTSTRAP_PASSWORD migrate node api-selfit/scripts/create-user.js
 Remove-Item Env:\BOOTSTRAP_USER
 Remove-Item Env:\BOOTSTRAP_PASSWORD
 Remove-Variable securePassword
 ```
 
-Se usar o MySQL incluido, acrescente `-f compose.yaml -f compose.mysql.yaml` ao comando Compose. O script nao altera contas existentes. Em banco ja preparado nesta maquina, ADMIN existe; consulte `.admin-test-access.txt`. Esse arquivo e local e nao e enviado no deploy. Troque a credencial de testes antes do uso oficial.
+Se usar o MySQL incluido, acrescente `--profile database` ao comando Compose. O script nao altera contas existentes. Em banco ja preparado nesta maquina, ADMIN existe; consulte `.admin-test-access.txt`. Esse arquivo e local e nao e enviado no deploy. Troque a credencial de testes antes do uso oficial.
 
 Para novos usuarios, ADMIN pode chamar POST `/api/register`, com JWT, `{usuario, senha}` e senha de pelo menos 12 caracteres. Acrescente o login em ACCESS_ALLOWED_USERS no ambiente e reinicie o servico. Somente os logins em USER_ADMIN_USERS administram usuarios; contas operacionais autorizadas possuem acesso aos modulos de inventario. A interface atual nao tem tela de gestao de usuarios.
 
@@ -101,10 +101,10 @@ No servidor:
 
 ```powershell
 npm --prefix api-selfit ci --omit=dev
-Copy-Item api-selfit/.env.production.example api-selfit/.env.production
+Copy-Item api-selfit/.env.example api-selfit/.env.production
 $env:SELFIT_ENV_FILE = 'api-selfit/.env.production'
 $env:NODE_ENV = 'production'
-# Edite o arquivo real com valores do servidor antes dos proximos comandos.
+# Edite o arquivo: NODE_ENV=production, FRONT, banco, chave e controles de acesso.
 npm run api:migrate
 npm start
 ```

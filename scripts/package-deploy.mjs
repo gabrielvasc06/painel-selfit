@@ -10,8 +10,9 @@ if (!fs.existsSync(path.join(root, 'dist/index.html'))) throw new Error('Execute
 // Lista explicita: nenhum .env real, Git, cache ou script de manutencao e copiado.
 for (const relative of [
   'dist', 'api-selfit/package.json', 'api-selfit/package-lock.json', 'api-selfit/knexfile.js',
-  'api-selfit/src', 'api-selfit/scripts/create-user.js', 'api-selfit/.env.production.example',
-  'scripts/start-production.mjs', 'docs/DEPLOY.md', 'docs/SEGURANCA.md', 'deploy',
+  'api-selfit/src', 'api-selfit/scripts/create-user.js', 'api-selfit/.env.example',
+  'scripts/start-production.mjs', 'docs/DEPLOY.md', 'docs/SEGURANCA.md',
+  'deploy/nginx.conf.example', 'deploy/painel-selfit.service.example',
 ]) {
   fs.cpSync(path.join(root, relative), path.join(target, relative), {
     recursive: true,

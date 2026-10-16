@@ -3,7 +3,7 @@ FROM node:22-bookworm-slim AS frontend
 WORKDIR /build
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
-COPY index.html vite.config.mjs tsconfig*.json tailwind.config.js postcss.config.js ./
+COPY index.html vite.config.mjs tsconfig.json tailwind.config.js postcss.config.js ./
 COPY src ./src
 COPY public ./public
 # Imagem sempre usa a API na mesma origem; nao recebe arquivos .env do desenvolvedor.

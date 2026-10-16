@@ -1,6 +1,8 @@
 ﻿x-runtime: &runtime
   image: painel-selfit:${IMAGE_TAG:-local}
-  build: .
+  build:
+    context: ..
+    dockerfile: deploy/Dockerfile
   environment:
     NODE_ENV: production
     HOST: 0.0.0.0
@@ -46,3 +48,27 @@ services:
     command: ['npm', '--prefix', 'api-selfit', 'run', 'migrate', '--', '--env', 'production']
     healthcheck:
       disable: true
+  db:
+    profiles: [database]
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:?Defina DB_DATABASE}
+      MYSQL_USER: ${DB_USER:?Use um usuario exclusivo da aplicacao}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD-SHELL', 'MYSQL_PWD="$${MYSQL_PASSWORD}" mysql -h 127.0.0.1 -u "$${MYSQL_USER}" -D "$${MYSQL_DATABASE}" -e "SELECT 1" >/dev/null 2>&1']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+volumes:
+  mysql-data:

@@ -1,31 +1,41 @@
 ﻿# Painel Selfit
 
-Aplicacao de inventario de unidades, TVs, equipamentos, cameras, garantias e manutencoes. Frontend React/TypeScript, API Express e MySQL 8.
+O Painel Selfit é um sistema interno para a gestão do inventário de tecnologia das unidades próprias da Selfit. Ele reúne informações de TVs, equipamentos de infraestrutura e câmeras, permitindo que a equipe de TI consulte os ativos de cada unidade e acompanhe suas garantias e manutenções.
 
-## Deploy
+## Objetivo
 
-Siga [docs/DEPLOY.md](docs/DEPLOY.md) para servidor da empresa ou nuvem, com Docker ou Node.js. A aplicacao compilada e a API compartilham o mesmo endereco; o frontend usa `/api`.
+Centralizar o controle dos ativos e facilitar a consulta das informações usadas no atendimento às unidades. O painel permite identificar onde cada item está cadastrado, verificar sua situação e registrar os serviços de manutenção realizados.
 
-```powershell
-npm ci
-npm --prefix api-selfit ci
-npm run check
-npm run package:deploy
-```
+## Módulos
 
-`deploy-artifact/` contem somente o frontend compilado e os arquivos de execucao da API. As dependencias de producao sao instaladas no servidor com `npm --prefix api-selfit ci --omit=dev`. Configuracoes reais, caches, scripts de limpeza de banco e testes ficam fora desse pacote.
+### Gestão de TVs
 
-`npm start` inicia producao. `npm run dev` inicia desenvolvimento; `vite preview` serve apenas para validacao local.
+Cadastro e consulta das TVs vinculadas às unidades, com identificação, marca, situação e prazo de garantia.
 
-## Documentacao
+### Gestão de Equipamentos
 
-- [Arquitetura](docs/ARQUITETURA.md)
-- [Deploy e operacao](docs/DEPLOY.md)
-- [Rotas e protecoes](docs/SEGURANCA.md)
-- [Setup local](docs/SETUP_LOCAL.md)
-- [Homologacao](docs/HOMOLOGACAO_PRODUCAO.md)
-- [Contrato HTTP atual](BACKEND_CONTRACT.md)
+Controle de ativos de infraestrutura, como totens, catracas, leitores faciais, access points, impressoras, switches, firewalls, roteadores e nobreaks.
 
-## Conta de testes
+### Gestão de Câmeras
 
-A conta local `ADMIN` foi provisionada nos bancos principal e homologacao. As credenciais estao em `.admin-test-access.txt`, ignorado pelo Git e excluido do deploy. Novas instalacoes nao criam usuario ou senha automaticamente: use `npm run user:create` com credenciais explicitas.
+Cadastro e consulta do inventário de câmeras por unidade, com acompanhamento da situação dos itens, garantias e manutenções.
+
+## Funcionalidades
+
+- Visão geral do inventário de cada módulo.
+- Cadastro de unidades, individualmente ou por importação de planilha.
+- Consulta de unidades por nome, CNPJ ou CEP.
+- Organização das unidades por estado e região.
+- Cadastro, atualização e remoção de ativos do inventário.
+- Acompanhamento dos prazos de garantia.
+- Registro de manutenções com descrição, datas de envio e retorno, custo e situação do atendimento.
+
+## Uso no dia a dia
+
+Após entrar com uma conta autorizada, o usuário escolhe o módulo de trabalho. A partir dele, pode consultar uma unidade, verificar seus ativos, atualizar informações ou registrar uma manutenção. Os três módulos compartilham o cadastro de unidades e mantêm seus inventários separados.
+
+O acesso é destinado à equipe de TI e aos demais usuários autorizados pela administração do sistema.
+
+## Instalação e operação
+
+As orientações para disponibilizar o painel estão no [guia de deploy](docs/DEPLOY.md). Os controles de acesso e as limitações conhecidas estão descritos na [documentação de segurança](docs/SEGURANCA.md).
