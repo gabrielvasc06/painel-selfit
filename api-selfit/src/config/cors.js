@@ -22,7 +22,7 @@ function getAllowedOrigins() {
     // As portas locais abaixo evitam erro de CORS quando o Vite troca de porta.
     return new Set([
         ...parseOrigins(process.env.FRONT),
-        ...defaultLocalOrigins,
+        ...(process.env.NODE_ENV === 'production' ? [] : defaultLocalOrigins),
     ]);
 }
 
@@ -33,7 +33,9 @@ function createCorsOptions() {
         origin(origin, callback) {
             // Requisicoes sem origin aparecem em testes, scripts e ferramentas como Workbench/Postman.
             if (!origin || allowedOrigins.has(origin)) return callback(null, true);
-            return callback(new Error(`Origem nao permitida pelo CORS: ${origin}`));
+            const error = new Error('Origem nao permitida pelo CORS.');
+            error.status = 403;
+            return callback(error);
         },
     };
 }

@@ -3,7 +3,7 @@
 
 const express = require('express');
 const mysql = require('../../config/db');
-const { assertAllowedCategory, normalizeText, parseItemRef, tableForType } = require('../helpers/inventory-items');
+const { assertAllowedCategory, normalizeText, parseItemRef, tableForType, resolveItemType } = require('../helpers/inventory-items');
 
 const router = express.Router();
 
@@ -49,6 +49,9 @@ router.put('/equipamentos/:id', validarAtualizacaoEquipamento, async (req, res) 
     if (!ref || !target) return res.status(400).json({ sucesso: false, mensagem: 'Identificador invalido.' });
 
     const dadosAtualizacao = { ...req.body };
+    if (dadosAtualizacao.categoria && resolveItemType(dadosAtualizacao.categoria) !== ref.tipo) {
+        return res.status(400).json({ sucesso: false, mensagem: 'A categoria deve pertencer ao modulo atual do item.' });
+    }
 
     try {
         const [items] = await mysql.query(

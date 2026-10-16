@@ -7,6 +7,7 @@ const mysql = require('../../config/db');
 const router = express.Router();
 
 const jwt = require('jsonwebtoken');
+const { isAllowedUser } = require('../../middleware/access');
 
 const validarAutenticacao = (req, res, next) => {
     const { usuario, senha } = req.body;
@@ -52,7 +53,7 @@ const validarAutenticacao = (req, res, next) => {
  *               usuario:
  *                 type: string
  *                 description: Nome do usuário.
- *                 example: "VANDERSON.GABRIEL"
+ *                 example: "ADMIN"
  *               senha:
  *                 type: string
  *                 description: Senha do utilizador
@@ -76,6 +77,10 @@ const validarAutenticacao = (req, res, next) => {
  */
 router.post('/auth', validarAutenticacao, async (req, res) => {
     const { usuario, senha } = req.body;
+
+    if (!isAllowedUser(usuario)) {
+        return res.status(401).json({ sucesso: false, mensagem: 'Usuario ou senha invalidos.' });
+    }
 
     try {
         const [rows] = await mysql.query('SELECT * FROM usuarios WHERE usuario = ?', [usuario]);
@@ -115,8 +120,7 @@ router.post('/auth', validarAutenticacao, async (req, res) => {
         console.error('Erro no processo de autenticação:', error);
         return res.status(500).json({
             sucesso: false,
-            mensagem: 'Erro interno no servidor.',
-            erro: error.message
+            mensagem: 'Erro interno no servidor.'
         });
     }
 });

@@ -28,6 +28,33 @@ function daysUntil(dateValue: string) {
   return Math.ceil((target.getTime() - today.getTime()) / 86400000);
 }
 
+function normalizeSearchValue(value: string | null | undefined) {
+  return String(value ?? '')
+    .trim()
+    .toLocaleLowerCase('pt-BR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function onlyDigits(value: string | null | undefined) {
+  return String(value ?? '').replace(/\D/g, '');
+}
+
+function matchesGuaranteeSearch(item: ApiEquipmentRecord, query: string) {
+  const term = normalizeSearchValue(query);
+  const digits = onlyDigits(query);
+
+  if (term.length < 3 && digits.length < 3) return false;
+
+  const textFields = [item.unidade_nome, item.unidade_cep, item.unidade_cnpj];
+  const matchesText = textFields.some((value) => normalizeSearchValue(value).includes(term));
+
+  if (matchesText) return true;
+  if (digits.length < 3) return false;
+
+  return [item.unidade_cep, item.unidade_cnpj].some((value) => onlyDigits(value).includes(digits));
+}
+
 export function GarantiasPage({ onBack }: { onBack: () => void }) {
   const { modulo } = useModulo();
   const [records, setRecords] = useState<ApiEquipmentRecord[]>([]);
@@ -89,7 +116,8 @@ export function GarantiasPage({ onBack }: { onBack: () => void }) {
 
   const searched = useMemo(() => {
     return records.filter((item) => belongsToModule(item, modulo))
-  }, [modulo, records]);
+      .filter((item) => matchesGuaranteeSearch(item, query));
+  }, [modulo, query, records]);
 
   const counts = useMemo(() => {
     const active = searched.filter((item) => daysUntil(item.data_garantia) > 90).length;

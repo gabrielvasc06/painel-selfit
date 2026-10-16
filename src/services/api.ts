@@ -1,7 +1,7 @@
 // Arquivo: src/services/api.ts
 // Serve para: centraliza chamadas HTTP, token JWT e eventos de sessao/inventario do front.
 
-const API_BASE_URL = (import.meta.env.VITE_SELFIT_API_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_SELFIT_API_URL ?? '/api').replace(/\/$/, '');
 const TOKEN_KEY = 'token';
 export const sessionExpiredEvent = 'selfit:session-expired';
 export const inventoryUpdatedEvent = 'selfit:inventory-updated';
@@ -39,6 +39,8 @@ export interface ApiEquipmentRecord {
   tipo_modulo?: 'TV' | 'CAMERA' | 'EQUIPAMENTO';
   unidade_id?: number;
   unidade_nome: string;
+  unidade_cnpj?: string | null;
+  unidade_cep?: string | null;
   uf?: string | null;
   nome_identificacao: string;
   categoria: string;
@@ -85,7 +87,11 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   const token = isAuthRequest ? null : getAuthToken();
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  const response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    signal: init.signal ?? AbortSignal.timeout(20000),
+    headers,
+  });
   if (response.status === 401 && !isAuthRequest) {
     clearAuthToken();
     window.dispatchEvent(new Event(sessionExpiredEvent));

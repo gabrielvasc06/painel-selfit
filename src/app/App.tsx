@@ -24,7 +24,7 @@ import { ModuleSelectScreen } from '@/pages/ModuleSelectScreen';
 import { RegiaoDetailPage } from '@/pages/RegiaoDetailPage';
 import { RegiaoPage } from '@/pages/RegiaoPage';
 import { UnidadeDetailPage } from '@/pages/UnidadeDetailPage';
-import { authenticate, clearAuthToken, getAuthToken, sessionExpiredEvent } from '@/services/api';
+import { apiRequest, authenticate, clearAuthToken, getAuthToken, sessionExpiredEvent } from '@/services/api';
 
 const NAVIGATION_STATE_KEY = 'selfit:navigation-state';
 const moduleValues: ModuloTipo[] = ['tvs', 'equipamentos', 'cameras'];
@@ -79,12 +79,31 @@ function clearNavigationState() {
 
 function AppShell() {
   const initialNavigationState = useState(readNavigationState)[0];
-  const [authed, setAuthed] = useState(() => Boolean(getAuthToken()));
+  const [authed, setAuthed] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(() => Boolean(getAuthToken()));
   const [userName, setUserName] = useState(initialNavigationState.userName);
   const [currentModule, setCurrentModule] = useState<ModuloTipo | null>(initialNavigationState.currentModule);
   const [page, setPage] = useState<PageId>(initialNavigationState.page);
   const [previousPage, setPreviousPage] = useState<PageId>(initialNavigationState.previousPage);
   const [drill, setDrill] = useState<DrillState>(initialNavigationState.drill);
+
+  useEffect(() => {
+    if (!getAuthToken()) return;
+    let cancelled = false;
+    void apiRequest<{ dados: { usuario: string } }>('/session')
+      .then(({ dados }) => {
+        if (cancelled) return;
+        setUserName(dados.usuario);
+        setAuthed(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        clearAuthToken();
+        clearNavigationState();
+      })
+      .finally(() => { if (!cancelled) setCheckingSession(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const expireSession = () => {
@@ -119,6 +138,10 @@ function AppShell() {
     setPage('dashboard');
     setDrill(null);
   };
+
+  if (checkingSession) {
+    return <div className="flex min-h-dvh items-center justify-center bg-slate-950 text-white" role="status">Validando acesso...</div>;
+  }
 
   if (!authed) {
     return <LoginScreen onLogin={async (username, password) => {

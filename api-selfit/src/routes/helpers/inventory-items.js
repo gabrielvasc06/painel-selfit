@@ -58,8 +58,8 @@ function parseItemRef(value) {
     // Isso evita ambiguidade porque tabelas diferentes podem ter o mesmo id numerico.
     const text = String(value ?? '').trim().toUpperCase();
     const match = text.match(/^(TV|CAMERA|EQUIPAMENTO):(\d+)$/);
-    if (match) return { tipo: match[1], id: Number(match[2]) };
-    if (/^\d+$/.test(text)) return { tipo: 'EQUIPAMENTO', id: Number(text) };
+    if (match && Number.isSafeInteger(Number(match[2])) && Number(match[2]) > 0) return { tipo: match[1], id: Number(match[2]) };
+    if (/^\d+$/.test(text) && Number.isSafeInteger(Number(text)) && Number(text) > 0) return { tipo: 'EQUIPAMENTO', id: Number(text) };
     return null;
 }
 

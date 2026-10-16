@@ -1,5 +1,7 @@
 logs
 *.log
+.tmp_*
+.tmp*/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -21,3 +23,14 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.env.*
+!.env.example
+!.env.*.example
+
+.npm-cache/
+deploy-artifact/
+coverage/
+.admin-test-access.txt
+
+deploy-artifact*.zip
+deploy-artifact*.sha256

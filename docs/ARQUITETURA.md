@@ -1,80 +1,51 @@
-# Arquitetura Do Painel Selfit
+﻿# Arquitetura do Painel Selfit
 
-Este documento resume onde cada parte do sistema fica e como front, backend e banco conversam.
+```mermaid
+flowchart LR
+  TI[Navegador da TI / VPN] --> Proxy[Proxy HTTPS e firewall]
+  Proxy --> App[Node.js / Express]
+  App --> Static[dist: React compilado]
+  App --> Network[Lista de redes autorizadas]
+  Network --> Login[Login com limite de tentativas]
+  Network --> JWT[JWT e usuario ativo no banco]
+  JWT --> Routes[Unidades / inventario / manutencoes]
+  JWT --> Admin[Cadastro de usuarios: administrador]
+  Routes --> DB[(MySQL privado)]
+  Login --> DB
+  Admin --> DB
+```
 
-## Visao Geral
+## Organizacao
 
-- Frontend: React + Vite em `src/`.
-- Backend: Express + MySQL em `api-selfit/src/`.
-- Banco: MySQL, base `selfit_db`.
-- Documentacao da API: Swagger em `http://localhost:3000/api-docs`.
-- Homologacao automatica: `npm run homologacao`.
-- Setup de maquina nova: `docs/SETUP_LOCAL.md`.
+- `src/main.tsx` e `src/app/App.tsx`: entrada React, validacao da sessao, login e navegacao.
+- `src/pages/` e `src/components/`: telas e componentes compartilhados.
+- `src/providers/`: estado de inventario e modulo selecionado.
+- `src/services/api.ts`: requisicoes, JWT, timeout e encerramento da sessao apos 401.
+- `src/services/inventory/`: tipos, filtros e normalizacao de planilhas.
+- `api-selfit/src/app.js`: composicao HTTP, protecoes, API e frontend estatico.
+- `api-selfit/src/server.js`: validacao do ambiente/schema, abertura da porta e encerramento das conexoes.
+- `api-selfit/src/config/`: ambiente, conexao MySQL/TLS, CORS e parametros de execucao.
+- `api-selfit/src/middleware/`: redes autorizadas, usuarios autorizados, JWT e administracao.
+- `api-selfit/src/routes/`: SQL parametrizado e regras de cada operacao.
+- `api-selfit/src/database/migrations/`: historico necessario para novas instalacoes e atualizacoes.
+- `api-selfit/scripts/create-user.js`: provisionamento explicito, sem senha fixa ou sobrescrita de contas.
+- `scripts/`: build do pacote, startup, selecao de ambiente, seed local e testes integrados.
+- `tests/` e `api-selfit/tests/`: regras reais de inventario e protecao HTTP.
 
-## Fluxo Principal
+## Execucao
 
-1. O usuario acessa o front, normalmente em `http://localhost:5174`.
-2. O login chama `POST /auth` na API em `http://localhost:3000`.
-3. A API valida usuario/senha no MySQL e devolve um JWT.
-4. O front salva o JWT no `localStorage`.
-5. Todas as consultas/cadastros seguintes enviam `Authorization: Bearer <token>`.
-6. O backend grava ou consulta as tabelas do MySQL.
+Desenvolvimento usa Vite em 5174 e API em 3000. O proxy `/api` do Vite encaminha para a API. Producao usa um processo Node para servir `dist/` e `/api`, evitando URLs de localhost no navegador remoto. As rotas antigas sem prefixo sao aliases da mesma API e passam pelas mesmas protecoes.
 
-## Frontend
+O servidor verifica acesso as seis tabelas principais antes de abrir a porta. Migrations sao executadas explicitamente antes de iniciar a nova versao, nunca automaticamente por cada replica. SIGTERM/SIGINT param o recebimento de requisicoes e encerram o pool em ate 25 segundos.
 
-- `src/app/App.tsx`: controla login, modulo ativo e pagina atual.
-- `src/services/api.ts`: ponto unico de comunicacao HTTP com a API.
-- `src/providers/InventoryProvider.tsx`: carrega unidades e inventario para telas compartilhadas.
-- `src/providers/ModuloProvider.tsx`: informa se o usuario esta no modulo TVs, equipamentos ou cameras.
-- `src/pages/`: telas principais do sistema.
-- `src/components/`: componentes reaproveitaveis.
-- `src/services/inventory/`: regras de filtragem, normalizacao e tipos de inventario.
+## Persistencia
 
-## Backend
+`unidades` e `usuarios` possuem IDs inteiros; `tvs`, `equipamentos`, `cameras` e `manutencoes` usam IDs bigint. O contrato HTTP prefixa itens como `TV:1`, `CAMERA:1` e `EQUIPAMENTO:1`. Manutencoes apontam para `item_tipo` e `item_id`. Ativos usam exclusao logica (`deleted_at`); manutencoes e unidades podem ser removidas fisicamente conforme as regras atuais da API. As FKs impedem exclusao de unidade com ativos vinculados.
 
-- `api-selfit/src/server.js`: monta o Express, Swagger, CORS, autenticacao e rotas.
-- `api-selfit/src/config/env.js`: carrega `.env` da API sempre pelo caminho correto.
-- `api-selfit/src/config/db.js`: configura conexao MySQL.
-- `api-selfit/src/config/cors.js`: centraliza origens liberadas do front, incluindo porta `5174`.
-- `api-selfit/src/middleware/auth.js`: valida JWT nas rotas protegidas.
-- `api-selfit/src/routes/cadastros/`: rotas de criacao e manutencao de dados.
-- `api-selfit/src/routes/consultas/`: rotas de consulta para telas do front.
-- `api-selfit/src/routes/atualizacao-exclusao/`: rotas de edicao e remocao de itens.
-- `api-selfit/src/routes/helpers/inventory-items.js`: resolve a separacao entre TV, camera e equipamento.
+O nome historico `migrate.js` foi preservado para nao invalidar bases existentes. Em banco vazio as migrations de compatibilidade nao encontram tabelas antigas, e a migration inicial cria diretamente o schema atual. O teste integrado valida esse fluxo e a segunda execucao sem alteracoes.
 
-## Banco De Dados
+## Limpeza
 
-Tabelas principais:
+Foram removidos 23 arquivos nesta revisao: o reexport antigo `src/App.tsx`, o SQL manual que duplicava migrations e 21 scripts avulsos de ajuste, exclusao, auditoria e importacao pontual. A importacao suportada continua na interface e no endpoint autenticado de lote. Testes automatizados substituem verificacoes manuais repetidas. Exclusoes que ja existiam na arvore de trabalho antes desta revisao foram preservadas.
 
-- `unidades`: unidades proprias usadas em todos os modulos.
-- `tvs`: ativos do modulo TVs.
-- `equipamentos`: ativos de TI, como totem, catraca, switch, firewall e nobreak.
-- `cameras`: ativos do modulo cameras.
-- `manutencoes`: registros de manutencao usando `item_tipo` + `item_id`.
-- `usuarios`: credenciais de acesso.
-
-Regra importante: TV, equipamento e camera ficam em tabelas separadas. A API usa ids prefixados, como `TV:1` e `CAMERA:1`, para evitar conflito entre tabelas diferentes.
-
-## Scripts De Manutencao
-
-- `npm run homologacao`: testa login, CORS 5174, unidades, cadastro, edicao, manutencao, exclusao e limpeza.
-- `npm run api:migrate`: cria/atualiza as tabelas no MySQL local.
-- `npm run db:seed`: carrega usuario local e unidades proprias sem duplicar registros.
-- `npm run db:seed:check`: simula o seed para validar conexao e dados base.
-- `node scripts/audit-inventory-integrity.mjs`: verifica separacao dos modulos e integridade geral.
-- `node scripts/audit-backend-sql-contract.mjs`: valida contrato entre backend e SQL.
-- `node scripts/audit-unidades-numeros.mjs`: lista numeros de unidades com zeros ou formato suspeito.
-- `node scripts/fix-unidades-numeros.mjs`: corrige numeros auditados das unidades.
-
-## Portas Locais
-
-- Front deste projeto: `http://localhost:5174`.
-- API: `http://localhost:3000`.
-- Preview Vite: `http://localhost:4173`.
-
-Se aparecer `Failed to fetch` ou erro de comunicacao, conferir:
-
-- API esta rodando na porta `3000`.
-- Front esta abrindo em `5174`.
-- `api-selfit/src/config/cors.js` contem a origem usada pelo navegador.
-- `.env` da API existe em `api-selfit/.env`.
+`node_modules/`, `dist/`, caches e ambientes reais nao entram no Git. `deploy-artifact/` e a imagem Docker levam apenas o runtime; o repositorio mantem fontes, documentacao, migrations e testes para permitir manutencao e reconstrucao.

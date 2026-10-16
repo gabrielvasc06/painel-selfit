@@ -11,25 +11,28 @@ const apiDir = path.join(rootDir, 'api-selfit');
 const requireFromApi = createRequire(path.join(apiDir, 'package.json'));
 const dotenv = requireFromApi('dotenv');
 const mysql = requireFromApi('mysql2/promise');
-const jwt = requireFromApi('jsonwebtoken');
+const { connectionOptions } = requireFromApi('./src/config/database');
+const { resolveEnvPath } = requireFromApi('./src/config/env-file');
 
-dotenv.config({ path: path.join(apiDir, '.env'), quiet: true });
+dotenv.config({ path: resolveEnvPath(), quiet: true });
 
 const baseUrl = `http://localhost:${process.env.PORT ?? '3000'}`;
-const token = jwt.sign(
-  { id: 0, usuario: 'HOMOLOGACAO.CODEX' },
-  process.env.JWT_SECRET,
-  { expiresIn: '30m' },
-);
+if (process.env.NODE_ENV === 'production' || !/homolog|_deploy_test_/i.test(process.env.DB_DATABASE || '')) {
+  throw new Error('Homologacao com escrita permitida somente em banco homolog ou temporario _deploy_test_, fora de producao.');
+}
+let token;
 
 const prefix = `HOMOLOG_${Date.now()}`;
 const createdRefs = [];
 const createdMaintenanceIds = [];
 const results = [];
-const frontendOriginsToValidate = [
+const frontendOriginsToValidate = Array.from(new Set([
+  process.env.FRONT,
   'http://localhost:5174',
   'http://127.0.0.1:5174',
-];
+  'http://localhost:4173',
+  'http://127.0.0.1:4173',
+].filter(Boolean)));
 
 function ok(nome, detalhe = '') {
   results.push({ status: 'OK', nome, detalhe });
@@ -108,22 +111,18 @@ async function cleanup(connection) {
 
   for (const table of ['tvs', 'equipamentos', 'cameras']) {
     await connection.query(`DELETE FROM ${table} WHERE nome_identificacao LIKE ?`, [`${prefix}%`]);
-    const [[{ nextId }]] = await connection.query(`SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM ${table}`);
-    await connection.query(`ALTER TABLE ${table} AUTO_INCREMENT = ${Number(nextId)}`);
   }
 
-  const [[{ nextId }]] = await connection.query('SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM manutencoes');
-  await connection.query(`ALTER TABLE manutencoes AUTO_INCREMENT = ${Number(nextId)}`);
 }
 
 async function main() {
-  const connection = await mysql.createConnection({
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT ?? 3306),
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-  });
+  if (!process.env.HOMOLOG_USER || !process.env.HOMOLOG_PASSWORD) throw new Error('Defina HOMOLOG_USER e HOMOLOG_PASSWORD no ambiente de homologacao.');
+  const login = await fetch(baseUrl + '/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario: process.env.HOMOLOG_USER, senha: process.env.HOMOLOG_PASSWORD }) });
+  const session = await login.json();
+  assert(login.ok && session.token, 'Login real da homologacao falhou.');
+  token = session.token;
+  ok('Login real', 'Credenciais validadas pela API.');
+  const connection = await mysql.createConnection(connectionOptions());
 
   try {
     await cleanup(connection);
@@ -143,7 +142,7 @@ async function main() {
     for (const origin of frontendOriginsToValidate) {
       await validateCorsOrigin(origin);
     }
-    ok('CORS do front 5174', 'localhost:5174 e 127.0.0.1:5174 liberados pela API.');
+    ok('CORS dos fronts locais', `${frontendOriginsToValidate.join(', ')} liberados pela API.`);
 
     const [unitRows] = await connection.query(`
       SELECT id, nome, uf, cnpj, cep
@@ -239,6 +238,7 @@ async function main() {
         method: 'POST',
         body: JSON.stringify({
           equipamento_id: item.apiId,
+          unidade_id: unit.id,
           descricao: `HOMOLOGACAO ${item.module}`,
           data_envio: '2026-09-30',
           data_retorno: null,

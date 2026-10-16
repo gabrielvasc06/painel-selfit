@@ -41,17 +41,24 @@ router.get('/equipamentos/consultar', async (req, res) => {
 
         if (busca) {
             const term = `%${busca}%`;
-            const digits = `%${busca.replace(/\D/g, '')}%`;
-            query += ` AND (
-                nome_identificacao LIKE ?
-                OR categoria LIKE ?
-                OR marca LIKE ?
-                OR unidade_nome LIKE ?
-                OR unidade_cep LIKE ?
-                OR unidade_cnpj LIKE ?
-                OR REPLACE(REPLACE(REPLACE(unidade_cnpj, '.', ''), '/', ''), '-', '') LIKE ?
-            )`;
-            params.push(term, term, term, term, term, term, digits);
+            const digits = busca.replace(/\D/g, '');
+            const searchConditions = [
+                'nome_identificacao LIKE ?',
+                'categoria LIKE ?',
+                'marca LIKE ?',
+                'unidade_nome LIKE ?',
+                'unidade_cep LIKE ?',
+                'unidade_cnpj LIKE ?',
+            ];
+            const searchParams = [term, term, term, term, term, term];
+
+            if (digits.length >= 3) {
+                searchConditions.push("REPLACE(REPLACE(REPLACE(unidade_cnpj, '.', ''), '/', ''), '-', '') LIKE ?");
+                searchParams.push(`%${digits}%`);
+            }
+
+            query += ` AND (${searchConditions.join(' OR ')})`;
+            params.push(...searchParams);
         }
 
         query += ' ORDER BY nome_identificacao ASC';

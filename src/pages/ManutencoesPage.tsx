@@ -55,6 +55,7 @@ export function ManutencoesPage({ onBack }: { onBack: () => void }) {
 
   const [records, setRecords] = useState<ApiMaintenanceRecord[]>([]);
   const [search, setSearch] = useState('');
+  const [selectedUnit, setSelectedUnit] = useState<ApiUnitRecord | null>(null);
   const [suggestions, setSuggestions] = useState<ApiUnitRecord[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -125,6 +126,11 @@ export function ManutencoesPage({ onBack }: { onBack: () => void }) {
   }, []);
 
   const scoped = useMemo(() => records.filter((record) => moduleMatches(record, modulo)), [modulo, records]);
+  const itemOptions = useMemo(() => {
+    if (editing) return equipmentOptions.filter((item) => item.id === form.equipamento_id);
+    if (!selectedUnit) return [];
+    return equipmentOptions.filter((item) => item.unidade_id === String(selectedUnit.id));
+  }, [editing, equipmentOptions, form.equipamento_id, selectedUnit]);
 
   const beginEdit = (record: ApiMaintenanceRecord) => {
     setEditing(record);
@@ -148,12 +154,17 @@ export function ManutencoesPage({ onBack }: { onBack: () => void }) {
   const save = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!form.equipamento_id || !form.descricao.trim() || !form.data_envio) return;
+    if (!editing && !selectedUnit) {
+      setError('Selecione uma unidade na busca antes de registrar a manutencao.');
+      return;
+    }
 
     setSaving(true);
     setError('');
     setSuccess('');
     const payload = {
       equipamento_id: form.equipamento_id,
+      unidade_id: editing ? undefined : selectedUnit?.id,
       descricao: form.descricao.trim().toLocaleUpperCase('pt-BR'),
       data_envio: form.data_envio,
       data_retorno: form.data_retorno || null,
@@ -202,7 +213,16 @@ export function ManutencoesPage({ onBack }: { onBack: () => void }) {
         <div className="ml-auto flex w-full max-w-xl flex-col gap-3 sm:flex-row">
           <label className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar pelo nome da unidade" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm uppercase" />
+            <input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setSelectedUnit(null);
+                if (!editing) setForm((current) => ({ ...current, equipamento_id: '' }));
+              }}
+              placeholder="Buscar pelo nome da unidade"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm uppercase"
+            />
             {(suggestions.length > 0 || loadingSuggestions) && (
               <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-20 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
                 {loadingSuggestions ? <div className="flex items-center gap-2 px-4 py-3 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" />Buscando unidades...</div> : suggestions.map((unit) => (
@@ -211,6 +231,8 @@ export function ManutencoesPage({ onBack }: { onBack: () => void }) {
                     type="button"
                     onClick={() => {
                       setSearch(unit.nome);
+                      setSelectedUnit(unit);
+                      if (!editing) setForm((current) => ({ ...current, equipamento_id: '' }));
                       setSuggestions([]);
                     }}
                     className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm hover:bg-slate-50"
@@ -233,7 +255,20 @@ export function ManutencoesPage({ onBack }: { onBack: () => void }) {
           <CardHeader className="px-0 pt-0"><CardTitle>{editing ? 'Atualizar manutencao' : 'Registrar manutencao'}</CardTitle></CardHeader>
           <CardContent className="px-0">
             <form onSubmit={save} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <label className="space-y-1 text-sm font-medium">Item<select required disabled={Boolean(editing)} value={form.equipamento_id} onChange={(event) => setForm((current) => ({ ...current, equipamento_id: event.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2"><option value="">Selecione...</option>{equipmentOptions.map((item) => <option key={item.id} value={item.id}>{item.nome} - {item.marca ?? ''}</option>)}</select></label>
+              <label className="space-y-1 text-sm font-medium">
+                Item
+                <select
+                  required
+                  disabled={Boolean(editing) || !selectedUnit}
+                  value={form.equipamento_id}
+                  onChange={(event) => setForm((current) => ({ ...current, equipamento_id: event.target.value }))}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 disabled:bg-slate-100 disabled:text-slate-400"
+                >
+                  <option value="">{selectedUnit ? 'Selecione...' : 'Selecione uma unidade acima...'}</option>
+                  {itemOptions.map((item) => <option key={item.id} value={item.id}>{item.nome} - {item.marca ?? ''}</option>)}
+                </select>
+                {selectedUnit && <span className="block text-xs font-normal uppercase text-slate-500">Unidade selecionada: {selectedUnit.nome} / {selectedUnit.uf ?? '-'}</span>}
+              </label>
               <label className="space-y-1 text-sm font-medium">Status<select value={form.status_manutencao} onChange={(event) => setForm((current) => ({ ...current, status_manutencao: event.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2"><option>ABERTA</option><option>CONCLUIDA</option><option>CANCELADA</option></select></label>
               <label className="space-y-1 text-sm font-medium">Data de envio<input required type="date" value={form.data_envio} onChange={(event) => setForm((current) => ({ ...current, data_envio: event.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2" /></label>
               <label className="space-y-1 text-sm font-medium">Data de retorno<input type="date" value={form.data_retorno} onChange={(event) => setForm((current) => ({ ...current, data_retorno: event.target.value }))} className="w-full rounded-lg border border-slate-300 px-3 py-2" /></label>

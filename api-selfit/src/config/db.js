@@ -1,36 +1,11 @@
-// Arquivo: api-selfit/src/config/db.js
-// Serve para: arquivo de codigo do sistema; participa da implementacao do painel Selfit.
+﻿const mysql = require('mysql2/promise');
+const { connectionOptions } = require('./database');
+const { positiveInteger } = require('./runtime');
 
-const mysql = require('mysql2/promise');
-const { envPath } = require('./env');
-
-for (const key of ['DB_HOST', 'DB_USER', 'DB_DATABASE']) {
-    if (!process.env[key]) {
-        throw new Error(`${key} nao definido. Verifique o arquivo .env da API em: ${envPath}`);
-    }
-}
-
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
+module.exports = mysql.createPool({
+    ...connectionOptions(),
     waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
+    connectionLimit: positiveInteger(process.env.DB_POOL_SIZE, 10, 'DB_POOL_SIZE', 100),
+    queueLimit: 100,
+    enableKeepAlive: true,
 });
-
-async function testConnection() {
-    try {
-        const connection = await pool.getConnection();
-        console.log('Conexão com o MySQL estabelecida com sucesso!');
-        connection.release();
-    } catch (error) {
-        console.error('Erro ao conectar ao MySQL:', error.message);
-    }
-}
-
-testConnection();
-
-module.exports = pool;

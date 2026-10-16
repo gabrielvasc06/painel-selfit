@@ -118,12 +118,17 @@ const maintenanceSchema = {
 
 const maintenanceInputSchema = {
     type: 'object',
-    required: ['equipamento_id', 'descricao', 'data_envio'],
+    required: ['equipamento_id', 'unidade_id', 'descricao', 'data_envio'],
     properties: {
         equipamento_id: {
             type: 'string',
             description: 'Use TV:1, CAMERA:1 ou EQUIPAMENTO:1.',
             example: 'EQUIPAMENTO:1',
+        },
+        unidade_id: {
+            type: 'integer',
+            description: 'ID da unidade escolhida no front. A API valida se o item pertence a essa unidade.',
+            example: 388,
         },
         descricao: { type: 'string', example: 'PROBLEMA DE PLACA' },
         data_envio: { type: 'string', format: 'date', example: '2026-09-29' },
@@ -146,6 +151,7 @@ const listEnvelope = (schemaRef) => ({
 });
 
 const protectedRoute = [{ bearerAuth: [] }];
+const serverPort = process.env.PORT || '3000';
 
 const options = {
     definition: {
@@ -157,8 +163,8 @@ const options = {
         },
         servers: [
             {
-                url: 'http://localhost:3000',
-                description: 'Ambiente de desenvolvimento',
+                url: `http://localhost:${serverPort}`,
+                description: serverPort === '3001' ? 'Ambiente de homologacao local' : 'Ambiente de desenvolvimento',
             },
         ],
         tags: [
@@ -182,7 +188,7 @@ const options = {
                     type: 'object',
                     required: ['usuario', 'senha'],
                     properties: {
-                        usuario: { type: 'string', example: 'VANDERSON.GABRIEL' },
+                        usuario: { type: 'string', example: 'ADMIN' },
                         senha: { type: 'string', example: 'admin' },
                     },
                 },

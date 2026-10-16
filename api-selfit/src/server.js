@@ -1,61 +1,55 @@
-// Arquivo: api-selfit/src/server.js
-// Serve para: inicia o Express, aplica CORS, Swagger, autenticacao e registra as rotas da API.
+﻿require('./config/env');
+const { validateRuntime } = require('./config/runtime');
 
-const { envPath } = require('./config/env');
-const express = require('express');
-const cors = require('cors');
-const { createCorsOptions } = require('./config/cors');
-
-const app = express();
-const port = process.env.PORT;
-
-if (!port) {
-    throw new Error(`PORT nao definido. Verifique o arquivo .env da API em: ${envPath}`);
+async function start() {
+    const { port, host, production } = validateRuntime();
+    const pool = require('./config/db');
+    let server;
+    try {
+        const schema = {
+            usuarios: 'id, usuario, senha_hash, senha_provisoria',
+            unidades: 'id, nome, tipo_unidade, cnpj, cep, uf, bairro, rua, numero',
+            equipamentos: 'id, unidade_id, nome_identificacao, categoria, marca, status, data_garantia, deleted_at, created_at, updated_at',
+            tvs: 'id, unidade_id, nome_identificacao, categoria, marca, status, data_garantia, deleted_at, created_at, updated_at',
+            cameras: 'id, unidade_id, nome_identificacao, categoria, marca, status, data_garantia, deleted_at, created_at, updated_at',
+            manutencoes: 'id, item_tipo, item_id, descricao, data_envio, data_retorno, custo, status_manutencao',
+        };
+        for (const [table, columns] of Object.entries(schema)) {
+            await pool.query({ sql: `SELECT ${columns} FROM ${table} LIMIT 0`, timeout: 10000 });
+        }
+        const { createApp } = require('./app');
+        const app = createApp();
+        server = await new Promise((resolve, reject) => {
+            const listener = app.listen(port, host, () => resolve(listener));
+            listener.once('error', reject);
+        });
+        console.log(`Painel Selfit rodando na porta ${port} (${production ? 'production' : 'development'}).`);
+    } catch (error) {
+        await pool.end();
+        throw error;
+    }
+    let stopping = false;
+    function shutdown(signal) {
+        if (stopping) return;
+        stopping = true;
+        console.log(`Encerrando aplicacao: ${signal}.`);
+        const timeout = setTimeout(() => process.exit(1), 25000);
+        timeout.unref();
+        server.close(async () => {
+            try {
+                await pool.end();
+                clearTimeout(timeout);
+                process.exitCode = 0;
+            } catch {
+                process.exitCode = 1;
+            }
+        });
+        server.closeIdleConnections();
+    }
+    process.once('SIGTERM', () => shutdown('SIGTERM'));
+    process.once('SIGINT', () => shutdown('SIGINT'));
 }
-
-app.use(cors(createCorsOptions()));
-app.use(express.json());
-
-if (process.env.NODE_ENV !== 'production') {
-    const swaggerUi = require('swagger-ui-express');
-    const swaggerSpec = require('./docs/swaggerConfig');
-
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-    console.log('Documentação disponível em /api-docs (Ambiente de Desenvolvimento)');
-}
-
-const autenticador = require('./routes/autenticacao/autenticador-usuarios');
-
-const cadastroUsuarios = require('./routes/cadastros/cadastro-usuarios');
-const cadastroUnidades = require('./routes/cadastros/cadastro-unidades');
-const cadastroEquipamentos = require('./routes/cadastros/cadastro-equipamentos');
-const cadastroManutencoes = require('./routes/cadastros/cadastro-manutencoes');
-
-const consultaEquipamentos = require('./routes/consultas/consulta-equipamentos');
-const consultaGarantias = require('./routes/consultas/consulta-garantias');
-const consultaManutencoes = require('./routes/consultas/consulta-manutencoes');
-
-const atualizacaoEquipamentos = require('./routes/atualizacao-exclusao/atualizacao-equipamento');
-const exclusaoEquipamentos = require('./routes/atualizacao-exclusao/exclusao-equipamento');
-
-const verificarToken = require('./middleware/auth');
-
-app.use(autenticador);
-
-app.use(verificarToken);
-
-app.use(cadastroUsuarios);
-app.use(cadastroUnidades);
-app.use(cadastroEquipamentos);
-app.use(cadastroManutencoes);
-
-app.use(consultaEquipamentos);
-app.use(consultaGarantias);
-app.use(consultaManutencoes);
-
-app.use(atualizacaoEquipamentos);
-app.use(exclusaoEquipamentos);
-
-app.listen(port, () => {
-    console.log(`Aplicação rodando na porta ${port}.`);
+start().catch((error) => {
+    console.error('Falha ao iniciar a aplicacao:', error.code || error.message);
+    process.exitCode = 1;
 });

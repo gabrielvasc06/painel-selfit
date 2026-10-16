@@ -187,9 +187,17 @@ router.get('/unidades', async (req, res) => {
     } else if (busca) {
         const term = `%${busca}%`;
         const prefixTerm = `${busca}%`;
-        const cnpjDigits = `%${busca.replace(/\D/g, '')}%`;
-        conditions.push('(nome LIKE ? OR tipo_unidade LIKE ? OR cnpj LIKE ? OR cep LIKE ? OR bairro LIKE ? OR rua LIKE ? OR numero LIKE ? OR REPLACE(REPLACE(REPLACE(cnpj, \'.\', \'\'), \'/\', \'\'), \'-\', \'\') LIKE ?)');
-        params.push(term, term, term, term, term, term, term, cnpjDigits);
+        const digits = busca.replace(/\D/g, '');
+        const searchConditions = ['nome LIKE ?', 'tipo_unidade LIKE ?', 'cnpj LIKE ?', 'cep LIKE ?', 'bairro LIKE ?', 'rua LIKE ?', 'numero LIKE ?'];
+        const searchParams = [term, term, term, term, term, term, term];
+
+        if (digits.length >= 3) {
+            searchConditions.push("REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '/', ''), '-', '') LIKE ?");
+            searchParams.push(`%${digits}%`);
+        }
+
+        conditions.push(`(${searchConditions.join(' OR ')})`);
+        params.push(...searchParams);
         orderParams.push(prefixTerm);
     }
     if (uf) {
