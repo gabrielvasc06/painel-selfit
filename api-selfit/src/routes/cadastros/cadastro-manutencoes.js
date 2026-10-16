@@ -12,9 +12,12 @@ function isDate(value) {
 }
 
 function normalizeMaintenanceBody(req, res, next) {
-    const { equipamento_id, descricao, data_envio, data_retorno, custo, status_manutencao } = req.body;
+    const { equipamento_id, unidade_id, descricao, data_envio, data_retorno, custo, status_manutencao } = req.body;
     if (equipamento_id !== undefined && !parseItemRef(equipamento_id)) {
         return res.status(400).json({ sucesso: false, message: 'equipamento_id deve ser um identificador valido.' });
+    }
+    if (unidade_id !== undefined && (!Number.isInteger(Number(unidade_id)) || Number(unidade_id) <= 0)) {
+        return res.status(400).json({ sucesso: false, message: 'unidade_id deve ser um numero valido.' });
     }
     if (descricao !== undefined && (typeof descricao !== 'string' || !descricao.trim())) {
         return res.status(400).json({ sucesso: false, message: 'descricao deve ser preenchida.' });
@@ -32,17 +35,18 @@ function normalizeMaintenanceBody(req, res, next) {
         return res.status(400).json({ sucesso: false, message: 'status_manutencao deve ser preenchido.' });
     }
     if (descricao !== undefined) req.body.descricao = normalizeText(descricao);
+    if (unidade_id !== undefined) req.body.unidade_id = Number(unidade_id);
     if (status_manutencao !== undefined) req.body.status_manutencao = normalizeText(status_manutencao);
     if (data_retorno === '') req.body.data_retorno = null;
     if (custo === '') req.body.custo = null;
     next();
 }
 
-async function assertItemExists(ref) {
+async function findActiveItem(ref) {
     const target = tableForType(ref.tipo);
-    if (!target) return false;
-    const [rows] = await mysql.query(`SELECT id FROM ${target.table} WHERE id = ? AND deleted_at IS NULL`, [ref.id]);
-    return rows.length > 0;
+    if (!target) return null;
+    const [rows] = await mysql.query(`SELECT id, unidade_id FROM ${target.table} WHERE id = ? AND deleted_at IS NULL`, [ref.id]);
+    return rows[0] ?? null;
 }
 
 function maintenanceItemColumns(ref) {
@@ -53,15 +57,19 @@ function maintenanceItemColumns(ref) {
 }
 
 router.post('/manutencoes', normalizeMaintenanceBody, async (req, res) => {
-    const { equipamento_id, descricao, data_envio, data_retorno = null, custo = null, status_manutencao = 'ABERTA' } = req.body;
+    const { equipamento_id, unidade_id, descricao, data_envio, data_retorno = null, custo = null, status_manutencao = 'ABERTA' } = req.body;
     const ref = parseItemRef(equipamento_id);
-    if (!ref || !descricao || !data_envio) {
-        return res.status(400).json({ sucesso: false, message: 'equipamento_id, descricao e data_envio sao obrigatorios.' });
+    if (!ref || !unidade_id || !descricao || !data_envio) {
+        return res.status(400).json({ sucesso: false, message: 'equipamento_id, unidade_id, descricao e data_envio sao obrigatorios.' });
     }
 
     try {
-        if (!(await assertItemExists(ref))) {
+        const itemRecord = await findActiveItem(ref);
+        if (!itemRecord) {
             return res.status(404).json({ sucesso: false, message: 'Item nao encontrado ou removido.' });
+        }
+        if (Number(itemRecord.unidade_id) !== Number(unidade_id)) {
+            return res.status(400).json({ sucesso: false, message: 'O item selecionado nao pertence a unidade informada.' });
         }
 
         const item = maintenanceItemColumns(ref);
@@ -92,7 +100,7 @@ router.put('/manutencoes/:id', normalizeMaintenanceBody, async (req, res) => {
 
         if (updates.equipamento_id !== undefined) {
             const ref = parseItemRef(updates.equipamento_id);
-            if (!ref || !(await assertItemExists(ref))) {
+            if (!ref || !(await findActiveItem(ref))) {
                 return res.status(404).json({ sucesso: false, message: 'Item nao encontrado ou removido.' });
             }
             Object.assign(updates, maintenanceItemColumns(ref));

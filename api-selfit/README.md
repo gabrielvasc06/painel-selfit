@@ -1,29 +1,12 @@
-Passos pra rodar API
+﻿# API Selfit
 
-* Instalar dependencias
+Express e MySQL para autenticacao, unidades, inventario, garantias e manutencoes.
 
-npm install
+Na raiz do repositorio: `npm --prefix api-selfit ci`, `npm run api:migrate` e `npm run api:start`. O processo de producao e `npm start` na raiz, apos compilar o frontend. A API verifica banco/schema antes de abrir a porta e encerra conexoes ao receber SIGTERM/SIGINT.
 
-* Criar database
+- [Configuracao local](../docs/SETUP_LOCAL.md)
+- [Deploy](../docs/DEPLOY.md)
+- [Seguranca e rotas privadas](../docs/SEGURANCA.md)
+- [Contrato HTTP](../BACKEND_CONTRACT.md)
 
-* Criar um .env e configurar as variáveis de ambiente seguintes:
-
-PORT=porta_da_api
-
-FRONT=endereco_do_front
-
-DB_HOST=nome_do_host
-DB_PORT=porta_do_banco_de_dados
-DB_USER=usuario_do_banco_de_dados
-DB_PASSWORD=senha_do_banco_de_dados
-DB_DATABASE=nome_do_data_base
-
-JWT_SECRET=chave_da_api
-
-* Rodar a API
-
-npm start
-
-* Link da documentação:
-
-localhost:PORT/api-docs
+`npm --prefix api-selfit test` verifica autenticacao, redes, CORS, administracao, exposicao de arquivos, headers e limite de login. Os testes HTTP nao conectam ao banco real.

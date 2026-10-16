@@ -27,6 +27,10 @@ const validarAutenticacao = (req, res, next) => {
     req.body.usuario = usuario.trim().toUpperCase();
     req.body.senha = senha.trim();
 
+    if (req.body.usuario.length > 100 || senha !== senha.trim() || senha.length < 12 || Buffer.byteLength(senha, 'utf8') > 72) {
+        return res.status(400).json({ sucesso: false, message: 'Usuario deve ter ate 100 caracteres e senha entre 12 e 72 bytes, sem espacos nas extremidades.' });
+    }
+
     next();
 }
 

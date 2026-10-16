@@ -2,8 +2,9 @@
 // Serve para: tela inicial para escolher entre TVs, equipamentos e cameras.
 
 import { ArrowRight, Camera, LogOut, Server, ShieldCheck, Tv, User } from 'lucide-react';
-import selfitLogoUrl from '@/assets/logos/selfit-logo.png';
 import type { ModuloTipo } from '@/services/inventory/inventoryTypes';
+
+const selfitLogoUrl = '/selfit-logo.png';
 
 interface ModuleSelectScreenProps {
   userName: string;

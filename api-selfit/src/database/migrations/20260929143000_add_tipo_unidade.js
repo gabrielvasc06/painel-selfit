@@ -6,6 +6,9 @@
  * @returns { Promise<void> }
  */
 exports.up = async function (knex) {
+    const hasTable = await knex.schema.hasTable('unidades');
+    if (!hasTable) return;
+
     const hasColumn = await knex.schema.hasColumn('unidades', 'tipo_unidade');
     if (!hasColumn) {
         await knex.schema.alterTable('unidades', (table) => {
@@ -24,6 +27,9 @@ exports.up = async function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = async function (knex) {
+    const hasTable = await knex.schema.hasTable('unidades');
+    if (!hasTable) return;
+
     const hasColumn = await knex.schema.hasColumn('unidades', 'tipo_unidade');
     if (hasColumn) {
         await knex.schema.alterTable('unidades', (table) => {

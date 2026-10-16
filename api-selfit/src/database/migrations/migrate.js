@@ -6,9 +6,6 @@
  * @returns { Promise<void> }
  */
 exports.up = async function (knex) {
-    // Importa o bcrypt para criptografar
-    const bcrypt = require('bcrypt');
-
     // 1. Tabela Unidades
     await knex.schema.createTable('unidades', (table) => {
         table.increments('id').primary();
@@ -38,19 +35,7 @@ exports.up = async function (knex) {
         table.check('usuario = UPPER(usuario) AND usuario = TRIM(usuario) AND LENGTH(TRIM(usuario)) > 0');
     });
 
-    // Criação de usuário padrão!
-    const usuarioPadrao = 'VANDERSON.GABRIEL';
-    const senhaPlana = 'Selfit@2026'; // <--- Digite a senha que você quiser aqui!
-    
-    // O bcrypt gera o hash seguro na hora que a migration roda
-    const saltRounds = 10;
-    const senhaHashGerada = await bcrypt.hash(senhaPlana, saltRounds);
-
-    await knex('usuarios').insert({
-        usuario: usuarioPadrao,
-        senha_hash: senhaHashGerada,
-        senha_provisoria: false
-    });
+    // Credenciais sao provisionadas explicitamente com npm run user:create.
 
     // 3. Tabela Equipamentos
     await knex.schema.createTable('equipamentos', (table) => {

@@ -10,10 +10,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const apiDir = path.join(rootDir, 'api-selfit');
 const requireFromApi = createRequire(path.join(apiDir, 'package.json'));
-const bcrypt = requireFromApi('bcrypt');
 const mysql = requireFromApi('mysql2/promise');
+const { resolveEnvPath } = requireFromApi('./src/config/env-file');
 const seedPath = path.join(apiDir, 'src/database/seeds/unidades-proprias.json');
 const dryRun = process.argv.includes('--dry-run');
+requireFromApi('./src/config/env');
+if (process.env.NODE_ENV === 'production') throw new Error('Seed local bloqueado em producao. Use importacao autenticada de unidades.');
 
 function parseEnv(envPath) {
   const values = {};
@@ -31,22 +33,6 @@ function onlyDigits(value) {
 
 function normalizeUpper(value) {
   return String(value ?? '').trim().toLocaleUpperCase('pt-BR');
-}
-
-async function ensureDevUser(db) {
-  const usuario = 'VANDERSON.GABRIEL';
-  const senha = 'Selfit@2026';
-  const [rows] = await db.query('SELECT id FROM usuarios WHERE usuario = ? LIMIT 1', [usuario]);
-
-  if (rows.length > 0) return { skipped: true, usuario };
-  if (dryRun) return { created: true, usuario };
-
-  const senhaHash = await bcrypt.hash(senha, 10);
-  await db.query(
-    'INSERT INTO usuarios (usuario, senha_hash, senha_provisoria) VALUES (?, ?, ?)',
-    [usuario, senhaHash, false],
-  );
-  return { created: true, usuario };
 }
 
 async function upsertUnit(db, unidade) {
@@ -86,7 +72,7 @@ async function upsertUnit(db, unidade) {
   return 'inserted';
 }
 
-const envPath = path.join(apiDir, '.env');
+const envPath = resolveEnvPath();
 if (!fs.existsSync(envPath)) {
   throw new Error(`Arquivo .env da API nao encontrado em ${envPath}. Copie api-selfit/.env.example para api-selfit/.env.`);
 }
@@ -106,7 +92,7 @@ const db = await mysql.createConnection({
 });
 
 try {
-  const userResult = await ensureDevUser(db);
+
   const totals = { inserted: 0, updated: 0 };
 
   for (const unidade of unidades) {
@@ -116,7 +102,7 @@ try {
 
   console.log(JSON.stringify({
     status: dryRun ? 'DRY_RUN_OK' : 'OK',
-    usuario: userResult,
+
     unidades: totals,
   }, null, 2));
 } finally {

@@ -1,9 +1,9 @@
 // Arquivo: api-selfit/src/config/env.js
 // Serve para: arquivo de codigo do sistema; participa da implementacao do painel Selfit.
 
-const path = require('path');
+const { resolveEnvPath } = require('./env-file');
 
-const envPath = path.resolve(__dirname, '../../.env');
+const envPath = resolveEnvPath();
 
 require('dotenv').config({ path: envPath, quiet: true });
 
