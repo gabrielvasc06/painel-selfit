@@ -1,0 +1,246 @@
+import { CadastrarPage, CadastrarCameraPage, CadastrarEquipamentoPage, CamerasPage, EquipamentosPage } from '@/pages/InventarioPages';
+import { httpApi } from '@/services/api';
+import { ApiProvider } from '@/contexts/ApiContext';
+import { useApi } from '@/hooks/useApi';
+// Arquivo: Frontend/src/App.tsx
+// Serve para: orquestra login, modulo ativo, navegacao, refresh de pagina e telas renderizadas.
+
+import { useEffect, useState } from 'react';
+import { LayoutGrid } from 'lucide-react';
+import { InventarioProvider } from '@/contexts/InventarioContext';
+import { ModuloProvider } from '@/contexts/ModuloContext';
+import { getModuleBadge, pageMeta, validPages } from '@/utils/pageRegistry';
+import type { ModuloTipo } from '@/utils/inventoryTypes';
+import { Sidebar } from '@/components/layout/Sidebar';
+import type { PageId } from '@/utils/navigationTypes';
+import { CadastrarUnidadePage } from '@/pages/CadastrarUnidadePage';
+import { ConsultarPage } from '@/pages/ConsultarPage';
+import { DashboardPage } from '@/pages/DashboardPage';
+import { GarantiasPage } from '@/pages/GarantiasPage';
+import { AvisoInventario } from '@/components/inventario/AvisoInventario';
+import { LoginScreen } from '@/pages/LoginScreen';
+import { ManutencoesPage } from '@/pages/ManutencoesPage';
+import { ModuleSelectScreen } from '@/pages/ModuleSelectScreen';
+import { RegiaoDetailPage } from '@/pages/RegiaoDetailPage';
+import { RegiaoPage } from '@/pages/RegiaoPage';
+import { UnidadeDetailPage } from '@/pages/UnidadeDetailPage';
+import { sessionExpiredEvent } from '@/services/events';
+
+const NAVIGATION_STATE_KEY = 'selfit:navigation-state';
+const moduleValues: ModuloTipo[] = ['tvs', 'equipamentos', 'cameras'];
+
+type DrillState = { type: 'unidade' | 'regiao-detail'; id: string } | null;
+
+type NavigationState = {
+  userName: string;
+  currentModule: ModuloTipo | null;
+  page: PageId;
+  previousPage: PageId;
+  drill: DrillState;
+};
+
+const defaultNavigationState: NavigationState = {
+  userName: '',
+  currentModule: null,
+  page: 'dashboard',
+  previousPage: 'dashboard',
+  drill: null,
+};
+
+function readNavigationState(): NavigationState {
+  try {
+    const raw = sessionStorage.getItem(NAVIGATION_STATE_KEY);
+    if (!raw) return defaultNavigationState;
+    const parsed = JSON.parse(raw) as Partial<NavigationState>;
+    const currentModule = parsed.currentModule && moduleValues.includes(parsed.currentModule) ? parsed.currentModule : null;
+    const page = parsed.page && validPages.includes(parsed.page) ? parsed.page : 'dashboard';
+    const previousPage = parsed.previousPage && validPages.includes(parsed.previousPage) ? parsed.previousPage : 'dashboard';
+    const drill = parsed.drill && ['unidade', 'regiao-detail'].includes(parsed.drill.type) && typeof parsed.drill.id === 'string'
+      ? parsed.drill
+      : null;
+
+    return {
+      userName: typeof parsed.userName === 'string' ? parsed.userName : '',
+      currentModule,
+      page,
+      previousPage,
+      drill,
+    };
+  } catch {
+    sessionStorage.removeItem(NAVIGATION_STATE_KEY);
+    return defaultNavigationState;
+  }
+}
+
+function clearNavigationState() {
+  sessionStorage.removeItem(NAVIGATION_STATE_KEY);
+}
+
+function AppShell() {
+  const { apiRequest, authenticate, clearAuthToken, getAuthToken } = useApi();
+  const initialNavigationState = useState(readNavigationState)[0];
+  const [authed, setAuthed] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(() => Boolean(getAuthToken()));
+  const [userName, setUserName] = useState(initialNavigationState.userName);
+  const [currentModule, setCurrentModule] = useState<ModuloTipo | null>(initialNavigationState.currentModule);
+  const [page, setPage] = useState<PageId>(initialNavigationState.page);
+  const [previousPage, setPreviousPage] = useState<PageId>(initialNavigationState.previousPage);
+  const [drill, setDrill] = useState<DrillState>(initialNavigationState.drill);
+
+  useEffect(() => {
+    if (!getAuthToken()) return;
+    let cancelled = false;
+    void apiRequest<{ dados: { usuario: string } }>('/session')
+      .then(({ dados }) => {
+        if (cancelled) return;
+        setUserName(dados.usuario);
+        setAuthed(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        clearAuthToken();
+        clearNavigationState();
+      })
+      .finally(() => { if (!cancelled) setCheckingSession(false); });
+    return () => { cancelled = true; };
+  }, [apiRequest, getAuthToken, clearAuthToken]);
+
+  useEffect(() => {
+    const expireSession = () => {
+      clearNavigationState();
+      setAuthed(false);
+      setUserName('');
+      setCurrentModule(null);
+      setPage('dashboard');
+      setDrill(null);
+    };
+    window.addEventListener(sessionExpiredEvent, expireSession);
+    return () => window.removeEventListener(sessionExpiredEvent, expireSession);
+  }, []);
+
+  useEffect(() => {
+    if (!authed) return;
+    sessionStorage.setItem(NAVIGATION_STATE_KEY, JSON.stringify({
+      userName,
+      currentModule,
+      page,
+      previousPage,
+      drill,
+    }));
+  }, [authed, userName, currentModule, page, previousPage, drill]);
+
+  const handleLogout = () => {
+    clearAuthToken();
+    clearNavigationState();
+    setAuthed(false);
+    setCurrentModule(null);
+    setUserName('');
+    setPage('dashboard');
+    setDrill(null);
+  };
+
+  if (checkingSession) {
+    return <div className="flex min-h-dvh items-center justify-center bg-slate-950 text-white" role="status">Validando acesso...</div>;
+  }
+
+  if (!authed) {
+    return <LoginScreen onLogin={async (username, password) => {
+      await authenticate(username, password);
+      setUserName(username.trim().toUpperCase());
+      setAuthed(true);
+    }} />;
+  }
+
+  if (!currentModule) {
+    return (
+      <ModuleSelectScreen
+        userName={userName || 'admin'}
+        onSelectModulo={(modulo) => {
+          setCurrentModule(modulo);
+          setPage('dashboard');
+          setDrill(null);
+        }}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  const meta = pageMeta[currentModule][page] || { title: 'Sistema', subtitle: 'Painel Selfit' };
+  const title = drill?.type === 'unidade'
+      ? 'Detalhes da Unidade'
+      : drill?.type === 'regiao-detail'
+        ? 'Detalhes da Regiao'
+        : meta.title;
+  const subtitle = drill?.type ? 'Dados separados pelo modulo selecionado' : meta.subtitle;
+
+  const navigate = (target: PageId) => {
+    setPreviousPage(page);
+    setDrill(null);
+    setPage(target);
+  };
+
+  const navigateBack = () => {
+    setDrill(null);
+    setPage(previousPage === page ? 'dashboard' : previousPage);
+  };
+
+  return (
+    <InventarioProvider>
+      <ModuloProvider modulo={currentModule} setModulo={setCurrentModule}>
+        <div className="min-h-dvh bg-slate-50">
+          <Sidebar
+            current={page}
+            onNavigate={navigate}
+            onLogout={handleLogout}
+            userName={userName || 'admin'}
+            modulo={currentModule}
+          />
+
+          <div className="min-h-dvh lg:pl-72">
+            <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/80 px-6 py-4 backdrop-blur-md lg:px-8">
+              <div className="ml-10 lg:ml-0">
+                <div className="mb-1">
+                  <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                    {getModuleBadge(currentModule)}
+                  </span>
+                </div>
+                <h2 className="font-display text-lg font-bold text-slate-900">{title}</h2>
+                <p className="text-sm text-slate-500">{subtitle}</p>
+              </div>
+
+              <button
+                onClick={() => setCurrentModule(null)}
+                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                <LayoutGrid className="h-4 w-4 text-slate-500" />
+                <span className="hidden sm:inline">Trocar Modulo</span>
+              </button>
+            </header>
+
+            <main className="min-h-[calc(100dvh-5.5rem)] overflow-visible p-4 sm:p-6 lg:p-8">
+              <AvisoInventario />
+              <div key={`${currentModule}-${page}-${drill?.type ?? ''}-${drill?.id ?? ''}`} className="min-w-0">
+                {drill?.type === 'unidade' && <UnidadeDetailPage unidadeId={drill.id} onBack={() => setDrill(null)} />}
+                {drill?.type === 'regiao-detail' && <RegiaoDetailPage regiaoId={drill.id} onBack={() => setDrill(null)} />}
+
+                {!drill && page === 'dashboard' && <DashboardPage />}
+                {!drill && page === 'consultar' && <ConsultarPage />}
+                {!drill && page === 'cadastrar' && <CadastrarPage />}
+                {!drill && page === 'cadastrar_unidade' && <CadastrarUnidadePage />}
+                {!drill && page === 'cadastrar_equipamento' && (currentModule === 'cameras' ? <CadastrarCameraPage /> : <CadastrarEquipamentoPage />)}
+                {!drill && page === 'equipamentos' && (currentModule === 'cameras' ? <CamerasPage /> : <EquipamentosPage />)}
+                {!drill && page === 'garantias' && <GarantiasPage onBack={navigateBack} />}
+                {!drill && page === 'manutencoes' && <ManutencoesPage onBack={navigateBack} />}
+                {!drill && page === 'regiao' && <RegiaoPage onOpenRegiao={(id) => setDrill({ type: 'regiao-detail', id })} />}
+              </div>
+            </main>
+          </div>
+        </div>
+      </ModuloProvider>
+    </InventarioProvider>
+  );
+}
+
+export default function App() {
+  return <ApiProvider api={httpApi}><AppShell /></ApiProvider>;
+}

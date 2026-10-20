@@ -15,10 +15,16 @@ const executableArgs = process.platform === 'win32' && command === 'npm' ? ['/c'
 const child = spawn(executable, executableArgs, {
   stdio: 'inherit',
   shell: false,
+  windowsHide: true,
   env: {
     ...process.env,
     SELFIT_ENV_FILE: envFile,
   },
+});
+
+child.on('error', (error) => {
+  console.error('Nao foi possivel iniciar o comando:', error.code || error.message);
+  process.exitCode = 1;
 });
 
 child.on('exit', (code, signal) => {

@@ -7,10 +7,10 @@ import { once } from 'node:events';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const require = createRequire(path.join(root, 'api-selfit/package.json'));
+const require = createRequire(path.join(root, 'Backend/package.json'));
 require('./src/config/env');
 const mysql = require('mysql2/promise');
-const { connectionOptions } = require('./src/config/database');
+const { connectionOptions } = require('./src/config/database-options');
 const schema = `selfit_deploy_test_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
 if (!/^selfit_deploy_test_\d+_[a-f0-9]+$/.test(schema)) throw new Error('Schema temporario invalido');
 const password = crypto.randomBytes(18).toString('base64url');
@@ -45,7 +45,7 @@ async function stop() {
 }
 async function serve(mode) {
   env.PORT = String(await freePort());
-  api = spawn(process.execPath, ['api-selfit/src/server.js'], { cwd: root, env: { ...env, NODE_ENV: mode }, stdio: 'inherit', windowsHide: true });
+  api = spawn(process.execPath, ['Backend/src/server.js'], { cwd: root, env: { ...env, NODE_ENV: mode }, stdio: 'inherit', windowsHide: true });
   const base = `http://127.0.0.1:${env.PORT}`;
   for (let index = 0; index < 60; index++) {
     if (api.exitCode !== null) throw new Error('API encerrou antes de ficar pronta');
@@ -62,8 +62,8 @@ let created = false;
 try {
   await admin.query(`CREATE DATABASE \`${schema}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
   created = true;
-  await command('api-selfit/node_modules/knex/bin/cli.js', ['migrate:latest', '--knexfile', 'api-selfit/knexfile.js', '--env', 'production']);
-  await command('api-selfit/node_modules/knex/bin/cli.js', ['migrate:latest', '--knexfile', 'api-selfit/knexfile.js', '--env', 'production']);
+  await command('Backend/node_modules/knex/bin/cli.js', ['migrate:latest', '--knexfile', 'Backend/knexfile.js', '--env', 'production']);
+  await command('Backend/node_modules/knex/bin/cli.js', ['migrate:latest', '--knexfile', 'Backend/knexfile.js', '--env', 'production']);
   const db = await mysql.createConnection({ ...connectionOptions(), database: schema });
   try {
     const [[{ total }]] = await db.query('SELECT COUNT(*) AS total FROM usuarios');
@@ -71,9 +71,9 @@ try {
     await db.query(`INSERT INTO unidades (nome, tipo_unidade, cnpj, cep, uf, bairro, rua, numero)
       VALUES ('UNIDADE TESTE DEPLOY', 'PROPRIA', '12.345.678/0001-90', '50000000', 'PE', 'CENTRO', 'RUA TESTE', '100')`);
   } finally { await db.end(); }
-  await command('api-selfit/scripts/create-user.js');
+  await command('Backend/scripts/create-user.js');
   await serve('development');
-  await command('scripts/homologacao-software.mjs');
+  await command('Backend/scripts/homologacao-software.mjs');
   await stop();
   const base = await serve('production');
   assert.equal((await fetch(base + '/')).status, 200);

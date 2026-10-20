@@ -24,13 +24,10 @@ dist-ssr
 *.sw?
 .env
 .env.*
-!.env.example
-!.env.*.example
 
 .npm-cache/
-deploy-artifact/
 coverage/
+artifacts/
+backups/
 .admin-test-access.txt
 
-deploy-artifact*.zip
-deploy-artifact*.sha256
