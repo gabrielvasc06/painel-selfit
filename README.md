@@ -1,41 +1,145 @@
 ﻿# Painel Selfit
 
-O Painel Selfit é um sistema interno para a gestão do inventário de tecnologia das unidades próprias da Selfit. Ele reúne informações de TVs, equipamentos de infraestrutura e câmeras, permitindo que a equipe de TI consulte os ativos de cada unidade e acompanhe suas garantias e manutenções.
+Sistema interno para gerenciar unidades, TVs, equipamentos, câmeras, garantias e manutenções. A interface usa React/TypeScript; a API usa Node.js/Express e MySQL.
 
-## Objetivo
+## Organização
 
-Centralizar o controle dos ativos e facilitar a consulta das informações usadas no atendimento às unidades. O painel permite identificar onde cada item está cadastrado, verificar sua situação e registrar os serviços de manutenção realizados.
+```text
+project_selfit/
+├── Frontend/
+│   ├── src/
+│   │   ├── assets/              Logo e recursos importados pela interface
+│   │   ├── components/          Componentes reutilizados entre telas
+│   │   ├── contexts/            Providers e estado compartilhado
+│   │   ├── hooks/               Hooks que consomem os contextos
+│   │   ├── pages/               Telas completas do sistema
+│   │   ├── services/            API, CEP e carregamento dos dados
+│   │   ├── utils/               Datas, filtros, tipos e navegação
+│   │   ├── App.tsx              Login, providers e seleção das telas
+│   │   ├── main.tsx             Entrada do React
+│   │   └── index.css            Estilos globais
+│   ├── tests/                   Testes do frontend
+│   ├── package.json             Dependências e comandos da interface
+│   └── ...                      Vite, TypeScript, Tailwind e ESLint
+├── Backend/
+│   ├── src/
+│   │   ├── config/              Ambiente, banco, segurança e montagem da API
+│   │   ├── controllers/         Recebem HTTP, chamam models e devolvem respostas
+│   │   ├── models/              Regras de negócio e acesso aos dados
+│   │   │   ├── regras/          Validação e normalização de negócio
+│   │   │   └── repositories/    Consultas SQL e persistência
+│   │   ├── routes/              URLs, middlewares e validações de entrada
+│   │   └── server.js            Inicialização e encerramento do servidor
+│   ├── database/
+│   │   ├── migrations/          Histórico de alterações do banco
+│   │   └── seeds/               Dados de unidades para uso local
+│   ├── scripts/                 Operação de banco, contas e homologação
+│   ├── tests/                   Testes de models, segurança e MVC
+│   ├── .env                     Ambiente principal, privado
+│   ├── .env.homolog             Homologação, privada e isolada
+│   └── package.json             Dependências e comandos da API
+├── database/schemas/            Estruturas SQL de referência dos dois ambientes
+├── docs/                        Operação, segurança e revisão técnica
+├── scripts/                     Execução e empacotamento do sistema completo
+├── backups/                     Backups privados locais, fora do Git
+├── package.json                 Atalhos para frontend e backend
+└── README.md
+```
 
-## Módulos
+`node_modules`, `Frontend/dist` e `artifacts` são saídas locais/geradas. Não fazem parte da arquitetura do código. Não há Docker nem pasta `deploy/`.
 
-### Gestão de TVs
+## Frontend
 
-Cadastro e consulta das TVs vinculadas às unidades, com identificação, marca, situação e prazo de garantia.
+- **pages:** telas acessadas pelo usuário, como `ConsultarPage.tsx` e `ManutencoesPage.tsx`.
+- **components:** elementos reutilizáveis. `components/inventario/FormularioEquipamento.tsx` é usado nos cadastros; `ListaEquipamentos.tsx` reúne consulta, edição e remoção dos ativos.
+- **contexts:** mantêm dados e estado compartilhado. `InventarioContext.tsx` carrega unidades/inventário; `ModuloContext.tsx` mantém o módulo selecionado; `ApiContext.tsx` disponibiliza o cliente da API.
+- **hooks:** `useInventario`, `useModulo` e `useApi` permitem consumir os respectivos contextos sem repetir essa lógica nas telas.
+- **services:** `api.ts` centraliza HTTP, token e expiração da sessão; `inventoryService.ts` converte os dados recebidos; `cepService.ts` consulta endereços. Chamadas externas ficam aqui.
+- **utils:** regras auxiliares de datas, importação de unidades, filtros, tipos e metadados de navegação.
+- **App.tsx:** conecta os providers, valida a sessão e decide qual tela exibir.
 
-### Gestão de Equipamentos
+Foram mantidos `.tsx` e `.ts`, pois o projeto já utiliza TypeScript. A estrutura corresponde à organização solicitada sem converter a linguagem dos arquivos.
 
-Controle de ativos de infraestrutura, como totens, catracas, leitores faciais, access points, impressoras, switches, firewalls, roteadores e nobreaks.
+## Backend em MVC
 
-### Gestão de Câmeras
+Neste projeto, o **Model** reúne regras e persistência; os **Controllers** fazem a adaptação HTTP; a **View** é o frontend React separado. A API devolve JSON e não precisa de uma pasta de templates `views/`.
 
-Cadastro e consulta do inventário de câmeras por unidade, com acompanhamento da situação dos itens, garantias e manutenções.
+```mermaid
+flowchart LR
+    VIEW[Frontend React / View] --> ROUTE[Routes]
+    ROUTE --> CONTROLLER[Controllers]
+    CONTROLLER --> MODEL[Models]
+    MODEL --> DB[MySQL]
+```
 
-## Funcionalidades
+Exemplo de edição de equipamento:
 
-- Visão geral do inventário de cada módulo.
-- Cadastro de unidades, individualmente ou por importação de planilha.
-- Consulta de unidades por nome, CNPJ ou CEP.
-- Organização das unidades por estado e região.
-- Cadastro, atualização e remoção de ativos do inventário.
-- Acompanhamento dos prazos de garantia.
-- Registro de manutenções com descrição, datas de envio e retorno, custo e situação do atendimento.
+1. A tela envia `PUT /api/equipamentos/TV:1`.
+2. `routes/equipamentos.routes.js` aplica a validação e encaminha ao controller.
+3. `controllers/equipamentos.controller.js` chama o model e prepara a resposta.
+4. `models/equipamentos.model.js` verifica o módulo do item e a unidade de destino.
+5. O repositório em `models/repositories/` executa o SQL parametrizado na tabela correta.
 
-## Uso no dia a dia
+As rotas não executam SQL. Controllers não abrem conexões de banco. Models não acessam `req` ou `res`. `config/container.js` conecta models, repositórios e autenticação; `config/app.js` e `config/http.js` montam o Express. Essa separação também permite testar regras com repositórios em memória.
 
-Após entrar com uma conta autorizada, o usuário escolhe o módulo de trabalho. A partir dele, pode consultar uma unidade, verificar seus ativos, atualizar informações ou registrar uma manutenção. Os três módulos compartilham o cadastro de unidades e mantêm seus inventários separados.
+## Onde fazer manutenção
 
-O acesso é destinado à equipe de TI e aos demais usuários autorizados pela administração do sistema.
+| Mudança | Arquivo/pasta |
+| --- | --- |
+| Tela ou formulário | `Frontend/src/pages/` ou `Frontend/src/components/` |
+| Estado compartilhado | `Frontend/src/contexts/` |
+| Consumo de contexto | `Frontend/src/hooks/` |
+| Chamada da API ou integração externa | `Frontend/src/services/` |
+| Filtros, datas e importação na interface | `Frontend/src/utils/` |
+| URL ou middleware de endpoint | `Backend/src/routes/` |
+| Corpo/resposta HTTP | `Backend/src/controllers/` |
+| Fluxo e regra de negócio | `Backend/src/models/*.model.js` e `models/regras/` |
+| Query SQL | `Backend/src/models/repositories/` |
+| Ambiente ou conexão MySQL | `Backend/src/config/` |
+| Estrutura do banco | Nova migration em `Backend/database/migrations/` |
 
-## Instalação e operação
+Use nomes que expressem a responsabilidade: uma nova tela vai para `pages`, um hook recebe prefixo `use`, uma integração externa recebe nome de serviço e o backend usa os sufixos `.routes.js`, `.controller.js` e `.model.js`. Os comentários explicam decisões de integridade, transações, identificadores e seleção de ambiente.
 
-As orientações para disponibilizar o painel estão no [guia de deploy](docs/DEPLOY.md). Os controles de acesso e as limitações conhecidas estão descritos na [documentação de segurança](docs/SEGURANCA.md).
+## Ambientes e banco
+
+Existem somente `Backend/.env` (principal) e `Backend/.env.homolog` (homologação). Os valores locais foram preservados e os arquivos receberam comentários. Ambos são privados, ignorados pelo Git e excluídos da distribuição. O frontend usa `/api` e não precisa de `.env`.
+
+O principal é carregado por padrão. Os comandos `:homologacao` selecionam o arquivo de homologação explicitamente. `npm start` força o modo de produção usando o principal; revise os valores antes de executar no servidor. A configuração completa está em [EXECUCAO.md](docs/EXECUCAO.md).
+
+Os schemas são `selfit_db` e `selfit_homolog`. As estruturas sem dados estão em [principal.sql](database/schemas/principal.sql) e [homologacao.sql](database/schemas/homologacao.sql). Esses snapshots servem para revisão. Instalações e atualizações usam migrations; não importe snapshots sobre uma base existente.
+
+Os nomes das migrations históricas foram preservados ao mover os arquivos. Não apague nem renomeie esse histórico. Os schemas internos do MySQL foram mantidos. Os backups completos locais ficam em `backups/`.
+
+## Instalação e desenvolvimento
+
+Requisitos declarados: Node.js `>=22.12.0 <25`, npm e MySQL 8.0. Esta revisão utilizou Node.js 24.14.1. Na raiz:
+
+```sh
+npm --prefix Frontend ci
+npm --prefix Backend ci
+npm run api:migrate
+npm run api:start
+```
+
+Em outro terminal:
+
+```sh
+npm run dev
+```
+
+O frontend atende em 5174 e encaminha `/api` para 3000. Para homologação, use `npm run api:start:homologacao` e `npm run dev:homologacao`; o proxy encaminha para 3001. Não sobrescreva os arquivos de ambiente existentes. Em outra instalação, crie-os conforme o guia de execução.
+
+No PowerShell com bloqueio de scripts, use `npm.cmd` no lugar de `npm`, sem alterar a política da máquina.
+
+## Validação
+
+```sh
+npm run check
+npm run test:migrations
+npm run test:migrations:homologacao
+npm run test:integration
+```
+
+`check` executa lint, testes, TypeScript e build. Os testes de migrations copiam a base selecionada para um schema temporário, aplicam as migrations e comparam os registros. A integração usa outro schema temporário para testar login e operações dos três módulos. Somente os schemas criados pelos próprios testes são removidos; esses comandos precisam de uma conta de validação com permissão adequada.
+
+Leia [AUDITORIA.md](docs/AUDITORIA.md) para as correções e limitações conhecidas, [SEGURANCA.md](docs/SEGURANCA.md) para as proteções e [EXECUCAO.md](docs/EXECUCAO.md) para uso no servidor.
