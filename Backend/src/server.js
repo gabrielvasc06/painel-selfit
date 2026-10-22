@@ -14,7 +14,7 @@ async function start() {
             const listener = app.listen(port, host, () => resolve(listener));
             listener.once('error', reject);
         });
-        console.log(`Painel Selfit rodando na porta ${port} (${production ? 'production' : 'development'}).`);
+        console.log(`Painel Selfit rodando na :  ${port} (${production ? 'production' : 'development'}).`);
     } catch (error) {
         await pool.end();
         throw error;
