@@ -1,4 +1,6 @@
 
+const { IDENTIFICADOR_NAO_INFORMADO } = require('../regras/identificadores');
+
 // Os nomes SQL sao internos. Nunca interpolar uma tabela/coluna recebida do cliente.
 const MODULES = [
     ['equipamentos', 'e', 'EQUIPAMENTO'],
@@ -11,6 +13,7 @@ function itemSelect(alias, type) {
         ${alias}.id AS raw_id, '${type}' AS tipo_modulo, ${alias}.unidade_id,
         u.nome AS unidade_nome, u.cnpj AS unidade_cnpj, u.cep AS unidade_cep, u.uf,
         ${alias}.nome_identificacao, ${alias}.categoria, ${alias}.marca,
+        ${alias}.numero_serie, ${alias}.numero_patrimonio,
         ${alias}.status, ${alias}.data_garantia, ${alias}.created_at, ${alias}.updated_at`;
 }
 
@@ -28,6 +31,7 @@ function maintenanceUnion() {
         '${type}' AS tipo_modulo, u.nome AS unidade_nome, u.cnpj AS unidade_cnpj,
         u.cep AS unidade_cep, u.uf, ${alias}.nome_identificacao, ${alias}.categoria,
         ${alias}.marca, ${alias}.status AS status_equipamento,
+        ${alias}.numero_serie, ${alias}.numero_patrimonio,
         m.id AS manutencao_id, CONCAT('${type}:', ${alias}.id) AS equipamento_id,
         m.descricao AS descricao_manutencao, m.data_envio, m.data_retorno,
         m.custo, m.status_manutencao
@@ -48,8 +52,8 @@ async function listInventory(mysql, { busca = '', tipo = '', view = 'inventory' 
     }
     if (busca) {
         const columns = view === 'inventory'
-            ? ['nome_identificacao', 'categoria', 'marca', 'unidade_nome', 'unidade_cep', 'unidade_cnpj']
-            : ['unidade_nome', 'unidade_cep', 'unidade_cnpj'];
+            ? ['nome_identificacao', 'categoria', 'marca', 'unidade_nome', 'unidade_cep', 'unidade_cnpj', 'numero_serie', 'numero_patrimonio']
+            : ['unidade_nome', 'unidade_cep', 'unidade_cnpj', 'numero_serie', 'numero_patrimonio'];
         const conditions = columns.map((column) => `${column} LIKE ?`);
         params.push(...columns.map(() => `%${busca}%`));
         const digits = busca.replace(/\D/g, '');
@@ -61,7 +65,12 @@ async function listInventory(mysql, { busca = '', tipo = '', view = 'inventory' 
     }
     const order = maintenance ? 'data_envio DESC' : view === 'warranties' ? 'data_garantia ASC' : 'nome_identificacao ASC';
     const [rows] = await mysql.query(`${query} ORDER BY ${order}`, params);
-    return rows;
+    // O banco guarda o texto solicitado. Na API, ausencia continua sendo null:
+    // isso preserva o checkbox "Nao possui" e o contrato dos clientes atuais.
+    return rows.map((row) => ({ ...row,
+        numero_serie: row.numero_serie === IDENTIFICADOR_NAO_INFORMADO ? null : row.numero_serie,
+        numero_patrimonio: row.numero_patrimonio === IDENTIFICADOR_NAO_INFORMADO ? null : row.numero_patrimonio,
+    }));
 }
 
 module.exports = { listInventory };

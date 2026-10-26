@@ -108,7 +108,24 @@ O principal é carregado por padrão. Os comandos `:homologacao` selecionam o ar
 
 Os schemas são `selfit_db` e `selfit_homolog`. As estruturas sem dados estão em [principal.sql](database/schemas/principal.sql) e [homologacao.sql](database/schemas/homologacao.sql). Esses snapshots servem para revisão. Instalações e atualizações usam migrations; não importe snapshots sobre uma base existente.
 
-Os nomes das migrations históricas foram preservados ao mover os arquivos. Não apague nem renomeie esse histórico. Os schemas internos do MySQL foram mantidos. Os backups completos locais ficam em `backups/`.
+Os nomes das migrations históricas foram preservados ao mover os arquivos. Não apague nem renomeie esse histórico. Os schemas internos do MySQL foram mantidos. `backups/` contém somente `backup-principal.sql` e `backup-homologacao.sql`: uma cópia completa atual por ambiente. Os comandos de backup substituem o arquivo correspondente somente após concluir o novo dump; uma falha preserva a cópia anterior. O acesso local de testes fica em `Backend/.admin-test-access.txt`, privado e fora do Git.
+
+## Identificação dos ativos
+
+TVs, equipamentos e câmeras possuem `numero_serie` e `numero_patrimonio`, disponíveis no cadastro, nas edições e nas informações da unidade. As buscas do inventário e de unidades também aceitam esses identificadores.
+
+Ao lado do patrimônio, a opção **Não possui** desabilita o campo e envia `null` à API. O número de série continua disponível. Os campos aceitam até 100 caracteres como texto, preservando zeros à esquerda, letras e hífens. Valores são normalizados para maiúsculas. O backend grava **NÃO INFORMADO** no MySQL quando o identificador está vazio, nulo ou foi omitido no cadastro. Não foi criada uma nova obrigatoriedade para os identificadores.
+
+`Frontend/src/components/inventario/CamposIdentificacao.tsx` compartilha os campos entre cadastro e edição. `Backend/src/models/regras/identificadores.js` centraliza a validação e o texto padrão. Em atualizações parciais, omitir um identificador preserva seu valor; enviar `null` o substitui por **NÃO INFORMADO**. As respostas da API continuam usando `null` para ausência, mantendo o checkbox e os clientes existentes compatíveis.
+
+A migration `20261022120000_add_inventory_identifiers.js` acrescenta as colunas nas três tabelas. A seguinte, `20261022130000_fill_missing_inventory_identifiers.js`, substitui apenas identificadores nulos/vazios pelo texto padrão e define o mesmo default no MySQL para inserções que omitem a coluna. Números existentes e datas de atualização são preservados. As migrations devem ser executadas nos dois ambientes antes de iniciar a nova API:
+
+```sh
+npm run api:migrate
+npm run api:migrate:homologacao
+```
+
+Faça backup antes de atualizar. Reinicie as APIs e atualize o frontend após a mudança. O rollback desta migration preserva as colunas e seus valores para evitar perda de identificadores cadastrados.
 
 ## Instalação e desenvolvimento
 

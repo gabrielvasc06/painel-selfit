@@ -49,7 +49,7 @@ const validarEquipamento = (req, res, next) => {
 
 
 const validarAtualizacaoEquipamento = (req, res, next) => {
-    const allowed = new Set(['unidade_nome', 'nome_identificacao', 'categoria', 'marca', 'status', 'data_garantia']);
+    const allowed = new Set(['unidade_nome', 'nome_identificacao', 'categoria', 'marca', 'status', 'data_garantia', 'numero_serie', 'numero_patrimonio']);
     const sentFields = Object.keys(req.body);
     if (sentFields.some((field) => !allowed.has(field))) {
         return res.status(400).json({ sucesso: false, mensagem: 'A requisicao contem campos que nao pertencem ao cadastro atual.' });

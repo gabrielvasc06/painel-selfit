@@ -1,5 +1,6 @@
 const { BusinessError } = require('./regras/erro-negocio');
 const { parseItemRef, resolveItemType } = require('./regras/equipamentos');
+const { normalizarIdentificadores, IDENTIFICADOR_NAO_INFORMADO } = require('./regras/identificadores');
 
 // Os repositorios chegam por parametro. Estes models nao importam banco,
 // Express ou configuracao: a mesma regra pode ser chamada por HTTP ou testes.
@@ -7,17 +8,20 @@ function createInventoryModel({ inventoryRepository, unitRepository }) {
     return {
         list: (filters) => inventoryRepository.list(filters),
         async create(input) {
+            const identifiers = normalizarIdentificadores(input);
             const units = await unitRepository.findByName(input.unidade_nome, input.unidade_uf);
             if (!units.length) throw new BusinessError('INVALID_INPUT', 'A unidade informada nao esta cadastrada no sistema.');
             if (units.length > 1) throw new BusinessError('CONFLICT', 'Mais de uma unidade corresponde ao nome e UF informados. Revise o cadastro de unidades.');
             const type = resolveItemType(input.categoria);
             await inventoryRepository.create(type, { unidade_id: units[0].id,
                 nome_identificacao: input.nome_identificacao, categoria: input.categoria,
-                marca: input.marca, status: input.status, data_garantia: input.data_garantia });
+                marca: input.marca, status: input.status, data_garantia: input.data_garantia,
+                numero_serie: identifiers.numero_serie ?? IDENTIFICADOR_NAO_INFORMADO,
+                numero_patrimonio: identifiers.numero_patrimonio ?? IDENTIFICADOR_NAO_INFORMADO });
             return type;
         },
         async update(id, input) {
-            const allowed = new Set(['unidade_nome', 'nome_identificacao', 'categoria', 'marca', 'status', 'data_garantia']);
+            const allowed = new Set(['unidade_nome', 'nome_identificacao', 'categoria', 'marca', 'status', 'data_garantia', 'numero_serie', 'numero_patrimonio']);
             if (Object.keys(input).some((field) => !allowed.has(field))) {
                 throw new BusinessError('INVALID_INPUT', 'A requisicao contem campos que nao pertencem ao cadastro atual.');
             }
@@ -28,7 +32,7 @@ function createInventoryModel({ inventoryRepository, unitRepository }) {
             }
             const current = await inventoryRepository.findActive(ref);
             if (!current) throw new BusinessError('NOT_FOUND', 'Item nao encontrado ou inativo.');
-            const updates = { ...input };
+            const updates = { ...input, ...normalizarIdentificadores(input) };
             if (updates.unidade_nome) {
                 const units = await unitRepository.findByName(updates.unidade_nome);
                 if (!units.length) throw new BusinessError('INVALID_INPUT', 'A unidade informada nao esta cadastrada no sistema.');

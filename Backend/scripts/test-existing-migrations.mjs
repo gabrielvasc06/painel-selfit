@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import path from 'node:path';
-import { mysql, connectionOptions, requireApi, root } from './database/context.mjs';
+import { mysql, connectionOptions, requireApi } from './database/context.mjs';
+const { IDENTIFICADOR_NAO_INFORMADO } = requireApi('./src/models/regras/identificadores');
 
 // Le a base selecionada, mas executa DDL e migrations exclusivamente numa copia
 // temporaria criada por este processo. Os registros nunca sao impressos.
@@ -29,15 +29,30 @@ try {
   await source.commit();
   await target.query('SET FOREIGN_KEY_CHECKS = 1');
   knex = requireApi('knex')({ client: 'mysql2', connection: { ...options, database: schema },
-    migrations: { directory: path.join(root, 'Backend/database/migrations') } });
+    migrations: requireApi('./knexfile').development.migrations });
   const [, applied] = await knex.migrate.latest();
   const [, repeated] = await knex.migrate.latest();
   assert.equal(repeated.length, 0, 'A segunda execucao deve ser idempotente');
   for (const [table, rows] of snapshot) {
     const [actual] = await target.query('SELECT * FROM ?? ORDER BY 1', [table]);
-    assert.deepEqual(actual, rows, `Os registros de ${table} devem ser preservados`);
+    // Comparamos os valores antigos, permitindo apenas a substituicao solicitada
+    // de identificadores null/vazios pelo texto padrao. Numeros reais ficam intactos.
+    const columns = rows.length ? Object.keys(rows[0]) : [];
+    const previousValues = actual.map((row) => Object.fromEntries(columns.map((column) => [column, row[column]])));
+    const inventory = ['equipamentos', 'tvs', 'cameras'].includes(table);
+    const expected = rows.map((row) => Object.fromEntries(Object.entries(row).map(([column, value]) => [column,
+      inventory && ['numero_serie', 'numero_patrimonio'].includes(column) && (value == null || value.trim() === '')
+        ? IDENTIFICADOR_NAO_INFORMADO : value])));
+    assert.deepEqual(previousValues, expected, `Somente identificadores ausentes de ${table} podem receber o texto padrao`);
+    if (['equipamentos', 'tvs', 'cameras'].includes(table)) {
+      for (const column of ['numero_serie', 'numero_patrimonio']) {
+        if (!columns.includes(column)) assert.ok(actual.every((row) => row[column] === IDENTIFICADOR_NAO_INFORMADO), `${column} deve receber o texto padrao`);
+        const [[metadata]] = await target.query('SELECT COLUMN_DEFAULT FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?', [table, column]);
+        assert.equal(metadata.COLUMN_DEFAULT, IDENTIFICADOR_NAO_INFORMADO, `${column} deve ter default no MySQL`);
+      }
+    }
   }
-  console.log(`OK: copia de ${options.database}; ${snapshot.size} tabelas de negocio preservadas; ${applied.length} migrations aplicadas; segunda execucao sem alteracoes.`);
+  console.log(`OK: copia de ${options.database}; ${snapshot.size} tabelas conferidas; somente identificadores ausentes podem mudar; ${applied.length} migrations aplicadas; segunda execucao sem alteracoes.`);
 } finally {
   if (knex) await knex.destroy();
   if (target) await target.end();

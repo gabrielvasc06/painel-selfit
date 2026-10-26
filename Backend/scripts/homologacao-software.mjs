@@ -188,6 +188,9 @@ async function main() {
     ];
 
     for (const item of itemsToCreate) {
+      // Prefixo exclusivo permite testar e limpar somente os itens desta execucao.
+      item.serial = `00-${prefix}-${item.module}`;
+      item.patrimonio = item.module === 'CAMERA' ? null : `000-${prefix}-${item.module}`;
       await request('/register/equipamentos', {
         method: 'POST',
         body: JSON.stringify({
@@ -196,6 +199,8 @@ async function main() {
           nome_identificacao: item.nome,
           categoria: item.categoria,
           marca: item.marca,
+          numero_serie: ` ${item.serial.toLowerCase()} `,
+          numero_patrimonio: item.patrimonio,
           status: 'ATIVO',
           data_garantia: '2028-12-31',
         }),
@@ -205,7 +210,20 @@ async function main() {
       const created = list.dados.find((record) => record.nome_identificacao === item.nome);
       assert(created, `${item.module} nao retornou na consulta do seu modulo.`);
       assert(created.tipo_modulo === item.module, `${item.module} retornou com tipo_modulo incorreto.`);
+      assert(created.numero_serie === item.serial, `${item.module} nao preservou/normalizou o numero de serie.`);
+      assert(created.numero_patrimonio === item.patrimonio, `${item.module} nao preservou o patrimonio ou sua ausencia.`);
       createdRefs.push({ ...item, apiId: created.id, rawId: created.raw_id });
+      const [[stored]] = await connection.query(`SELECT numero_serie, numero_patrimonio FROM ${item.table} WHERE id = ?`, [created.raw_id]);
+      assert(stored.numero_serie === item.serial, 'Numero de serie nao foi persistido no MySQL.');
+      assert(stored.numero_patrimonio === (item.patrimonio ?? 'NÃO INFORMADO'), 'Patrimonio ausente deve ser gravado como NAO INFORMADO no MySQL.');
+      for (const identifier of [item.serial, item.patrimonio].filter(Boolean)) {
+        const byIdentifier = await request(`/equipamentos/consultar?tipo=${item.module}&busca=${encodeURIComponent(identifier)}`);
+        assert(byIdentifier.dados.some((record) => record.id === created.id), `Busca por identificador falhou em ${item.module}.`);
+        for (const filter of ['busca', 'prefixo']) {
+          const units = await request(`/unidades?${filter}=${encodeURIComponent(identifier)}`);
+          assert(units.dados.some((record) => record.id === unit.id), `Consulta de unidade por ${filter} do identificador falhou.`);
+        }
+      }
       ok(`Cadastro ${item.module}`, `${created.id} em ${item.table}.`);
     }
 
@@ -231,6 +249,15 @@ async function main() {
       const updated = list.dados.find((record) => record.id === item.apiId);
       assert(updated?.marca === `${item.marca} HOMOLOG`, `${item.module} nao atualizou marca.`);
       assert(updated?.status === 'EM MANUTENCAO', `${item.module} nao atualizou status.`);
+      assert(updated?.numero_serie === item.serial && updated?.numero_patrimonio === item.patrimonio, 'Edicao parcial apagou identificadores.');
+      // A mesma opcao "Nao possui" da interface envia null ao editar.
+      await request(`/equipamentos/${encodeURIComponent(item.apiId)}`, {
+        method: 'PUT', body: JSON.stringify({ numero_serie: `${item.serial}-EDIT`, numero_patrimonio: null }),
+      });
+      const edited = await request(`/equipamentos/consultar?tipo=${item.module}&busca=${encodeURIComponent(`${item.serial}-EDIT`)}`);
+      assert(edited.dados.some((record) => record.id === item.apiId && record.numero_patrimonio === null), 'Edicao dos identificadores nao foi persistida.');
+      const [[stored]] = await connection.query(`SELECT numero_patrimonio FROM ${item.table} WHERE id = ?`, [item.rawId]);
+      assert(stored.numero_patrimonio === 'NÃO INFORMADO', 'Opcao Nao possui deve gravar o texto padrao no banco.');
     }
     ok('Atualizacao de itens', 'PUT validado nos 3 modulos.');
 
@@ -278,6 +305,8 @@ async function main() {
       await request(`/equipamentos/${encodeURIComponent(item.apiId)}`, { method: 'DELETE' });
       const list = await request(`/equipamentos/consultar?tipo=${item.module}&busca=${encodeURIComponent(item.nome)}`);
       assert(!list.dados.some((record) => record.id === item.apiId), `${item.module} ainda aparece apos exclusao.`);
+      const unitsByDeletedItem = await request(`/unidades?busca=${encodeURIComponent(`${item.serial}-EDIT`)}`);
+      assert(!unitsByDeletedItem.dados.some((record) => record.id === unit.id), 'Item excluido continuou localizando a unidade por numero de serie.');
 
       const [[row]] = await connection.query(`SELECT deleted_at FROM ${item.table} WHERE id = ?`, [item.rawId]);
       assert(row?.deleted_at, `${item.module} nao recebeu deleted_at no banco.`);

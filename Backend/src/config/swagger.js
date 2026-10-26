@@ -66,6 +66,10 @@ const itemSchema = {
         nome_identificacao: { type: 'string', example: 'C. BANCARIOS - FW01' },
         categoria: { type: 'string', example: 'FIREWALL' },
         marca: { type: 'string', example: 'FORTINET' },
+
+        numero_serie: { type: 'string', nullable: true, maxLength: 100, example: '00ABC-123' },
+
+        numero_patrimonio: { type: 'string', nullable: true, maxLength: 100, description: 'Nulo quando o item nao possui patrimonio.', example: '000123' },
         status: { type: 'string', example: 'ATIVO' },
         data_garantia: { type: 'string', format: 'date', example: '2028-12-31' },
         created_at: { type: 'string', format: 'date-time' },
@@ -91,6 +95,10 @@ const itemInputSchema = {
             example: 'FIREWALL',
         },
         marca: { type: 'string', example: 'FORTINET' },
+
+        numero_serie: { type: 'string', nullable: true, maxLength: 100, example: '00ABC-123' },
+
+        numero_patrimonio: { type: 'string', nullable: true, maxLength: 100, description: 'Nulo quando o item nao possui patrimonio.', example: '000123' },
         status: { type: 'string', default: 'ATIVO', example: 'ATIVO' },
         data_garantia: { type: 'string', format: 'date', example: '2028-12-31' },
     },
@@ -229,6 +237,10 @@ const options = {
                         nome_identificacao: { type: 'string', example: 'C. BANCARIOS - FW02' },
                         categoria: { type: 'string', example: 'FIREWALL' },
                         marca: { type: 'string', example: 'FORTINET' },
+
+                        numero_serie: { type: 'string', nullable: true, maxLength: 100, example: '00ABC-123' },
+
+                        numero_patrimonio: { type: 'string', nullable: true, maxLength: 100, description: 'Nulo quando o item nao possui patrimonio.', example: '000123' },
                         status: { type: 'string', example: 'ATIVO' },
                         data_garantia: { type: 'string', format: 'date', example: '2028-12-31' },
                     },
@@ -278,7 +290,7 @@ const options = {
                     security: protectedRoute,
                     summary: 'Lista unidades proprias',
                     parameters: [
-                        { in: 'query', name: 'busca', schema: { type: 'string' }, description: 'Busca por nome, CNPJ, CEP, bairro, rua ou numero.' },
+                        { in: 'query', name: 'busca', schema: { type: 'string' }, description: 'Busca por nome, CNPJ, CEP, endereco, numero de serie ou patrimonio dos itens ativos.' },
                         { in: 'query', name: 'prefixo', schema: { type: 'string' }, description: 'Busca unidades cujo nome comeca com o valor informado.' },
                         { in: 'query', name: 'uf', schema: { type: 'string', maxLength: 2 }, description: 'Filtra por UF.' },
                     ],
@@ -512,7 +524,7 @@ const options = {
                     summary: 'Consulta inventario ativo',
                     parameters: [
                         { in: 'query', name: 'tipo', schema: { type: 'string', enum: ['TV', 'CAMERA', 'EQUIPAMENTO'] } },
-                        { in: 'query', name: 'busca', schema: { type: 'string' }, description: 'Busca por item, categoria, marca, unidade, CEP ou CNPJ.' },
+                        { in: 'query', name: 'busca', schema: { type: 'string' }, description: 'Busca por item, categoria, marca, unidade, CEP, CNPJ, numero de serie ou patrimonio.' },
                     ],
                     responses: {
                         200: { description: 'Itens retornados.', content: { 'application/json': { schema: listEnvelope({ $ref: '#/components/schemas/InventoryItem' }) } } },
@@ -526,7 +538,7 @@ const options = {
                     summary: 'Consulta garantias por modulo e unidade',
                     parameters: [
                         { in: 'query', name: 'tipo', schema: { type: 'string', enum: ['TV', 'CAMERA', 'EQUIPAMENTO'] } },
-                        { in: 'query', name: 'busca', schema: { type: 'string' }, description: 'Busca por nome da unidade, CEP ou CNPJ.' },
+                        { in: 'query', name: 'busca', schema: { type: 'string' }, description: 'Busca por nome da unidade, CEP, CNPJ, numero de serie ou patrimonio.' },
                     ],
                     responses: {
                         200: { description: 'Garantias retornadas.', content: { 'application/json': { schema: listEnvelope({ $ref: '#/components/schemas/InventoryItem' }) } } },
@@ -567,7 +579,7 @@ const options = {
                     description: 'Retorna manutencoes ABERTA, CONCLUIDA e CANCELADA dos itens ativos.',
                     parameters: [
                         { in: 'query', name: 'tipo', schema: { type: 'string', enum: ['TV', 'CAMERA', 'EQUIPAMENTO'] } },
-                        { in: 'query', name: 'busca', schema: { type: 'string' }, description: 'Busca por nome da unidade, CEP ou CNPJ.' },
+                        { in: 'query', name: 'busca', schema: { type: 'string' }, description: 'Busca por nome da unidade, CEP, CNPJ, numero de serie ou patrimonio.' },
                     ],
                     responses: {
                         200: { description: 'Manutencoes retornadas.', content: { 'application/json': { schema: listEnvelope({ $ref: '#/components/schemas/Maintenance' }) } } },

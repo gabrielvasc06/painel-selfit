@@ -1,3 +1,4 @@
+import { CamposIdentificacao } from '@/components/inventario/CamposIdentificacao';
 import { useApi } from '@/hooks/useApi';
 // Arquivo: Frontend/src/pages/ConsultarPage.tsx
 // Serve para: consulta unidades e mostra os itens cadastrados por unidade.
@@ -14,6 +15,8 @@ import { moduleLabels, statusEquipLabels, type Equipamento, type EquipamentoStat
 import { dateBrToIso, formatDateBr, isoToDateBr, maskDateBr } from '@/utils/date';
 
 type EditForm = {
+  numero_serie: string | null;
+  numero_patrimonio: string | null;
   nome: string;
   marca: string;
   status: EquipamentoStatus;
@@ -32,7 +35,7 @@ export function ConsultarPage() {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [editing, setEditing] = useState<Equipamento | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Equipamento | null>(null);
-  const [editForm, setEditForm] = useState<EditForm>({ nome: '', marca: '', status: 'ativo', data_garantia: '' });
+  const [editForm, setEditForm] = useState<EditForm>({ nome: '', marca: '', status: 'ativo', data_garantia: '', numero_serie: null, numero_patrimonio: null });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [showResults, setShowResults] = useState(false);
@@ -100,7 +103,7 @@ export function ConsultarPage() {
     event.preventDefault();
     const term = query.trim();
     if (!term) {
-      setError('Digite o nome da unidade, CNPJ ou CEP para consultar.');
+      setError('Digite o nome da unidade, CNPJ, CEP, número de série ou patrimônio para consultar.');
       setUnits([]);
       setSelectedUnitId(null);
       setShowResults(false);
@@ -128,6 +131,8 @@ export function ConsultarPage() {
     setEditing(item);
     setEditForm({
       nome: item.nome,
+      numero_serie: item.numero_serie ?? null,
+      numero_patrimonio: item.numero_patrimonio ?? null,
       marca: item.marca ?? '',
       status: item.status,
       data_garantia: isoToDateBr(item.data_garantia),
@@ -136,7 +141,7 @@ export function ConsultarPage() {
 
   const closeEdit = () => {
     setEditing(null);
-    setEditForm({ nome: '', marca: '', status: 'ativo', data_garantia: '' });
+    setEditForm({ nome: '', marca: '', status: 'ativo', data_garantia: '', numero_serie: null, numero_patrimonio: null });
   };
 
   const saveEdit = async (event: React.FormEvent) => {
@@ -160,6 +165,8 @@ export function ConsultarPage() {
         method: 'PUT',
         body: JSON.stringify({
           unidade_nome: selectedUnit.nome,
+          numero_serie: editForm.numero_serie,
+          numero_patrimonio: editForm.numero_patrimonio,
           nome_identificacao: editForm.nome.trim().toLocaleUpperCase('pt-BR'),
           categoria: editing.categoria,
           marca: editForm.marca.trim().toLocaleUpperCase('pt-BR'),
@@ -196,7 +203,7 @@ export function ConsultarPage() {
         <Search className="h-6 w-6 text-white" />
         <div>
           <h1 className="font-display text-2xl font-bold text-white">Consultar Unidades</h1>
-          <p className="text-sm text-white/70">Busque por nome da unidade, CNPJ ou CEP</p>
+          <p className="text-sm text-white/70">Busque por nome da unidade, CNPJ, CEP, número de série ou patrimônio</p>
         </div>
       </div>
 
@@ -208,7 +215,7 @@ export function ConsultarPage() {
               type="text"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Digite unidade, CNPJ ou CEP"
+              placeholder="Unidade, CNPJ, CEP, série ou patrimônio"
               className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 uppercase text-slate-900 focus:border-selfit-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-selfit-500/20"
             />
             {(suggestions.length > 0 || loadingSuggestions) && (
@@ -300,9 +307,9 @@ export function ConsultarPage() {
                       </div>
                       {selectedItems.length === 0 ? <p className="px-4 py-8 text-center text-sm text-slate-500">Nenhum registro deste modulo nesta unidade.</p> : (
                         <div className="overflow-x-auto">
-                          <table className="w-full min-w-[760px] text-left text-sm">
-                            <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Identificacao</th><th className="px-4 py-3">Categoria</th><th className="px-4 py-3">Marca</th><th className="px-4 py-3">Garantia</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Acoes</th></tr></thead>
-                            <tbody className="divide-y divide-slate-100">{selectedItems.map((item) => <tr key={item.id} className="uppercase"><td className="px-4 py-3 font-semibold">{item.nome}</td><td className="px-4 py-3">{item.categoria}</td><td className="px-4 py-3">{item.marca ?? '-'}</td><td className="px-4 py-3">{formatDateBr(item.data_garantia)}</td><td className="px-4 py-3">{statusEquipLabels[item.status] ?? item.status}</td><td className="px-4 py-3"><div className="flex justify-end gap-1"><button type="button" title="Atualizar" onClick={() => startEdit(item)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"><Pencil className="h-4 w-4" /></button><button type="button" title="Remover" onClick={() => setPendingDelete(item)} className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button></div></td></tr>)}</tbody>
+                          <table className="w-full min-w-[1050px] text-left text-sm">
+                            <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Identificacao</th><th className="px-4 py-3">Número de série</th><th className="px-4 py-3">Número de patrimônio</th><th className="px-4 py-3">Categoria</th><th className="px-4 py-3">Marca</th><th className="px-4 py-3">Garantia</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Acoes</th></tr></thead>
+                            <tbody className="divide-y divide-slate-100">{selectedItems.map((item) => <tr key={item.id} className="uppercase"><td className="px-4 py-3 font-semibold">{item.nome}</td><td className="px-4 py-3">{item.numero_serie ?? 'Não informado'}</td><td className="px-4 py-3">{item.numero_patrimonio ?? 'Não informado'}</td><td className="px-4 py-3">{item.categoria}</td><td className="px-4 py-3">{item.marca ?? '-'}</td><td className="px-4 py-3">{formatDateBr(item.data_garantia)}</td><td className="px-4 py-3">{statusEquipLabels[item.status] ?? item.status}</td><td className="px-4 py-3"><div className="flex justify-end gap-1"><button type="button" title="Atualizar" onClick={() => startEdit(item)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"><Pencil className="h-4 w-4" /></button><button type="button" title="Remover" onClick={() => setPendingDelete(item)} className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button></div></td></tr>)}</tbody>
                           </table>
                         </div>
                       )}
@@ -330,6 +337,7 @@ export function ConsultarPage() {
             </CardHeader>
             <CardContent className="scrollbar-thin flex-1 overflow-y-auto p-5">
               <form onSubmit={saveEdit} className="grid gap-4 sm:grid-cols-2">
+                <CamposIdentificacao values={editForm} onChange={(field, value) => setEditForm(current => ({ ...current, [field]: value }))} />
                 <label className="space-y-1 text-sm font-medium sm:col-span-2">Identificacao<input value={editForm.nome} onChange={(event) => setEditForm((current) => ({ ...current, nome: event.target.value.toLocaleUpperCase('pt-BR') }))} className="w-full rounded-lg border border-slate-300 px-3 py-2 uppercase" /></label>
                 <label className="space-y-1 text-sm font-medium">Marca<input value={editForm.marca} onChange={(event) => setEditForm((current) => ({ ...current, marca: event.target.value.toLocaleUpperCase('pt-BR') }))} className="w-full rounded-lg border border-slate-300 px-3 py-2 uppercase" /></label>
                 <label className="space-y-1 text-sm font-medium">Garantia<input inputMode="numeric" placeholder="dd/mm/aaaa" maxLength={10} value={editForm.data_garantia} onChange={(event) => setEditForm((current) => ({ ...current, data_garantia: maskDateBr(event.target.value) }))} className="w-full rounded-lg border border-slate-300 px-3 py-2" /></label>

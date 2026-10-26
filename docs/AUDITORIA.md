@@ -1,5 +1,18 @@
 ﻿# Revisão técnica — 20/10/2026
 
+## Atualização — 22/10/2026: identificação dos ativos
+
+- Número de série e número de patrimônio adicionados aos cadastros, edições e consultas de TVs, equipamentos e câmeras. A consulta de unidades encontra a unidade pelos identificadores de seus ativos, ignorando itens excluídos.
+- A opção **Não possui**, ao lado do patrimônio, desabilita o campo e envia `null` à API. A série continua disponível. Por solicitação posterior, o backend agora persiste **NÃO INFORMADO** no MySQL para identificadores ausentes; a resposta da API mantém `null` para preservar o comportamento da interface e dos clientes existentes.
+- Validação compartilhada aceita texto de até 100 caracteres, preserva zeros à esquerda e normaliza maiúsculas. Atualizações parciais preservam identificadores omitidos.
+- As duas migrations de identificadores foram aplicadas em **selfit_db e selfit_homolog**. As bases possuem sete migrations. A segunda preenche somente números nulos/vazios com **NÃO INFORMADO** e define esse default nas seis colunas, preservando números reais e datas de atualização. Novos backups foram feitos antes dessa substituição. Os snapshots `principal.sql` e `homologacao.sql` foram exportados novamente.
+- Corrigida a ordem de execução em bancos vazios: a migration histórica `migrate.js` cria a base antes dos arquivos datados. Seus nomes e registros anteriores foram preservados.
+- Backups completos de 22/10 foram restaurados em schemas temporários e comparados após cada atualização: somente os identificadores nulos/vazios foram substituídos pelo texto solicitado. Números reais, demais campos e datas de atualização foram preservados. Na conferência mais recente, a homologação contém 3 TVs; as demais contagens permanecem iguais às da tabela histórica abaixo.
+- Validados lint, TypeScript, build, 28 testes e integração real da API em banco temporário: cadastro e edição dos três módulos, pesquisa por identificadores, ausência de patrimônio, edição parcial e exclusão lógica. Migrations também passaram nas cópias das duas bases e em instalação vazia, com segunda execução sem alterações.
+- No Chrome, o build foi validado com respostas simuladas da API: campos dos três cadastros, checkbox exclusivo do patrimônio, consulta de unidades, detalhes e preenchimento da edição. A persistência foi coberta separadamente pela integração com MySQL real.
+
+Após atualizar o código, reinicie as APIs principal e de homologação para carregar os novos models e consultas. No frontend publicado, use o novo build; durante o desenvolvimento, atualize a página.
+
 ## Organização final
 
 O frontend está em `Frontend/`, organizado em `assets`, `components`, `contexts`, `hooks`, `pages`, `services` e `utils`, com `App.tsx` e `main.tsx` na raiz de `src`.
@@ -34,6 +47,8 @@ As duas bases agora registram cinco migrations. Backups completos anteriores à 
 | Homologação | 170 | 1 | 1 | 2 | 1 | 2 |
 
 Os números usam `COUNT(*)`; `TABLE_ROWS` do InnoDB é uma estimativa. Backups ficam em `backups/`, fora do Git. Os snapshots em `database/schemas/` contêm somente a estrutura.
+
+Em 22/10, os seis dumps locais com datas foram substituídos por duas cópias atuais: `backups/backup-principal.sql` e `backups/backup-homologacao.sql`. Ambas foram restauradas em bases temporárias e comparadas antes de remover os arquivos anteriores. O script passou a manter uma cópia por banco e preserva o último arquivo concluído quando há falha. O arquivo de acesso foi movido para `Backend/.admin-test-access.txt`.
 
 ## Diferenças e limitações mantidas
 

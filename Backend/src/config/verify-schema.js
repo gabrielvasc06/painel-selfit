@@ -4,9 +4,9 @@ async function verifySchema(database) {
     const schema = {
         usuarios: 'id, usuario, senha_hash, senha_provisoria',
         unidades: 'id, nome, tipo_unidade, cnpj, cep, uf, bairro, rua, numero',
-        equipamentos: 'id, unidade_id, nome_identificacao, categoria, marca, status, data_garantia, deleted_at, created_at, updated_at',
-        tvs: 'id, unidade_id, nome_identificacao, categoria, marca, status, data_garantia, deleted_at, created_at, updated_at',
-        cameras: 'id, unidade_id, nome_identificacao, categoria, marca, status, data_garantia, deleted_at, created_at, updated_at',
+        equipamentos: 'id, unidade_id, nome_identificacao, categoria, marca, numero_serie, numero_patrimonio, status, data_garantia, deleted_at, created_at, updated_at',
+        tvs: 'id, unidade_id, nome_identificacao, categoria, marca, numero_serie, numero_patrimonio, status, data_garantia, deleted_at, created_at, updated_at',
+        cameras: 'id, unidade_id, nome_identificacao, categoria, marca, numero_serie, numero_patrimonio, status, data_garantia, deleted_at, created_at, updated_at',
         manutencoes: 'id, item_tipo, item_id, descricao, data_envio, data_retorno, custo, status_manutencao',
     };
     for (const [table, columns] of Object.entries(schema)) {

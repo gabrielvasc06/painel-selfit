@@ -84,6 +84,8 @@ export const moduleLabels: Record<ModuloTipo, {
 export type Equipamento = {
   id: string;
   nome: string;
+  numero_serie?: string | null;
+  numero_patrimonio?: string | null;
   categoria: EquipamentoCategoria;
   tipo_modulo?: 'TV' | 'CAMERA' | 'EQUIPAMENTO';
   unidade_id?: string;

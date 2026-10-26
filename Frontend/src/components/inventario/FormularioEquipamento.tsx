@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { ApiError, type ApiEnvelope } from '@/services/apiTypes';
 import { dateBrToIso, maskDateBr } from '@/utils/date';
+import { CamposIdentificacao, type IdentificadoresEquipamento } from './CamposIdentificacao';
 
 export type EquipmentField = {
   uf: string;
@@ -44,6 +45,7 @@ export function FormularioEquipamento({
 }) {
   const { apiRequest, notifyInventoryUpdated } = useApi();
   const [form, setForm] = useState<EquipmentField>({ ...emptyForm, categoria: category ?? '' });
+  const [identificadores, setIdentificadores] = useState<IdentificadoresEquipamento>({ numero_serie: '', numero_patrimonio: '' });
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -82,7 +84,7 @@ export function FormularioEquipamento({
       return;
     }
     const { uf, ...equipmentPayload } = payload;
-    const apiPayload = { ...equipmentPayload, data_garantia: dataGarantiaIso, unidade_uf: uf };
+    const apiPayload = { ...equipmentPayload, ...identificadores, data_garantia: dataGarantiaIso, unidade_uf: uf };
 
     try {
       const result = await apiRequest<ApiEnvelope<never>>('/register/equipamentos', {
@@ -93,6 +95,7 @@ export function FormularioEquipamento({
       notifyInventoryUpdated();
       setSuccess(result.message ?? result.mensagem ?? 'Cadastro realizado com sucesso.');
       setForm({ ...emptyForm, categoria: category ?? '' });
+      setIdentificadores({ numero_serie: '', numero_patrimonio: '' });
     } catch (submitError) {
       setError((submitError as Error).message || 'Nao foi possivel cadastrar. Verifique os dados e tente novamente.');
     } finally {
@@ -156,6 +159,11 @@ export function FormularioEquipamento({
                 ) : <input required readOnly value={form.categoria} className={inputClass} />}
               </label>
               {field('marca', 'Marca', { maxLength: 50 })}
+              <CamposIdentificacao values={identificadores} onChange={(field, value) => {
+                setIdentificadores((current) => ({ ...current, [field]: value }));
+                setError('');
+                setSuccess('');
+              }} />
               <label className="block space-y-2 text-sm font-semibold text-slate-700">
                 <span>Status</span>
                 <select required value={form.status} onChange={(event) => update('status', event.target.value)} className={inputClass}>
@@ -173,7 +181,7 @@ export function FormularioEquipamento({
               <Button type="submit" size="lg" disabled={saving} className="flex-1 sm:flex-none">
                 {saving ? <><Loader2 className="h-5 w-5 animate-spin" /> Enviando...</> : <><Save className="h-5 w-5" /> Cadastrar</>}
               </Button>
-              <Button type="button" variant="outline" size="lg" onClick={() => { setForm({ ...emptyForm, categoria: category ?? '' }); setError(''); setSuccess(''); }}>Limpar</Button>
+              <Button type="button" variant="outline" size="lg" onClick={() => { setForm({ ...emptyForm, categoria: category ?? '' }); setIdentificadores({ numero_serie: '', numero_patrimonio: '' }); setError(''); setSuccess(''); }}>Limpar</Button>
             </div>
           </form>
         </CardContent>

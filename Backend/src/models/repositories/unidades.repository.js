@@ -5,6 +5,15 @@ const fields = ['nome', 'tipo_unidade', 'cnpj', 'cep', 'uf', 'bairro', 'rua', 'n
 // Nao encaminhar propriedades de req.body ao SQL: somente as colunas do contrato.
 const record = (unit) => Object.fromEntries(fields.map((field) => [field, unit[field]]));
 
+function identifierSearch(pattern, params) {
+    // EXISTS evita duplicar unidades quando varios ativos correspondem a busca.
+    return ['equipamentos', 'tvs', 'cameras'].map((table) => {
+        params.push(pattern, pattern);
+        return `EXISTS (SELECT 1 FROM ${table} ativo WHERE ativo.unidade_id = unidades.id
+            AND ativo.deleted_at IS NULL AND (ativo.numero_serie LIKE ? OR ativo.numero_patrimonio LIKE ?))`;
+    });
+}
+
 function createUnitRepository(database) {
     return {
         async findById(id) {
@@ -23,13 +32,15 @@ function createUnitRepository(database) {
             const conditions = ["tipo_unidade = 'PROPRIA'"];
             const params = [], orderParams = [];
             if (prefixo) {
-                conditions.push('nome LIKE ?'); params.push(`${prefixo}%`);
+                params.push(`${prefixo}%`);
+                conditions.push(`(nome LIKE ? OR ${identifierSearch(`${prefixo}%`, params).join(' OR ')})`);
             } else if (busca) {
                 const columns = ['nome', 'tipo_unidade', 'cnpj', 'cep', 'bairro', 'rua', 'numero'];
                 const search = columns.map((column) => `${column} LIKE ?`);
                 params.push(...columns.map(() => `%${busca}%`));
                 const numeric = digits(busca);
                 if (numeric.length >= 3) { search.push(`${normalizedCnpj} LIKE ?`); params.push(`%${numeric}%`); }
+                search.push(...identifierSearch(`%${busca}%`, params));
                 conditions.push(`(${search.join(' OR ')})`);
                 orderParams.push(`${busca}%`);
             }

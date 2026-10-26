@@ -10,6 +10,6 @@ A API limita tentativas de login e tamanho de JSON, usa Helmet/CSP, valida orige
 
 `TRUST_PROXY` deve listar apenas os proxies administrados pela empresa. O proxy substitui o IP encaminhado pelo IP real do cliente. Restrição de rede e CORS não substituem autenticação. Configuração HTTPS, firewall e reinício do serviço estão no [guia de execu??o](EXECUCAO.md).
 
-Credenciais de desenvolvimento, `.admin-test-access.txt`, `.env` e backups são privados, ignorados pelo Git e excluídos do pacote de distribuição. Use credenciais próprias para a primeira versão oficial. O provisionamento recusa sobrescrever uma senha existente.
+Credenciais de desenvolvimento, `Backend/.admin-test-access.txt`, `.env` e backups são privados, ignorados pelo Git e excluídos do pacote de distribuição. O arquivo de acesso de testes fica junto à configuração privada do backend, separado dos backups SQL. Use credenciais próprias para a primeira versão oficial. O provisionamento recusa sobrescrever uma senha existente.
 
 As limitações conhecidas e os resultados da revisão estão em [AUDITORIA.md](AUDITORIA.md). Execute `npm run check` e os testes de integração antes de distribuir uma nova versão. Os testes que criam schemas devem usar uma credencial de validação, separada da conta de operação.

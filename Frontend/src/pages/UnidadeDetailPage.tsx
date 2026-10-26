@@ -1,3 +1,4 @@
+import { CamposIdentificacao } from '@/components/inventario/CamposIdentificacao';
 import { useApi } from '@/hooks/useApi';
 // Arquivo: Frontend/src/pages/UnidadeDetailPage.tsx
 // Serve para: detalha uma unidade e seus itens do modulo selecionado.
@@ -23,7 +24,7 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
   const items = getEquipamentosByModulo(modulo).filter((item) => item.unidade_id === unidadeId);
   const [editing, setEditing] = useState<Equipamento | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Equipamento | null>(null);
-  const [form, setForm] = useState({ nome: '', marca: '', status: 'ATIVO', data_garantia: '' });
+  const [form, setForm] = useState<{ nome: string; marca: string; status: string; data_garantia: string; numero_serie: string | null; numero_patrimonio: string | null }>({ nome: '', marca: '', status: 'ATIVO', data_garantia: '', numero_serie: null, numero_patrimonio: null });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -33,6 +34,8 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
     setEditing(item);
     setForm({
       nome: item.nome,
+      numero_serie: item.numero_serie ?? null,
+      numero_patrimonio: item.numero_patrimonio ?? null,
       marca: item.marca ?? '',
       status: item.status.toLocaleUpperCase('pt-BR'),
       data_garantia: isoToDateBr(item.data_garantia),
@@ -57,6 +60,8 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
         method: 'PUT',
         body: JSON.stringify({
           unidade_nome: unidade.nome,
+          numero_serie: form.numero_serie,
+          numero_patrimonio: form.numero_patrimonio,
           nome_identificacao: form.nome.trim().toLocaleUpperCase('pt-BR'),
           marca: form.marca.trim().toLocaleUpperCase('pt-BR'),
           status: form.status.toLocaleUpperCase('pt-BR'),
@@ -110,14 +115,16 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
         <CardContent className="p-0">
           {items.length === 0 ? <p className="p-10 text-center text-sm text-slate-500">Nenhum item encontrado para esta unidade.</p> : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left text-sm">
+              <table className="w-full min-w-[1050px] text-left text-sm">
                 <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                  <tr><th className="px-4 py-3">Identificacao</th><th className="px-4 py-3">Categoria</th><th className="px-4 py-3">Marca</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Garantia</th><th className="px-4 py-3">Acoes</th></tr>
+                  <tr><th className="px-4 py-3">Identificacao</th><th className="px-4 py-3">Número de série</th><th className="px-4 py-3">Número de patrimônio</th><th className="px-4 py-3">Categoria</th><th className="px-4 py-3">Marca</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Garantia</th><th className="px-4 py-3">Acoes</th></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {items.map((item) => (
                     <tr key={item.id} className="uppercase">
                       <td className="px-4 py-3 font-semibold">{item.nome}</td>
+                      <td className="px-4 py-3">{item.numero_serie ?? 'Não informado'}</td>
+                      <td className="px-4 py-3">{item.numero_patrimonio ?? 'Não informado'}</td>
                       <td className="px-4 py-3">{categoriaLabels[item.categoria] ?? item.categoria}</td>
                       <td className="px-4 py-3">{item.marca ?? '-'}</td>
                       <td className="px-4 py-3">{statusEquipLabels[item.status] ?? item.status}</td>
@@ -138,9 +145,10 @@ export function UnidadeDetailPage({ unidadeId, onBack }: { unidadeId: string; on
       </Card>
 
       {editing && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEditing(null)}>
-        <Card className="w-full max-w-2xl p-6" onClick={(event) => event.stopPropagation()}>
+        <Card className="max-h-[90dvh] w-full max-w-2xl overflow-y-auto p-6" onClick={(event) => event.stopPropagation()}>
           <div className="mb-5 flex items-center justify-between"><CardTitle>Atualizar {categoriaLabels[editing.categoria] ?? 'equipamento'}</CardTitle><button type="button" onClick={() => setEditing(null)} aria-label="Fechar" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button></div>
           <form onSubmit={save} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <CamposIdentificacao values={form} onChange={(field, value) => setForm(current => ({ ...current, [field]: value }))} />
             <Field label="Identificacao"><input required maxLength={100} value={form.nome} onChange={(event) => setForm((current) => ({ ...current, nome: event.target.value.toLocaleUpperCase('pt-BR') }))} className={inputClass} /></Field>
             <Field label="Marca"><input required maxLength={50} value={form.marca} onChange={(event) => setForm((current) => ({ ...current, marca: event.target.value.toLocaleUpperCase('pt-BR') }))} className={inputClass} /></Field>
             <Field label="Status"><select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value }))} className={inputClass}><option>ATIVO</option><option>EM MANUTENCAO</option><option>INATIVO</option></select></Field>

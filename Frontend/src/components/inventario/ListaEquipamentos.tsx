@@ -1,3 +1,4 @@
+import { CamposIdentificacao } from '@/components/inventario/CamposIdentificacao';
 import { useApi } from '@/hooks/useApi';
 // Arquivo: Frontend/src/components/inventario/ListaEquipamentos.tsx
 // Serve para: lista compartilhada para consultar, editar e remover itens de inventario.
@@ -69,6 +70,8 @@ export function ListaEquipamentos() {
         method: 'PUT',
         body: JSON.stringify({
           unidade_nome: editing.unidade_nome,
+          numero_serie: editing.numero_serie ?? null,
+          numero_patrimonio: editing.numero_patrimonio ?? null,
           nome_identificacao: editing.nome_identificacao,
           categoria: editing.categoria,
           marca: editing.marca,
@@ -105,7 +108,7 @@ export function ListaEquipamentos() {
     return records.filter((item) => moduleMatches(item, modulo))
       .filter((item) => category === 'all' || item.categoria === category)
       .filter((item) => status === 'all' || item.status.toLocaleUpperCase('pt-BR') === status)
-      .filter((item) => !term || [item.nome_identificacao, item.unidade_nome, item.categoria, item.marca].some((value) => value?.toLocaleUpperCase('pt-BR').includes(term)));
+      .filter((item) => !term || [item.nome_identificacao, item.unidade_nome, item.categoria, item.marca, item.numero_serie, item.numero_patrimonio].some((value) => value?.toLocaleUpperCase('pt-BR').includes(term)));
   }, [category, modulo, query, records, status]);
 
   return (
@@ -126,7 +129,7 @@ export function ListaEquipamentos() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(16rem,1fr)_14rem_14rem]">
           <label className="relative block">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar identificacao, unidade ou marca" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm uppercase text-slate-800 focus:border-selfit-500 focus:outline-none" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar identificação, série, patrimônio, unidade ou marca" className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm uppercase text-slate-800 focus:border-selfit-500 focus:outline-none" />
           </label>
           <select value={category} onChange={(event) => setCategory(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
             <option value="all">Todas as categorias</option>
@@ -148,23 +151,24 @@ export function ListaEquipamentos() {
         <CardContent className="p-0">
           {loading ? <div className="flex items-center justify-center gap-2 py-12 text-sm text-slate-500"><Loader2 className="h-4 w-4 animate-spin" />Carregando registros...</div>
             : filtered.length === 0 ? <p className="py-12 text-center text-sm text-slate-500">{error ? 'Nao foi possivel consultar os registros.' : 'Nenhum registro encontrado.'}</p>
-              : <div className="overflow-x-auto"><table className="w-full min-w-[950px] text-left text-sm">
+              : <div className="overflow-x-auto"><table className="w-full min-w-[1200px] text-left text-sm">
                 <thead className="bg-slate-50 text-xs font-semibold uppercase text-slate-500"><tr>
-                  <th className="px-4 py-3">Identificacao</th><th className="px-4 py-3">Categoria</th><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Marca</th><th className="px-4 py-3">Garantia</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Acoes</th>
+                  <th className="px-4 py-3">Identificacao</th><th className="px-4 py-3">Número de série</th><th className="px-4 py-3">Número de patrimônio</th><th className="px-4 py-3">Categoria</th><th className="px-4 py-3">Unidade</th><th className="px-4 py-3">Marca</th><th className="px-4 py-3">Garantia</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Acoes</th>
                 </tr></thead>
                 <tbody className="divide-y divide-slate-100">
                   {filtered.map((item) => <tr key={item.id} className="text-slate-700">
-                    <td className="px-4 py-3 font-semibold uppercase text-slate-900">{item.nome_identificacao}</td><td className="px-4 py-3 uppercase">{item.categoria}</td><td className="px-4 py-3 uppercase">{item.unidade_nome}</td><td className="px-4 py-3 uppercase">{item.marca}</td><td className="px-4 py-3">{formatDate(item.data_garantia)}</td><td className="px-4 py-3 uppercase">{item.status}</td><td className="px-4 py-3"><div className="flex gap-1"><button type="button" onClick={() => setEditing({ ...item, data_garantia: isoToDateBr(item.data_garantia) })} title="Atualizar" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button><button type="button" onClick={() => setPendingDelete(item)} title="Remover" className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button></div></td>
+                    <td className="px-4 py-3 font-semibold uppercase text-slate-900">{item.nome_identificacao}</td><td className="px-4 py-3 uppercase">{item.numero_serie ?? 'Não informado'}</td><td className="px-4 py-3 uppercase">{item.numero_patrimonio ?? 'Não informado'}</td><td className="px-4 py-3 uppercase">{item.categoria}</td><td className="px-4 py-3 uppercase">{item.unidade_nome}</td><td className="px-4 py-3 uppercase">{item.marca}</td><td className="px-4 py-3">{formatDate(item.data_garantia)}</td><td className="px-4 py-3 uppercase">{item.status}</td><td className="px-4 py-3"><div className="flex gap-1"><button type="button" onClick={() => setEditing({ ...item, data_garantia: isoToDateBr(item.data_garantia) })} title="Atualizar" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button><button type="button" onClick={() => setPendingDelete(item)} title="Remover" className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button></div></td>
                   </tr>)}
                 </tbody>
               </table></div>}
         </CardContent>
       </Card>
 
-      {editing && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEditing(null)}><Card className="w-full max-w-3xl p-6" onClick={(event) => event.stopPropagation()}>
+      {editing && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setEditing(null)}><Card className="max-h-[90dvh] w-full max-w-3xl overflow-y-auto p-6" onClick={(event) => event.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between"><CardTitle>Atualizar registro</CardTitle><button type="button" onClick={() => setEditing(null)} aria-label="Fechar" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button></div>
         <form onSubmit={saveEquipment} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {([['unidade_nome','Unidade'],['nome_identificacao','Identificacao'],['marca','Marca'],['data_garantia','Garantia']] as const).map(([key,label]) => <label key={key} className="space-y-1 text-sm font-medium text-slate-700"><span>{label}</span><input required inputMode={key === 'data_garantia' ? 'numeric' : undefined} placeholder={key === 'data_garantia' ? 'DD/MM/AAAA' : undefined} maxLength={key === 'data_garantia' ? 10 : key === 'marca' ? 50 : 100} value={editing[key] ?? ''} onChange={(event) => setEditing((current) => current ? { ...current, [key]: key === 'data_garantia' ? maskDateBr(event.target.value) : event.target.value.toLocaleUpperCase('pt-BR') } : current)} className="w-full rounded-lg border border-slate-300 px-3 py-2 uppercase" /></label>)}
+          <CamposIdentificacao values={{ numero_serie: editing.numero_serie ?? null, numero_patrimonio: editing.numero_patrimonio ?? null }} onChange={(field, value) => setEditing(current => current ? { ...current, [field]: value } : current)} />
           <label className="space-y-1 text-sm font-medium text-slate-700"><span>Status</span><select value={editing.status} onChange={(event) => setEditing((current) => current ? { ...current, status: event.target.value } : current)} className="w-full rounded-lg border border-slate-300 px-3 py-2"><option>ATIVO</option><option>EM MANUTENCAO</option><option>INATIVO</option><option>OUTROS</option></select></label>
           <div className="flex gap-2 sm:col-span-2"><button disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}Salvar</button><button type="button" onClick={() => setEditing(null)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm">Cancelar</button></div>
         </form>

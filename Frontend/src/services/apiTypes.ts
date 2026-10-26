@@ -31,6 +31,8 @@ export interface ApiEquipmentRecord {
   unidade_cep?: string | null;
   uf?: string | null;
   nome_identificacao: string;
+  numero_serie?: string | null;
+  numero_patrimonio?: string | null;
   categoria: string;
   marca: string;
   status: string;

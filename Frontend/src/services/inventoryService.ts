@@ -26,6 +26,8 @@ const mapEquipment = (item: ApiEquipmentRecord): Equipamento => {
     id: String(item.id),
     unidade_id: item.unidade_id == null ? undefined : String(item.unidade_id),
     nome: item.nome_identificacao,
+    numero_serie: item.numero_serie ?? null,
+    numero_patrimonio: item.numero_patrimonio ?? null,
     categoria: item.categoria.toLocaleUpperCase('pt-BR') as Equipamento['categoria'],
     tipo_modulo: item.tipo_modulo,
     status,

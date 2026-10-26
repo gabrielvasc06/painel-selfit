@@ -60,6 +60,8 @@ node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"
 
 Em base existente, faça backup antes de atualizar. Disponibilize `mysqldump` no PATH ou configure `MYSQLDUMP_PATH` com o caminho do executável.
 
+Os comandos mantêm uma cópia local por banco: `backups/backup-principal.sql` e `backups/backup-homologacao.sql`. Uma execução bem-sucedida substitui a cópia anterior do mesmo ambiente; falhas mantêm o arquivo anterior. O script usa um arquivo temporário durante a geração e não acumula versões com datas. Histórico de retenção no servidor deve ser mantido pelo processo de backup da empresa, fora dessa pasta local.
+
 ```sh
 npm run db:backup:production
 npm run api:migrate:production
