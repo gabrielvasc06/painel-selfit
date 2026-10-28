@@ -2,9 +2,11 @@
 
 ## Estrutura de execução
 
+Este é o guia de operação do Painel Selfit: explica como instalar as dependências, configurar o ambiente, preparar o banco, iniciar o sistema, verificar seu funcionamento e recuperar uma instalação. É um documento de consulta; a aplicação não executa nem carrega este arquivo.
+
 O Node.js executa `Backend/src/server.js` e serve o frontend compilado em `Frontend/dist/`, junto com a API em `/api`. Não há Docker nem pasta de exemplos `deploy/`.
 
-Os requisitos declarados são Node.js `>=22.12.0 <25` e MySQL 8.0. Esta revisão utilizou Node.js 24.14.1. DNS, certificado HTTPS, firewall, supervisão do processo e permissões da conta do serviço devem ser configurados pela TI no servidor de destino.
+Os requisitos declarados são Node.js `>=22.12.0 <25` e MySQL 8.0. Esta revisão utilizou Node.js 24.14.1 e validou uma instalação limpa das dependências de produção. DNS, certificado HTTPS, firewall, supervisão do processo e permissões da conta do serviço devem ser configurados pela TI no servidor de destino.
 
 ## Instalação com os fontes
 

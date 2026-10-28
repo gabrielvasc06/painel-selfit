@@ -1,4 +1,4 @@
-// Arquivo: Backend/database/migrations/20260928193000_remove_obsolete_equipment_fields.js
+// Arquivo: Backend/database/migrations/002_remover_campos_obsoletos_dos_equipamentos.js
 // Serve para: migration do banco; cria ou ajusta estrutura necessaria para a API.
 
 const removedColumns = ['numero_serie', 'placa_patrimonio', 'localizacao', 'endereco_ip'];

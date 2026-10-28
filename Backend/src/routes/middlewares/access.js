@@ -1,8 +1,5 @@
 const proxyaddr = require('proxy-addr');
-
-function list(value) {
-    return String(value || '').split(',').map((item) => item.trim()).filter(Boolean);
-}
+const { parseList: list } = require('../../config/runtime');
 
 function isAllowedUser(username, env = process.env) {
     const allowed = list(env.ACCESS_ALLOWED_USERS).map((item) => item.toUpperCase());

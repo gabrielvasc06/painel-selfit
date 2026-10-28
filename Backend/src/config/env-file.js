@@ -22,7 +22,7 @@ function resolveEnvPath() {
         return candidates[0];
     }
 
-    // Existem apenas dois arquivos: .env e o principal; homologacao exige
+    // .env e o principal; .env.homolog exige
     // selecao explicita com SELFIT_ENV_FILE para evitar misturar os bancos.
     return path.resolve(__dirname, '../..', '.env');
 }

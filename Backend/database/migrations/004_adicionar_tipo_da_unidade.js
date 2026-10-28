@@ -1,4 +1,4 @@
-// Arquivo: Backend/database/migrations/20260929143000_add_tipo_unidade.js
+// Arquivo: Backend/database/migrations/004_adicionar_tipo_da_unidade.js
 // Serve para: migration do banco; cria ou ajusta estrutura necessaria para a API.
 
 /**

@@ -1,4 +1,4 @@
-// Arquivo: Backend/database/migrations/20260928202000_split_inventory_modules.js
+// Arquivo: Backend/database/migrations/003_separar_tvs_cameras_e_equipamentos.js
 // Serve para: migration do banco; cria ou ajusta estrutura necessaria para a API.
 
 const removedEquipmentColumns = ['modelo', 'mac_address'];
@@ -143,7 +143,7 @@ async function moveLegacyRows(knex, category, targetTable, targetType) {
   }
 
   if (rows.length) {
-    await knex('equipamentos').where({ categoria }).delete();
+    await knex('equipamentos').where({ categoria: category }).delete();
   }
 }
 

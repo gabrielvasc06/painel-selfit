@@ -1,7 +1,5 @@
 // Arquivo: Backend/src/config/swagger.js
 
-const swaggerJsdoc = require('swagger-jsdoc');
-
 const successEnvelope = {
     type: 'object',
     properties: {
@@ -158,7 +156,6 @@ const listEnvelope = (schemaRef) => ({
 });
 
 const protectedRoute = [{ bearerAuth: [] }];
-const serverPort = process.env.PORT || '3000';
 
 const options = {
     definition: {
@@ -170,8 +167,8 @@ const options = {
         },
         servers: [
             {
-                url: `http://localhost:${serverPort}`,
-                description: serverPort === '3001' ? 'Ambiente de homologacao local' : 'Ambiente de desenvolvimento',
+                url: '/api',
+                description: 'API na mesma origem do painel',
             },
         ],
         tags: [
@@ -629,9 +626,7 @@ const options = {
             },
         },
     },
-    apis: [],
 };
 
-const swaggerSpec = swaggerJsdoc(options);
-
-module.exports = swaggerSpec;
+// O contrato ja e um objeto OpenAPI completo; nao ha anotacoes para processar.
+module.exports = options.definition;
