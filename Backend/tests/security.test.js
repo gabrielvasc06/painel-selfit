@@ -151,6 +151,7 @@ test('serve SPA, assets e cabecalhos seguros sem expor arquivos internos ou Swag
 test('JSON invalido e corpo ausente retornam 400; login nao autorizado nao consulta banco', async () => {
     assert.equal((await request('/api/auth', { method: 'POST' })).status, 400);
     assert.equal((await request('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{' })).status, 400);
+    assert.equal((await request('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '[]' })).status, 400);
     assert.equal((await request('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario: 'ESTRANHO', senha: 'qualquer' }) })).status, 401);
     assert.equal(queries, 0);
 });
@@ -168,6 +169,20 @@ test('producao recusa configuracao incompleta e TLS do banco nunca desativa vali
     assert.throws(() => validateRuntime({ ...env, JWT_SECRET: 'curta' }));
     assert.throws(() => validateRuntime({ ...env, PORT: '-1' }));
     assert.equal(connectionOptions({ ...env, DB_SSL: 'true' }).ssl.rejectUnauthorized, true);
+});
+
+test('configuracao de rede falha cedo e listas aceitam espacos e virgula final', () => {
+    const env = { ...process.env };
+    for (const key of ['FRONT', 'ACCESS_ALLOWED_CIDRS', 'ACCESS_ALLOWED_USERS']) {
+        assert.throws(() => validateRuntime({ ...env, [key]: ' ,  , ' }), new RegExp(key));
+        assert.equal(validateRuntime({ ...env, [key]: ` ${env[key]}, ` }).production, true);
+    }
+    for (const key of ['ACCESS_ALLOWED_CIDRS', 'TRUST_PROXY']) {
+        assert.throws(() => validateRuntime({ ...env, [key]: '192.0.2.0/99' }), new RegExp(key));
+    }
+    for (const origin of ['endereco-invalido', 'https://painel.example.com/', 'https://painel.example.com/caminho']) {
+        assert.throws(() => validateRuntime({ ...env, FRONT: origin }), /FRONT/);
+    }
 });
 
 test('datas impossiveis sao rejeitadas antes de acessar o banco', async () => {

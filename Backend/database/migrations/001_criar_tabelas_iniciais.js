@@ -1,4 +1,4 @@
-// Arquivo: Backend/database/migrations/migrate.js
+// Arquivo: Backend/database/migrations/001_criar_tabelas_iniciais.js
 // Serve para: migration do banco; cria ou ajusta estrutura necessaria para a API.
 
 /**

@@ -15,6 +15,9 @@ function connectionOptions(env = process.env) {
         user: env.DB_USER,
         password: env.DB_PASSWORD,
         database: env.DB_DATABASE,
+        // DATE representa um dia civil. Nao converter para Date/UTC, pois o fuso
+        // do servidor pode mudar o dia exibido na garantia ou na manutencao.
+        dateStrings: ['DATE'],
         connectTimeout: 10000,
         ...(env.DB_SSL === 'true' ? {
             ssl: {

@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { rateLimit } = require('express-rate-limit');
 const { createCorsOptions } = require('./cors');
+const { parseList } = require('./runtime');
 const { BusinessError } = require('../models/regras/erro-negocio');
 const { networkAccess, userAdministration } = require('../routes/middlewares/access');
 
@@ -14,7 +15,8 @@ function createHttpApp({ database, models, staticDir = path.resolve(__dirname, '
     const production = process.env.NODE_ENV === 'production';
     app.disable('x-powered-by');
     // Confiar somente nos IPs/sub-redes dos proxies realmente administrados pelo TI.
-    if (process.env.TRUST_PROXY) app.set('trust proxy', process.env.TRUST_PROXY.split(',').map((v) => v.trim()));
+    const trustedProxies = parseList(process.env.TRUST_PROXY);
+    if (trustedProxies.length) app.set('trust proxy', trustedProxies);
     app.use(helmet({
         contentSecurityPolicy: production ? {
             directives: {
@@ -34,7 +36,11 @@ function createHttpApp({ database, models, staticDir = path.resolve(__dirname, '
     });
     app.use(cors(createCorsOptions()));
     app.use(express.json({ limit: '2mb' }));
-    app.use((req, res, next) => { req.body ??= {}; next(); });
+    app.use((req, res, next) => {
+        req.body ??= {};
+        if (Array.isArray(req.body)) return res.status(400).json({ sucesso: false, mensagem: 'O corpo da requisicao deve ser um objeto JSON.' });
+        next();
+    });
 
     const api = express.Router();
     api.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });

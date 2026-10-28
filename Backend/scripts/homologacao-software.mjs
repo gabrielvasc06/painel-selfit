@@ -210,6 +210,7 @@ async function main() {
       const created = list.dados.find((record) => record.nome_identificacao === item.nome);
       assert(created, `${item.module} nao retornou na consulta do seu modulo.`);
       assert(created.tipo_modulo === item.module, `${item.module} retornou com tipo_modulo incorreto.`);
+      assert(created.data_garantia === '2028-12-31', 'Data de garantia mudou de dia na resposta da API.');
       assert(created.numero_serie === item.serial, `${item.module} nao preservou/normalizou o numero de serie.`);
       assert(created.numero_patrimonio === item.patrimonio, `${item.module} nao preservou o patrimonio ou sua ausencia.`);
       createdRefs.push({ ...item, apiId: created.id, rawId: created.raw_id });
@@ -249,6 +250,7 @@ async function main() {
       const updated = list.dados.find((record) => record.id === item.apiId);
       assert(updated?.marca === `${item.marca} HOMOLOG`, `${item.module} nao atualizou marca.`);
       assert(updated?.status === 'EM MANUTENCAO', `${item.module} nao atualizou status.`);
+      assert(updated?.data_garantia === '2029-01-31', 'Edicao da garantia mudou de dia na resposta da API.');
       assert(updated?.numero_serie === item.serial && updated?.numero_patrimonio === item.patrimonio, 'Edicao parcial apagou identificadores.');
       // A mesma opcao "Nao possui" da interface envia null ao editar.
       await request(`/equipamentos/${encodeURIComponent(item.apiId)}`, {
@@ -280,6 +282,7 @@ async function main() {
 
       const list = await request(`/equipamentos/manutencao?tipo=${item.module}&busca=${encodeURIComponent(unit.nome)}`);
       assert(list.dados.some((record) => record.manutencao_id === maintenanceId), `Manutencao de ${item.module} nao apareceu na consulta.`);
+      assert(list.dados.find((record) => record.manutencao_id === maintenanceId)?.data_envio === '2026-09-30', 'Data de envio mudou de dia na resposta da API.');
     }
     ok('Manutencoes', 'Criacao e consulta por modulo validadas.');
 

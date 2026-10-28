@@ -1,12 +1,26 @@
 ﻿# Revisão técnica — 20/10/2026
 
+## Renomeação das migrations — 28/10/2026
+
+Os sete arquivos agora usam nomes em português, de `001_criar_tabelas_iniciais.js` a `007_preencher_identificadores_ausentes.js`. O `knexfile.js` mantém as identidades anteriores no histórico do Knex, sem alterar os bancos existentes. A numeração mantém a criação das tabelas antes das alterações. A tabela do README descreve cada arquivo.
+
+## Atualização — 28/10/2026: revisão para execução no servidor
+
+- Preservadas as sete migrations já registradas nas bases. Corrigida uma variável na separação de inventários antigos: a exclusão dos itens transferidos usava um nome inexistente e interrompia a atualização quando havia TVs ou câmeras no formato legado.
+- Datas MySQL do tipo `DATE` chegam à API como `YYYY-MM-DD`, preservando o dia de garantia, envio e retorno mesmo quando o processo Node usa outro fuso.
+- Validação antecipada das redes e dos proxies; listas vazias compostas por espaços/vírgulas são recusadas em produção. Arquivos de ambiente selecionados explicitamente ou ilegíveis interrompem o carregamento com erro claro.
+- Removidos o `.gitignore` redundante do backend, os componentes `CardDescription`/`CardFooter` sem uso e a dependência `swagger-jsdoc`, pois o contrato OpenAPI já está declarado integralmente. O Swagger usa `/api` na mesma origem, permitindo consultas na rede interna durante o desenvolvimento.
+- Corrigido o ícone do frontend para usar o recurso processado pelo Vite. Removidas as referências de compartilhamento social que apontavam para um arquivo inexistente. Corpos JSON em formato de lista são recusados com 400.
+- Validação nesta revisão: lint, TypeScript, build e 30 testes aprovados; migrations conferidas em cópias dos dois bancos; integração real em schema temporário com login, operações dos três módulos, inventário legado, ícone e execução em produção. O processo de integração usou `Pacific/Kiritimati` para conferir as datas em outro fuso.
+- Instalação limpa com `npm ci --omit=dev` aprovada em pasta temporária, incluindo bcrypt nativo e execução HTTP sem dependências de desenvolvimento. As bases existentes e as credenciais locais não foram alteradas. O servidor da empresa ainda precisa receber sua configuração de ambiente e ser validado no destino; nenhum arquivo de SSH foi acrescentado.
+
 ## Atualização — 22/10/2026: identificação dos ativos
 
 - Número de série e número de patrimônio adicionados aos cadastros, edições e consultas de TVs, equipamentos e câmeras. A consulta de unidades encontra a unidade pelos identificadores de seus ativos, ignorando itens excluídos.
 - A opção **Não possui**, ao lado do patrimônio, desabilita o campo e envia `null` à API. A série continua disponível. Por solicitação posterior, o backend agora persiste **NÃO INFORMADO** no MySQL para identificadores ausentes; a resposta da API mantém `null` para preservar o comportamento da interface e dos clientes existentes.
 - Validação compartilhada aceita texto de até 100 caracteres, preserva zeros à esquerda e normaliza maiúsculas. Atualizações parciais preservam identificadores omitidos.
 - As duas migrations de identificadores foram aplicadas em **selfit_db e selfit_homolog**. As bases possuem sete migrations. A segunda preenche somente números nulos/vazios com **NÃO INFORMADO** e define esse default nas seis colunas, preservando números reais e datas de atualização. Novos backups foram feitos antes dessa substituição. Os snapshots `principal.sql` e `homologacao.sql` foram exportados novamente.
-- Corrigida a ordem de execução em bancos vazios: a migration histórica `migrate.js` cria a base antes dos arquivos datados. Seus nomes e registros anteriores foram preservados.
+- Corrigida a ordem de execução em bancos vazios: a migration histórica `001_criar_tabelas_iniciais.js` cria a base antes dos arquivos datados. Seus nomes e registros anteriores foram preservados.
 - Backups completos de 22/10 foram restaurados em schemas temporários e comparados após cada atualização: somente os identificadores nulos/vazios foram substituídos pelo texto solicitado. Números reais, demais campos e datas de atualização foram preservados. Na conferência mais recente, a homologação contém 3 TVs; as demais contagens permanecem iguais às da tabela histórica abaixo.
 - Validados lint, TypeScript, build, 28 testes e integração real da API em banco temporário: cadastro e edição dos três módulos, pesquisa por identificadores, ausência de patrimônio, edição parcial e exclusão lógica. Migrations também passaram nas cópias das duas bases e em instalação vazia, com segunda execução sem alterações.
 - No Chrome, o build foi validado com respostas simuladas da API: campos dos três cadastros, checkbox exclusivo do patrimônio, consulta de unidades, detalhes e preenchimento da edição. A persistência foi coberta separadamente pela integração com MySQL real.
@@ -62,6 +76,6 @@ Em 22/10, os seis dumps locais com datas foram substituídos por duas cópias at
 
 Os testes cobrem regras dos models, proteção dos endpoints, organização MVC e separação de chamadas externas no frontend. Consulte o README para localizar cada responsabilidade.
 
-## Valida??o da entrega
+## Validação histórica da entrega de 20/10
 
-Lint sem avisos, TypeScript, build, 25 testes e integra??o real dos tr?s m?dulos passaram. Os testes de migrations validaram c?pias dos dois ambientes sem mudan?as nos registros. A gera??o do pacote tamb?m foi executada. A reinstala??o isolada das depend?ncias de produ??o n?o foi conclu?da nesta m?quina: faltou um pacote no cache offline e a tentativa seguinte encontrou uma falha interna do npm. A instala??o limpa no servidor ainda precisa ser validada.
+Na revisão de 20/10, lint, TypeScript, build, 25 testes e integração dos três módulos passaram. A reinstalação isolada das dependências ficou pendente naquela data por falhas de cache/npm; essa verificação local foi concluída na revisão de 28/10 acima. A instalação no servidor de destino ainda depende do ambiente da empresa.

@@ -18,7 +18,7 @@ const env = { ...process.env, NODE_ENV: 'development', DB_DATABASE: schema,
   ACCESS_ALLOWED_USERS: 'ADMIN', USER_ADMIN_USERS: 'ADMIN', ACCESS_ALLOWED_CIDRS: '127.0.0.1/32,::1/128',
   TRUST_PROXY: '', JWT_SECRET: crypto.randomBytes(48).toString('hex'), HOST: '127.0.0.1',
   BOOTSTRAP_USER: 'ADMIN', BOOTSTRAP_PASSWORD: password, HOMOLOG_USER: 'ADMIN', HOMOLOG_PASSWORD: password,
-  FRONT: 'http://localhost:5174',
+  FRONT: 'http://localhost:5174', TZ: 'Pacific/Kiritimati',
 };
 function command(script, args = [], extra = {}) {
   return new Promise((resolve, reject) => {
@@ -57,6 +57,34 @@ async function serve(mode) {
   }
   throw new Error('API nao ficou pronta');
 }
+
+async function verifyLegacyUpgrade() {
+  const database = require('knex')({ client: 'mysql2', connection: { ...connectionOptions(), database: schema } });
+  try {
+    // Reproduz o formato anterior na base descartavel. A migracao deve mover
+    // os ativos e suas manutencoes sem apagar equipamentos de outro modulo.
+    await database.schema.alterTable('manutencoes', (table) => table.bigInteger('equipamento_id').unsigned().nullable());
+    const unit = await database('unidades').first('id');
+    const expected = [];
+    for (const [category, table, type] of [['TV', 'tvs', 'TV'], ['CAMERAS', 'cameras', 'CAMERA'], ['TOTEM', 'equipamentos', 'EQUIPAMENTO']]) {
+      const name = `LEGADO ${category}`;
+      const [id] = await database('equipamentos').insert({ unidade_id: unit.id, nome_identificacao: name,
+        categoria: category, marca: 'TESTE', status: 'ATIVO', data_garantia: '2028-12-31' });
+      const [maintenanceId] = await database('manutencoes').insert({ equipamento_id: id, item_id: id,
+        item_tipo: 'EQUIPAMENTO', descricao: name, data_envio: '2026-10-20' });
+      expected.push({ table, type, name, maintenanceId });
+    }
+    await require('./database/migrations/003_separar_tvs_cameras_e_equipamentos').up(database);
+    for (const { table, type, name, maintenanceId } of expected) {
+      const item = await database(table).where({ nome_identificacao: name }).first();
+      assert.ok(item, `Ativo legado preservado em ${table}`);
+      const maintenance = await database('manutencoes').where({ id: maintenanceId }).first();
+      assert.equal(maintenance.item_tipo, type);
+      assert.equal(Number(maintenance.item_id), Number(item.id));
+      if (table !== 'equipamentos') assert.equal((await database('equipamentos').where({ nome_identificacao: name })).length, 0);
+    }
+  } finally { await database.destroy(); }
+}
 const admin = await mysql.createConnection({ ...connectionOptions(), database: undefined });
 let created = false;
 try {
@@ -82,7 +110,15 @@ try {
   const { token } = await sessionResponse.json();
   assert.equal((await fetch(base + '/api/unidades', { headers: { Authorization: `Bearer ${token}` } })).status, 200);
   assert.equal((await fetch(base + '/api/unidades')).status, 401);
-  console.log('OK: migrations em banco vazio e segunda execucao, bootstrap, login real, CRUD nos tres modulos e frontend em producao.');
+  const page = await (await fetch(base + '/')).text();
+  const icon = /rel="icon"[^>]+href="([^"]+)"/.exec(page)?.[1];
+  assert.ok(icon, 'Build deve conter o icone');
+  const iconResponse = await fetch(new URL(icon, base));
+  assert.equal(iconResponse.status, 200);
+  assert.match(iconResponse.headers.get('content-type'), /image\/png/);
+  await stop();
+  await verifyLegacyUpgrade();
+  console.log('OK: migrations em banco vazio e segunda execucao, atualizacao de inventario legado, bootstrap, login real, CRUD nos tres modulos, datas em outro fuso e frontend em producao.');
 } finally {
   await stop();
   // Nunca apaga schemas existentes: nome aleatorio criado exclusivamente por este processo.

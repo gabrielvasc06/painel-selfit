@@ -108,7 +108,19 @@ O principal é carregado por padrão. Os comandos `:homologacao` selecionam o ar
 
 Os schemas são `selfit_db` e `selfit_homolog`. As estruturas sem dados estão em [principal.sql](database/schemas/principal.sql) e [homologacao.sql](database/schemas/homologacao.sql). Esses snapshots servem para revisão. Instalações e atualizações usam migrations; não importe snapshots sobre uma base existente.
 
-Os nomes das migrations históricas foram preservados ao mover os arquivos. Não apague nem renomeie esse histórico. Os schemas internos do MySQL foram mantidos. `backups/` contém somente `backup-principal.sql` e `backup-homologacao.sql`: uma cópia completa atual por ambiente. Os comandos de backup substituem o arquivo correspondente somente após concluir o novo dump; uma falha preserva a cópia anterior. O acesso local de testes fica em `Backend/.admin-test-access.txt`, privado e fora do Git.
+As sete migrations são necessárias: o Knex registra suas identidades em `knex_migrations` e confere esse histórico antes de atualizar. Os arquivos foram renomeados em português e numerados na ordem de execução. `Backend/knexfile.js` relaciona esses nomes às identidades antigas para preservar a compatibilidade com as bases existentes, sem alterar registros nem reaplicar migrations. Por isso, o status do Knex ainda pode mostrar os nomes históricos. Não remova esse mapeamento nem exclua arquivos já aplicados. As migrations não executam a cada inicialização; `api:migrate` executa somente as pendentes. A ordem é:
+
+| Migration | Responsabilidade |
+| --- | --- |
+| `001_criar_tabelas_iniciais.js` | Cria as tabelas e os índices iniciais, sem cadastrar senhas. |
+| `002_remover_campos_obsoletos_dos_equipamentos.js` | Remove campos do inventário antigo. |
+| `003_separar_tvs_cameras_e_equipamentos.js` | Separa TVs e câmeras, preservando os vínculos das manutenções. |
+| `004_adicionar_tipo_da_unidade.js` | Compatibiliza o tipo das unidades de bases antigas. |
+| `005_validar_referencias_e_indexar_manutencoes.js` | Valida as referências e acrescenta o índice de manutenções. |
+| `006_adicionar_serie_e_patrimonio_dos_ativos.js` | Adiciona série e patrimônio aos três módulos. |
+| `007_preencher_identificadores_ausentes.js` | Define o texto padrão para identificadores ausentes. |
+
+`backups/` contém `backup-principal.sql` e `backup-homologacao.sql`: uma cópia completa por ambiente. Os comandos substituem o arquivo correspondente somente após concluir o novo dump; uma falha preserva a cópia anterior. O acesso local de testes fica em `Backend/.admin-test-access.txt`, privado e fora do Git.
 
 ## Identificação dos ativos
 
@@ -118,7 +130,7 @@ Ao lado do patrimônio, a opção **Não possui** desabilita o campo e envia `nu
 
 `Frontend/src/components/inventario/CamposIdentificacao.tsx` compartilha os campos entre cadastro e edição. `Backend/src/models/regras/identificadores.js` centraliza a validação e o texto padrão. Em atualizações parciais, omitir um identificador preserva seu valor; enviar `null` o substitui por **NÃO INFORMADO**. As respostas da API continuam usando `null` para ausência, mantendo o checkbox e os clientes existentes compatíveis.
 
-A migration `20261022120000_add_inventory_identifiers.js` acrescenta as colunas nas três tabelas. A seguinte, `20261022130000_fill_missing_inventory_identifiers.js`, substitui apenas identificadores nulos/vazios pelo texto padrão e define o mesmo default no MySQL para inserções que omitem a coluna. Números existentes e datas de atualização são preservados. As migrations devem ser executadas nos dois ambientes antes de iniciar a nova API:
+A migration `006_adicionar_serie_e_patrimonio_dos_ativos.js` acrescenta as colunas nas três tabelas. A seguinte, `007_preencher_identificadores_ausentes.js`, substitui apenas identificadores nulos/vazios pelo texto padrão e define o mesmo default no MySQL para inserções que omitem a coluna. Números existentes e datas de atualização são preservados. As migrations devem ser executadas nos dois ambientes antes de iniciar a nova API:
 
 ```sh
 npm run api:migrate

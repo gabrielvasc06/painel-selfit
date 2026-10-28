@@ -1,5 +1,7 @@
 // Arquivo: Backend/src/config/cors.js
 
+const { parseList } = require('./runtime');
+
 const defaultLocalOrigins = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
@@ -9,18 +11,11 @@ const defaultLocalOrigins = [
     'http://127.0.0.1:4173',
 ];
 
-function parseOrigins(value) {
-    return String(value || '')
-        .split(',')
-        .map((origin) => origin.trim())
-        .filter(Boolean);
-}
-
 function getAllowedOrigins() {
     // FRONT pode receber uma ou mais origens separadas por virgula.
     // As portas locais abaixo evitam erro de CORS quando o Vite troca de porta.
     return new Set([
-        ...parseOrigins(process.env.FRONT),
+        ...parseList(process.env.FRONT),
         ...(process.env.NODE_ENV === 'production' ? [] : defaultLocalOrigins),
     ]);
 }
